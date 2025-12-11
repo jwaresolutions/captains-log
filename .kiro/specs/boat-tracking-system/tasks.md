@@ -539,14 +539,14 @@ This implementation plan follows a phased approach, allowing verification of eac
 
 ## Phase 4: Notes System
 
-- [ ] 4. Implement notes management
-- [ ] 4.1 Create Note schema and service
+- [x] 4. Implement notes management
+- [x] 4.1 Create Note schema and service
   - Add Note entity to Prisma schema with type, content, tags
   - Create Note service with CRUD operations
   - Implement tag management
   - _Requirements: 7.1, 7.2, 7.4, 7.6_
 
-- [ ] 4.2 Create API endpoints for notes
+- [x] 4.2 Create API endpoints for notes
   - Implement POST /api/v1/notes (create note)
   - Implement GET /api/v1/notes (list with filters)
   - Implement PUT /api/v1/notes/:id (update note)
@@ -554,7 +554,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Implement tag filtering and search
   - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
 
-- [ ]* 4.3 Write property tests for notes
+- [x] 4.3 Write property tests for notes
   - **Property 16: Note-Trip Association**
   - **Validates: Requirements 5.6, 7.3**
   - **Property 24: Boat-Specific Note Association**
@@ -564,7 +564,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - **Property 26: Note Tag Filtering**
   - **Validates: Requirements 7.5**
 
-- [ ] 4.4 Create Android notes UI
+- [x] 4.4 Create Android notes UI
   - Create notes list screen with filtering
   - Create note editor screen
   - Implement note type selection (general, boat, trip)
@@ -572,11 +572,11 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Implement offline storage and sync
   - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6_
 
-- [ ] 4.5 Run all property tests and verify they pass
+- [x] 4.5 Run all property tests and verify they pass
   - Run property tests with minimum 100 iterations
   - Ensure all tests pass, ask the user if questions arise
 
-- [ ] 4.6 Manual validation: Notes system
+- [x] 4.6 Manual validation: Notes system
   - **User Action**: Create a general note and verify it appears in notes list
   - **User Action**: Create a boat-specific note and verify it's associated with the correct boat
   - **User Action**: Add a note to a trip and verify it appears in trip details
@@ -601,7 +601,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Implement PATCH /api/v1/todos/items/:id/complete (toggle completion)
   - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5_
 
-- [ ]* 5.3 Write property tests for to-do lists
+- [ ] 5.3 Write property tests for to-do lists
   - **Property 27: Todo List Title Validation**
   - **Validates: Requirements 8.1**
   - **Property 28: Boat-Specific Todo Association**
@@ -653,7 +653,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Auto-schedule next occurrence on completion
   - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.8_
 
-- [ ]* 6.3 Write property tests for maintenance tasks
+- [ ] 6.3 Write property tests for maintenance tasks
   - **Property 32: Maintenance Task-Boat Association**
   - **Validates: Requirements 9.1**
   - **Property 33: Recurring Task Auto-Scheduling**
@@ -668,7 +668,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Respect boat enabled/disabled status
   - _Requirements: 9.6, 18.1, 18.2, 18.3, 18.4_
 
-- [ ]* 6.5 Write property tests for notifications
+- [ ] 6.5 Write property tests for notifications
   - **Property 4: Disabled Boat Notification Suppression**
   - **Validates: Requirements 3.3, 9.7, 18.3**
   - **Property 34: Maintenance Due Notifications**
@@ -718,7 +718,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Implement GET /api/v1/locations/nearby (find nearby locations)
   - _Requirements: 10.2, 10.4, 10.5, 10.6_
 
-- [ ]* 7.3 Write property tests for locations
+- [ ] 7.3 Write property tests for locations
   - **Property 36: Marked Location Storage**
   - **Validates: Requirements 10.2**
   - **Property 37: Distance Calculation**
@@ -730,7 +730,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Default to device timezone when GPS unavailable
   - _Requirements: 16.1, 16.2, 16.3, 16.4_
 
-- [ ]* 7.5 Write property tests for time zones
+- [ ] 7.5 Write property tests for time zones
   - **Property 44: Timezone Determination**
   - **Validates: Requirements 16.1**
   - **Property 45: Timezone Display**
@@ -782,7 +782,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Implement web optimization (1920px width)
   - _Requirements: 11.1, 11.2, 11.5, 11.6_
 
-- [ ]* 8.3 Write property tests for photos
+- [ ] 8.3 Write property tests for photos
   - **Property 15: Photo-Trip Association**
   - **Validates: Requirements 5.5, 11.6**
   - **Property 38: Photo Storage and Retrieval**
@@ -799,7 +799,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Retain local photos for 7 days after successful upload before deletion
   - _Requirements: 11.3, 11.4, 11.5_
 
-- [ ]* 8.5 Write property tests for photo upload restrictions
+- [ ] 8.5 Write property tests for photo upload restrictions
   - **Property 50: Photo Upload Network Restriction**
   - **Validates: Requirements 11.3**
   - **Property 51: Local Photo Upload Preference**
@@ -849,7 +849,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Implement backup listing
   - _Requirements: 12.1, 12.2, 12.3_
 
-- [ ]* 9.2 Write property test for backup completeness
+- [ ] 9.2 Write property test for backup completeness
   - **Property 40: Database and Photo Backup Completeness**
   - **Validates: Requirements 12.3**
 
@@ -887,7 +887,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Implement GET /api/v1/sensors/readings (get sensor data by trip)
   - _Requirements: 13.2, 13.3, 13.4_
 
-- [ ]* 10.3 Write property test for sensor data relay
+- [ ] 10.3 Write property test for sensor data relay
   - **Property 41: Sensor Data Relay**
   - **Validates: Requirements 13.2**
 
@@ -970,7 +970,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Add quick action buttons
   - _Requirements: 14.1, 14.2, 14.5_
 
-- [ ]* 11.6 Write property test for dashboard content
+- [ ] 11.6 Write property test for dashboard content
   - **Property 42: Dashboard Content Completeness**
   - **Validates: Requirements 14.2**
 
@@ -990,7 +990,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Display manual data fields
   - _Requirements: 5.1, 5.2, 5.3, 5.4_
 
-- [ ]* 11.9 Write property test for trip display
+- [ ] 11.9 Write property test for trip display
   - **Property 13: Trip Display Completeness**
   - **Validates: Requirements 5.1**
 
@@ -1151,7 +1151,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Verify rate limiting works correctly
   - _Requirements: 2.1, 2.2, 2.4, 2.11, 19.6_
 
-- [ ]* 12.10a Write property test for input validation
+- [ ] 12.10a Write property test for input validation
   - **Property 54: Input Validation**
   - **Validates: Requirements 19.6**
   - Generate random inputs with invalid lengths, types, and missing required fields

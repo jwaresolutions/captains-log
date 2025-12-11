@@ -8,11 +8,17 @@ import androidx.room.TypeConverters
 import com.boattracking.database.converters.DateConverter
 import com.boattracking.database.dao.BoatDao
 import com.boattracking.database.dao.GpsPointDao
+import com.boattracking.database.dao.NoteDao
 import com.boattracking.database.dao.PhotoDao
+import com.boattracking.database.dao.TodoItemDao
+import com.boattracking.database.dao.TodoListDao
 import com.boattracking.database.dao.TripDao
 import com.boattracking.database.entities.BoatEntity
 import com.boattracking.database.entities.GpsPointEntity
+import com.boattracking.database.entities.NoteEntity
 import com.boattracking.database.entities.PhotoEntity
+import com.boattracking.database.entities.TodoItemEntity
+import com.boattracking.database.entities.TodoListEntity
 import com.boattracking.database.entities.TripEntity
 
 @Database(
@@ -20,9 +26,12 @@ import com.boattracking.database.entities.TripEntity
         TripEntity::class,
         GpsPointEntity::class,
         PhotoEntity::class,
-        BoatEntity::class
+        BoatEntity::class,
+        NoteEntity::class,
+        TodoListEntity::class,
+        TodoItemEntity::class
     ],
-    version = 2,
+    version = 4,
     exportSchema = false
 )
 @TypeConverters(DateConverter::class)
@@ -31,6 +40,9 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun gpsPointDao(): GpsPointDao
     abstract fun photoDao(): PhotoDao
     abstract fun boatDao(): BoatDao
+    abstract fun noteDao(): NoteDao
+    abstract fun todoListDao(): TodoListDao
+    abstract fun todoItemDao(): TodoItemDao
 
     companion object {
         @Volatile

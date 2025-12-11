@@ -4,8 +4,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -13,7 +15,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import com.boattracking.ui.boats.BoatListScreen
 import com.boattracking.ui.license.LicenseProgressScreen
+import com.boattracking.ui.notes.NotesNavigation
 import com.boattracking.ui.settings.SettingsScreen
+import com.boattracking.ui.todos.TodoNavigation
 import com.boattracking.ui.trips.TripNavigation
 import com.boattracking.util.LicenseTrackingPreferences
 
@@ -65,6 +69,12 @@ fun MainNavigation() {
             NavigationTab.Boats -> {
                 BoatListScreen(modifier = Modifier.padding(paddingValues))
             }
+            NavigationTab.Notes -> {
+                NotesNavigation(modifier = Modifier.padding(paddingValues))
+            }
+            NavigationTab.Todos -> {
+                TodoNavigation()
+            }
             NavigationTab.License -> {
                 LicenseProgressScreen(modifier = Modifier.padding(paddingValues))
             }
@@ -86,6 +96,8 @@ fun MainNavigation() {
 enum class NavigationTab(val label: String, val icon: ImageVector) {
     Trips("Trips", Icons.Filled.Home),
     Boats("Boats", Icons.Filled.List),
+    Notes("Notes", Icons.Filled.Edit),
+    Todos("Todos", Icons.Filled.CheckCircle),
     License("License", Icons.Filled.Star),
     Settings("Settings", Icons.Filled.Settings)
 }

@@ -19,7 +19,9 @@ model Boat {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  trips Trip[]
+  trips     Trip[]
+  notes     Note[]
+  todoLists TodoList[]
 
   @@index([enabled])
   @@index([isActive])
@@ -38,6 +40,7 @@ model Trip {
 
   boat      Boat       @relation(fields: [boatId], references: [id], onDelete: Cascade)
   gpsPoints GPSPoint[]
+  notes     Note[]
 
   // Statistics (computed and stored)
   durationSeconds  Int?
@@ -101,4 +104,53 @@ model SessionToken {
   @@index([token])
   @@index([expiresAt])
   @@index([isRevoked])
+}
+
+model Note {
+  id        String   @id @default(uuid())
+  content   String
+  type      String   // 'general', 'boat', 'trip'
+  boatId    String?  // Optional - only for boat-specific notes
+  tripId    String?  // Optional - only for trip-specific notes
+  tags      String[] // Array of tags for organization
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  boat Boat? @relation(fields: [boatId], references: [id], onDelete: Cascade)
+  trip Trip? @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([type])
+  @@index([boatId])
+  @@index([tripId])
+  @@index([createdAt])
+}
+
+model TodoList {
+  id        String   @id @default(uuid())
+  title     String
+  boatId    String?  // Optional - only for boat-specific lists
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  boat  Boat?      @relation(fields: [boatId], references: [id], onDelete: Cascade)
+  items TodoItem[]
+
+  @@index([boatId])
+  @@index([createdAt])
+}
+
+model TodoItem {
+  id            String    @id @default(uuid())
+  todoListId    String
+  content       String
+  completed     Boolean   @default(false)
+  completedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  todoList TodoList @relation(fields: [todoListId], references: [id], onDelete: Cascade)
+
+  @@index([todoListId])
+  @@index([completed])
+  @@index([createdAt])
 }

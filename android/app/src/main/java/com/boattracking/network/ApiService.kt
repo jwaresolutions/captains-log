@@ -87,4 +87,85 @@ interface ApiService {
 
     @GET("api/v1/captain-log/check-day/{date}")
     suspend fun checkSeaTimeDay(@Path("date") date: String): Response<SeaTimeDayCheckResponse>
+
+    // Notes endpoints
+    @POST("api/v1/notes")
+    suspend fun createNote(@Body request: CreateNoteRequest): Response<NoteResponse>
+
+    @GET("api/v1/notes")
+    suspend fun getNotes(
+        @Query("type") type: String? = null,
+        @Query("boatId") boatId: String? = null,
+        @Query("tripId") tripId: String? = null,
+        @Query("tags") tags: List<String>? = null,
+        @Query("search") search: String? = null
+    ): Response<List<NoteResponse>>
+
+    @GET("api/v1/notes/{id}")
+    suspend fun getNote(@Path("id") id: String): Response<NoteResponse>
+
+    @PUT("api/v1/notes/{id}")
+    suspend fun updateNote(
+        @Path("id") id: String,
+        @Body request: UpdateNoteRequest
+    ): Response<NoteResponse>
+
+    @DELETE("api/v1/notes/{id}")
+    suspend fun deleteNote(@Path("id") id: String): Response<Unit>
+
+    @POST("api/v1/notes/{id}/tags")
+    suspend fun addNoteTags(
+        @Path("id") id: String,
+        @Body tags: Map<String, List<String>>
+    ): Response<NoteResponse>
+
+    @DELETE("api/v1/notes/{id}/tags")
+    suspend fun removeNoteTags(
+        @Path("id") id: String,
+        @Body tags: Map<String, List<String>>
+    ): Response<NoteResponse>
+
+    @GET("api/v1/notes/tags/all")
+    suspend fun getAllTags(): Response<TagsResponse>
+
+    // Todo endpoints
+    @POST("api/v1/todos")
+    suspend fun createTodoList(@Body request: CreateTodoListRequest): Response<TodoListResponse>
+
+    @GET("api/v1/todos")
+    suspend fun getTodoLists(
+        @Query("boatId") boatId: String? = null
+    ): Response<List<TodoListResponse>>
+
+    @GET("api/v1/todos/{id}")
+    suspend fun getTodoList(@Path("id") id: String): Response<TodoListResponse>
+
+    @PUT("api/v1/todos/{id}")
+    suspend fun updateTodoList(
+        @Path("id") id: String,
+        @Body request: UpdateTodoListRequest
+    ): Response<TodoListResponse>
+
+    @DELETE("api/v1/todos/{id}")
+    suspend fun deleteTodoList(@Path("id") id: String): Response<Unit>
+
+    @POST("api/v1/todos/{id}/items")
+    suspend fun createTodoItem(
+        @Path("id") listId: String,
+        @Body request: CreateTodoItemRequest
+    ): Response<TodoItemResponse>
+
+    @PUT("api/v1/todos/items/{itemId}")
+    suspend fun updateTodoItem(
+        @Path("itemId") itemId: String,
+        @Body request: UpdateTodoItemRequest
+    ): Response<TodoItemResponse>
+
+    @PATCH("api/v1/todos/items/{itemId}/complete")
+    suspend fun toggleTodoItemCompletion(
+        @Path("itemId") itemId: String
+    ): Response<TodoItemResponse>
+
+    @DELETE("api/v1/todos/items/{itemId}")
+    suspend fun deleteTodoItem(@Path("itemId") itemId: String): Response<Unit>
 }

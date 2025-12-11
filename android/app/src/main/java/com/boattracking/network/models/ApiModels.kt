@@ -164,6 +164,78 @@ data class SeaTimeDayCheckResponse(
     val isSeaTimeDay: Boolean
 )
 
+// Note models
+data class NoteResponse(
+    val id: String,
+    val content: String,
+    val type: String,
+    val boatId: String?,
+    val tripId: String?,
+    val tags: List<String>,
+    val createdAt: String,
+    val updatedAt: String,
+    val boat: BoatResponse?,
+    val trip: TripResponse?
+)
+
+data class CreateNoteRequest(
+    val content: String,
+    val type: String,
+    val boatId: String? = null,
+    val tripId: String? = null,
+    val tags: List<String> = emptyList()
+)
+
+data class UpdateNoteRequest(
+    val content: String?,
+    val tags: List<String>?
+)
+
+data class TagsResponse(
+    val data: List<String>,
+    val count: Int
+)
+
+// Todo models
+data class TodoListResponse(
+    val id: String,
+    val title: String,
+    val boatId: String?,
+    val createdAt: String,
+    val updatedAt: String,
+    val items: List<TodoItemResponse>,
+    val boat: BoatResponse?
+)
+
+data class TodoItemResponse(
+    val id: String,
+    val todoListId: String,
+    val content: String,
+    val completed: Boolean,
+    val completedAt: String?,
+    val createdAt: String,
+    val updatedAt: String
+)
+
+data class CreateTodoListRequest(
+    val title: String,
+    val boatId: String? = null
+)
+
+data class UpdateTodoListRequest(
+    val title: String?,
+    val boatId: String?
+)
+
+data class CreateTodoItemRequest(
+    val content: String
+)
+
+data class UpdateTodoItemRequest(
+    val content: String?,
+    val completed: Boolean?
+)
+
 // Generic response wrapper
 data class ApiResponse<T>(
     val data: T?,

@@ -8,6 +8,8 @@ import testRoutes from './routes/test';
 import boatRoutes from './routes/boats';
 import tripRoutes from './routes/trips';
 import captainLogRoutes from './routes/captainLog';
+import noteRoutes from './routes/notes';
+import todoRoutes from './routes/todos';
 import { checkAndCreateInitialUser } from './utils/initialSetup';
 
 // Load environment variables
@@ -51,7 +53,9 @@ app.get('/api/v1', (_req: Request, res: Response) => {
       auth: '/api/v1/auth',
       boats: '/api/v1/boats',
       trips: '/api/v1/trips',
-      captainLog: '/api/v1/captain-log'
+      captainLog: '/api/v1/captain-log',
+      notes: '/api/v1/notes',
+      todos: '/api/v1/todos'
     }
   });
 });
@@ -70,6 +74,12 @@ app.use('/api/v1/trips', authenticateToken, tripRoutes);
 
 // Captain's log routes (requires authentication)
 app.use('/api/v1/captain-log', authenticateToken, captainLogRoutes);
+
+// Notes routes (requires authentication)
+app.use('/api/v1/notes', authenticateToken, noteRoutes);
+
+// Todo routes (requires authentication)
+app.use('/api/v1/todos', authenticateToken, todoRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
