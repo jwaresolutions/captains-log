@@ -305,12 +305,12 @@ All test runner scripts should be placed in the project root `temp/` directory (
 
 ```
 temp/                   # Project-wide test orchestration scripts
-  ├── task-1-5.sh      # Task 1.5: API key auth property tests
+  ├── task-1-38.sh     # Task 1.38: Authentication property tests (JWT/bcrypt)
   ├── task-1-7.sh      # Task 1.7: Boat service property tests
   ├── task-1-10.sh     # Task 1.10: Connection manager property tests
   ├── task-1-14.sh     # Task 1.14: Trip service property tests
   ├── task-1-17.sh     # Task 1.17: Sync service property tests
-  ├── task-1-25.sh     # Task 1.25: Phase 1 checkpoint - all property tests
+  ├── task-1-43.sh     # Task 1.43: Phase 1.5 checkpoint - all authentication tests
   ├── task-2-7.sh      # Task 2.7: Phase 2 checkpoint
   └── ...
 ```

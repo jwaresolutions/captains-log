@@ -99,3 +99,11 @@ The Boat Tracking System is a comprehensive dual-platform application designed t
 - 7-day local photo retention after upload before deletion
 - Database and photo backups (manual and automatic)
 - Time zone handling based on GPS coordinates (device timezone as fallback)
+
+### User Management and Initial Setup
+- CLI-based user creation and management (no public registration API)
+- Initial setup flow creates first user via environment variables or setup wizard
+- Password change functionality invalidates all existing session tokens
+- User management commands accessible via Docker Compose
+- Database reset and seeding commands for development
+- Secure user account creation restricted to administrators

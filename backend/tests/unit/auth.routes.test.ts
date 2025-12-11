@@ -496,9 +496,18 @@ describe('Auth Routes - Password Change', () => {
     });
 
     it('should reject password change with incorrect current password', async () => {
+      // Login to get a fresh token
+      const loginResponse = await request(app)
+        .post('/api/v1/auth/login')
+        .send({
+          username: 'testuser_password',
+          password: 'oldpassword123'
+        });
+      const token = loginResponse.body.token;
+
       const response = await request(app)
         .post('/api/v1/auth/change-password')
-        .set('Authorization', `Bearer ${validToken}`)
+        .set('Authorization', `Bearer ${token}`)
         .send({
           currentPassword: 'wrongpassword',
           newPassword: 'newpassword456'

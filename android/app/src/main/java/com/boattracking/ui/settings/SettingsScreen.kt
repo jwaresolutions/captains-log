@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,6 +26,7 @@ import com.boattracking.BuildConfig
 import com.boattracking.connection.ConnectionManager
 import com.boattracking.security.SecurePreferences
 import com.boattracking.sync.ConflictLogger
+import com.boattracking.util.DebugPreferences
 import com.boattracking.viewmodel.TripTrackingViewModel
 import kotlinx.coroutines.launch
 
@@ -46,6 +48,8 @@ fun SettingsScreen(
     var conflictLogs by remember { mutableStateOf("No conflicts logged") }
     
     val conflictLogger = remember { ConflictLogger(context) }
+    val debugPrefs = remember { DebugPreferences(context) }
+    var isDebugMode by remember { mutableStateOf(debugPrefs.isDebugModeEnabled) }
     
     // Load conflict logs
     LaunchedEffect(Unit) {
@@ -137,6 +141,19 @@ fun SettingsScreen(
                             
                             // Restart the activity to show login screen
                             (context as? android.app.Activity)?.recreate()
+                        }
+                    )
+                }
+
+                Divider()
+
+                // Developer Section
+                SettingsSection(title = "Developer") {
+                    DebugToggleItem(
+                        isEnabled = isDebugMode,
+                        onToggle = { enabled ->
+                            isDebugMode = enabled
+                            debugPrefs.isDebugModeEnabled = enabled
                         }
                     )
                 }
@@ -441,6 +458,51 @@ fun ServerSettingsScreen(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun DebugToggleItem(
+    isEnabled: Boolean,
+    onToggle: (Boolean) -> Unit
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.Build,
+                contentDescription = null,
+                tint = if (isEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(24.dp)
+            )
+            
+            Spacer(modifier = Modifier.width(16.dp))
+            
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = "Debug Mode",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Text(
+                    text = if (isEnabled) "Debug menus and buttons are visible" else "Debug menus and buttons are hidden",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            
+            Switch(
+                checked = isEnabled,
+                onCheckedChange = onToggle
+            )
         }
     }
 }

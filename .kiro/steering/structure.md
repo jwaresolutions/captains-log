@@ -128,8 +128,11 @@ All file paths, commands, and tooling assume a macOS environment. Avoid Linux-sp
 - Foreground service for GPS tracking
 - Dependency injection with Hilt (if needed)
 - TLS certificate pinning with OkHttp (separate pins for local/remote Cloudflare certificates)
-- EncryptedSharedPreferences for secure session token storage
+- EncryptedSharedPreferences for secure JWT session token storage (replaces API key storage)
+- Login screen with username/password authentication
+- Automatic token refresh and re-login on expiration
 - Connection Manager with local/remote fallback (2-second local timeout)
+- Bearer token authentication for all API requests
 - 7-day local photo retention after successful upload
 - Sync conflict notification to user
 
@@ -172,10 +175,13 @@ All file paths, commands, and tooling assume a macOS environment. Avoid Linux-sp
 - Sanitize data before database operations
 - Use parameterized queries (Prisma handles this)
 - HTTPS only for API communication (Cloudflare certificates for both local and remote)
-- Username/password authentication with bcrypt password hashing
-- JWT session tokens for API authentication
+- Username/password authentication with bcrypt password hashing (replaces API key authentication)
+- JWT session tokens for API authentication with configurable expiration (default: 30 days)
+- Session token invalidation on password changes
+- No public user registration API (CLI-only user creation)
 - Rate limiting on API (in addition to Cloudflare protection)
 - TLS certificate pinning on Android (separate SHA-256 fingerprints for local and remote connections)
 - Secure storage using EncryptedSharedPreferences on Android for session tokens
 - Dual connection mode with local network priority for reduced exposure
 - Certificate updates require Android app update
+- Initial setup flow for first user creation via environment variables or setup wizard

@@ -26,4 +26,7 @@ interface TripDao {
 
     @Query("UPDATE trips SET synced = 1 WHERE id = :tripId")
     suspend fun markAsSynced(tripId: String)
+
+    @Query("SELECT * FROM trips WHERE endTime IS NULL ORDER BY startTime DESC")
+    suspend fun getActiveTrips(): List<TripEntity>
 }

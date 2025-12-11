@@ -29,6 +29,8 @@ fun ActiveTripScreen(
     activeBoat: BoatEntity? = null,
     errorMessage: String? = null,
     onErrorDismissed: () -> Unit = {},
+    onForceCleanup: () -> Unit = {},
+    onRefreshState: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var showStartDialog by remember { mutableStateOf(false) }
@@ -64,27 +66,130 @@ fun ActiveTripScreen(
                 .padding(paddingValues)
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Top
         ) {
+            // Debug info (ALWAYS visible) - BRIGHT YELLOW BACKGROUND
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = androidx.compose.ui.graphics.Color.Yellow)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text("Debug Info:", style = MaterialTheme.typography.titleSmall)
+                    Text("isTracking: $isTracking", style = MaterialTheme.typography.bodySmall)
+                    Text("currentTrip: ${if (currentTrip != null) "Not null (${currentTrip.id})" else "null"}", style = MaterialTheme.typography.bodySmall)
+                    Text("Show stop button: ${isTracking && currentTrip != null}", style = MaterialTheme.typography.bodySmall)
+                    Text("Available boats: ${boats.size}", style = MaterialTheme.typography.bodySmall)
+                    Text("Active boat: ${activeBoat?.name ?: "none"}", style = MaterialTheme.typography.bodySmall)
+                    Text("Error: ${errorMessage ?: "none"}", style = MaterialTheme.typography.bodySmall)
+                    
+                    // More detailed debug info
+                    Text("isTracking type: ${isTracking::class.simpleName}", style = MaterialTheme.typography.bodySmall)
+                    Text("currentTrip type: ${currentTrip?.let { it::class.simpleName } ?: "null"}", style = MaterialTheme.typography.bodySmall)
+                    if (currentTrip != null) {
+                        Text("Trip ID: ${currentTrip.id}", style = MaterialTheme.typography.bodySmall)
+                        Text("Trip start: ${currentTrip.startTime}", style = MaterialTheme.typography.bodySmall)
+                        Text("Trip end: ${currentTrip.endTime ?: "null"}", style = MaterialTheme.typography.bodySmall)
+                    }
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Button(
+                            onClick = {
+                                android.util.Log.d("ActiveTripScreen", "Force cleanup button clicked")
+                                onForceCleanup()
+                            },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.secondary
+                            )
+                        ) {
+                            Text("Cleanup", style = MaterialTheme.typography.bodySmall)
+                        }
+                        
+                        Button(
+                            onClick = {
+                                android.util.Log.d("ActiveTripScreen", "Manual refresh button clicked")
+                                onRefreshState()
+                            },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.tertiary
+                            )
+                        ) {
+                            Text("Refresh", style = MaterialTheme.typography.bodySmall)
+                        }
+                        
+                        Button(
+                            onClick = {
+                                android.util.Log.d("ActiveTripScreen", "Force stop button clicked")
+                                onStopTrip()
+                            },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.error
+                            )
+                        ) {
+                            Text("STOP", style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // MAIN CONTENT AREA
             if (isTracking && currentTrip != null) {
-                // Show active trip information
-                ActiveTripInfo(trip = currentTrip)
+                // Show active trip information WITH STOP BUTTON
+                ActiveTripInfo(
+                    trip = currentTrip,
+                    onStopTrip = onStopTrip
+                )
                 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(16.dp))
                 
-                // Stop button
-                Button(
-                    onClick = onStopTrip,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
-                    )
+                // ALSO SHOW DEBUG CARD WHEN TRIP IS ACTIVE
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = androidx.compose.ui.graphics.Color.Red.copy(alpha = 0.3f))
                 ) {
-                    Text("■", style = MaterialTheme.typography.headlineMedium)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Stop Trip", style = MaterialTheme.typography.titleMedium)
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("EMERGENCY CONTROLS:", style = MaterialTheme.typography.titleSmall)
+                        
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Button(
+                                onClick = {
+                                    android.util.Log.d("ActiveTripScreen", "Emergency stop button clicked")
+                                    onStopTrip()
+                                },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.error
+                                )
+                            ) {
+                                Text("EMERGENCY STOP", style = MaterialTheme.typography.bodySmall)
+                            }
+                            
+                            Button(
+                                onClick = {
+                                    android.util.Log.d("ActiveTripScreen", "Manual refresh button clicked")
+                                    onRefreshState()
+                                },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.tertiary
+                                )
+                            ) {
+                                Text("Refresh", style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    }
                 }
             } else {
                 // Show start trip button
@@ -114,7 +219,10 @@ fun ActiveTripScreen(
                 Spacer(modifier = Modifier.height(32.dp))
                 
                 Button(
-                    onClick = { showStartDialog = true },
+                    onClick = { 
+                        android.util.Log.d("ActiveTripScreen", "Start Trip button clicked")
+                        showStartDialog = true 
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp)
@@ -128,9 +236,14 @@ fun ActiveTripScreen(
     }
     
     if (showStartDialog) {
+        android.util.Log.d("ActiveTripScreen", "Showing StartTripDialog")
         StartTripDialog(
-            onDismiss = { showStartDialog = false },
+            onDismiss = { 
+                android.util.Log.d("ActiveTripScreen", "Dialog dismissed")
+                showStartDialog = false 
+            },
             onConfirm = { boatId, waterType, role ->
+                android.util.Log.d("ActiveTripScreen", "Dialog confirmed: boatId=$boatId")
                 onStartTrip(boatId, waterType, role)
                 showStartDialog = false
             },
@@ -143,6 +256,7 @@ fun ActiveTripScreen(
 @Composable
 fun ActiveTripInfo(
     trip: TripEntity,
+    onStopTrip: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -193,6 +307,26 @@ fun ActiveTripInfo(
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Medium
             )
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            // STOP TRIP BUTTON - ALWAYS VISIBLE IN TRIP DETAILS
+            Button(
+                onClick = {
+                    android.util.Log.d("ActiveTripInfo", "STOP TRIP button clicked")
+                    onStopTrip()
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Text("■", style = MaterialTheme.typography.headlineMedium)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("STOP TRIP", style = MaterialTheme.typography.titleMedium)
+            }
         }
     }
 }
@@ -373,6 +507,7 @@ fun StartTripDialog(
             Button(
                 onClick = { 
                     selectedBoat?.let { boat ->
+                        android.util.Log.d("StartTripDialog", "Starting trip for boat: ${boat.name} (${boat.id})")
                         onConfirm(boat.id, waterType, role)
                     }
                 },

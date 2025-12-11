@@ -67,11 +67,11 @@
             android:exported="false"
             android:foregroundServiceType="location" />
 
-        <!-- Bluetooth Service -->
-        <service
+        <!-- Bluetooth Service (not implemented yet) -->
+        <!-- <service
             android:name=".service.BluetoothService"
             android:enabled="true"
-            android:exported="false" />
+            android:exported="false" /> -->
 
     </application>
 

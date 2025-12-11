@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import com.boattracking.database.entities.GpsPointEntity
 import com.boattracking.database.entities.TripEntity
 import com.boattracking.repository.TripStatistics
+import com.boattracking.util.DebugPreferences
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -27,8 +28,13 @@ fun TripDetailScreen(
     gpsPoints: List<GpsPointEntity>,
     statistics: TripStatistics?,
     onNavigateBack: () -> Unit,
+    onStopTrip: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val debugPrefs = remember { DebugPreferences(context) }
+    val isDebugMode by remember { mutableStateOf(debugPrefs.isDebugModeEnabled) }
+    
     Scaffold(
         topBar = {
             TopAppBar(
@@ -55,6 +61,116 @@ fun TripDetailScreen(
         ) {
             // Trip header
             TripHeaderCard(trip = trip)
+            
+            // ALWAYS show stop button at the top for visibility
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = if (trip.endTime == null) {
+                        MaterialTheme.colorScheme.errorContainer
+                    } else {
+                        MaterialTheme.colorScheme.surfaceVariant
+                    }
+                )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp)
+                ) {
+                    if (trip.endTime == null) {
+                        // ACTIVE TRIP - Prominent stop button
+                        Text(
+                            text = "🔴 TRIP IN PROGRESS",
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        
+                        Text(
+                            text = "GPS tracking is active - tap to stop",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                        
+                        Spacer(modifier = Modifier.height(20.dp))
+                        
+                        // HUGE STOP BUTTON
+                        Button(
+                            onClick = {
+                                android.util.Log.d("TripDetailScreen", "🛑 STOP TRIP button clicked for active trip ${trip.id}")
+                                onStopTrip()
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(80.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.error,
+                                contentColor = androidx.compose.ui.graphics.Color.White
+                            )
+                        ) {
+                            Text(
+                                "🛑 STOP TRIP",
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        
+                        // Show debug force stop button only in debug mode
+                        if (isDebugMode) {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            
+                            // Secondary force stop button
+                            Button(
+                                onClick = {
+                                    android.util.Log.d("TripDetailScreen", "💥 FORCE STOP button clicked for active trip ${trip.id}")
+                                    onStopTrip()
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = androidx.compose.ui.graphics.Color.Red.copy(alpha = 0.8f),
+                                    contentColor = androidx.compose.ui.graphics.Color.White
+                                )
+                            ) {
+                                Text("🐛 FORCE STOP (debug - if normal stop fails)")
+                            }
+                        }
+                        
+                    } else {
+                        // COMPLETED TRIP
+                        Text(
+                            text = "✅ TRIP COMPLETED",
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        
+                        Text(
+                            text = "Ended: ${formatDateTime(trip.endTime!!)}",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                        
+                        // Show debug cleanup button only in debug mode
+                        if (isDebugMode) {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            
+                            // Debug cleanup button for completed trips
+                            Button(
+                                onClick = {
+                                    android.util.Log.d("TripDetailScreen", "🧹 CLEANUP button clicked for completed trip ${trip.id}")
+                                    onStopTrip()
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.secondary
+                                )
+                            ) {
+                                Text("🐛 CLEANUP (debug only)")
+                            }
+                        }
+                    }
+                }
+            }
             
             // Statistics card
             if (statistics != null) {
@@ -89,11 +205,32 @@ fun TripHeaderCard(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            Text(
-                text = formatTripDate(trip.startTime),
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+            ) {
+                Text(
+                    text = formatTripDate(trip.startTime),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+                
+                // Status badge
+                Badge(
+                    containerColor = if (trip.endTime == null) {
+                        MaterialTheme.colorScheme.error
+                    } else {
+                        MaterialTheme.colorScheme.primary
+                    }
+                ) {
+                    Text(
+                        text = if (trip.endTime == null) "IN PROGRESS" else "COMPLETED",
+                        fontWeight = FontWeight.Bold,
+                        color = androidx.compose.ui.graphics.Color.White
+                    )
+                }
+            }
             
             Spacer(modifier = Modifier.height(16.dp))
             

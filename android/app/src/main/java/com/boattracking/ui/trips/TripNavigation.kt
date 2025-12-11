@@ -40,6 +40,16 @@ fun TripNavigation(
     var currentScreen by remember { mutableStateOf<TripScreen>(TripScreen.TripList) }
     var selectedTripId by remember { mutableStateOf<String?>(null) }
     
+    // Auto-navigate to TripDetail when tracking starts
+    LaunchedEffect(isTracking, currentTrip) {
+        val trip = currentTrip
+        if (isTracking && trip != null && currentScreen == TripScreen.TripList) {
+            android.util.Log.d("TripNavigation", "Auto-navigating to TripDetail because trip is active")
+            selectedTripId = trip.id
+            currentScreen = TripScreen.TripDetail
+        }
+    }
+    
     // Bind to service on first composition
     DisposableEffect(Unit) {
         viewModel.bindToService(context)
@@ -56,42 +66,39 @@ fun TripNavigation(
                     selectedTripId = tripId
                     currentScreen = TripScreen.TripDetail
                 },
-                onStartNewTrip = {
-                    currentScreen = TripScreen.ActiveTrip
-                }
-            )
-        }
-        
-        TripScreen.ActiveTrip -> {
-            // Load current trip if tracking but trip not loaded
-            LaunchedEffect(isTracking, currentTrip) {
-                if (isTracking && currentTrip == null) {
-                    viewModel.currentTripId.value?.let { tripId ->
-                        viewModel.loadTrip(tripId)
-                    }
-                }
-            }
-            
-            ActiveTripScreen(
-                isTracking = isTracking,
-                currentTrip = currentTrip,
-                onStartTrip = { boatId, waterType, role ->
+                onStartNewTrip = { boatId, waterType, role ->
+                    android.util.Log.d("TripNavigation", "onStartTrip called: boatId=$boatId, waterType=$waterType, role=$role")
                     viewModel.startTrip(
                         context = context,
                         boatId = boatId,
                         waterType = waterType,
                         role = role
                     )
-                },
-                onStopTrip = {
-                    viewModel.stopTrip(context)
-                    currentScreen = TripScreen.TripList
+                    
+                    // Navigate to trip detail after starting
+                    scope.launch {
+                        kotlinx.coroutines.delay(2000) // Wait for trip to start
+                        viewModel.currentTripId.value?.let { tripId ->
+                            selectedTripId = tripId
+                            currentScreen = TripScreen.TripDetail
+                        }
+                    }
                 },
                 boats = boats,
                 activeBoat = activeBoat,
-                errorMessage = errorMessage,
-                onErrorDismissed = {
-                    viewModel.clearError()
+                isTracking = isTracking,
+                currentTrip = currentTrip,
+                onForceCleanup = {
+                    android.util.Log.d("TripNavigation", "Force cleanup requested")
+                    viewModel.forceCleanup()
+                },
+                onRefreshState = {
+                    android.util.Log.d("TripNavigation", "Manual refresh requested")
+                    viewModel.refreshState()
+                },
+                onNuclearStop = {
+                    android.util.Log.d("TripNavigation", "NUCLEAR STOP requested")
+                    viewModel.forceStopEverything(context)
                 }
             )
         }
@@ -118,6 +125,13 @@ fun TripNavigation(
                         onNavigateBack = {
                             currentScreen = TripScreen.TripList
                             selectedTripId = null
+                        },
+                        onStopTrip = {
+                            android.util.Log.d("TripNavigation", "Stop trip called from TripDetailScreen")
+                            // Use force stop for more aggressive stopping
+                            viewModel.forceStopEverything(context)
+                            currentScreen = TripScreen.TripList
+                            selectedTripId = null
                         }
                     )
                 }
@@ -131,6 +145,5 @@ fun TripNavigation(
  */
 sealed class TripScreen {
     object TripList : TripScreen()
-    object ActiveTrip : TripScreen()
     object TripDetail : TripScreen()
 }

@@ -91,7 +91,7 @@ class GpsTrackingService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d(TAG, "onStartCommand: action=${intent?.action}")
+        Log.d(TAG, "onStartCommand: action=${intent?.action}, startId=$startId")
         
         when (intent?.action) {
             ACTION_START_TRIP -> {
@@ -112,9 +112,21 @@ class GpsTrackingService : Service() {
             ACTION_STOP_TRIP -> {
                 Log.d(TAG, "STOP_TRIP action received")
                 stopTrip()
+                return START_NOT_STICKY // Don't restart after stopping
+            }
+            "FORCE_STOP" -> {
+                Log.d(TAG, "FORCE_STOP action received")
+                forceStop()
+                return START_NOT_STICKY
             }
             else -> {
                 Log.w(TAG, "Unknown action: ${intent?.action}")
+                if (intent?.action == null) {
+                    // Service restarted without intent - stop it
+                    Log.d(TAG, "Service restarted without intent - stopping")
+                    stopSelf()
+                    return START_NOT_STICKY
+                }
             }
         }
         
@@ -126,10 +138,78 @@ class GpsTrackingService : Service() {
     }
 
     override fun onDestroy() {
+        Log.d(TAG, "onDestroy() called")
         super.onDestroy()
-        stopTracking()
-        releaseWakeLock()
-        serviceScope.cancel()
+        
+        // Force cleanup everything
+        try {
+            stopTracking()
+            releaseWakeLock()
+            currentTripId = null
+            isTracking = false
+            serviceScope.cancel()
+            Log.d(TAG, "Service destroyed and cleaned up")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error in onDestroy", e)
+        }
+    }
+    
+    /**
+     * Force stop everything - more aggressive than regular stopTrip
+     */
+    fun forceStop() {
+        Log.d(TAG, "forceStop() called - forcing immediate shutdown")
+        
+        try {
+            // Stop location updates immediately
+            stopTracking()
+            Log.d(TAG, "Location updates stopped")
+            
+            // Release wake lock
+            releaseWakeLock()
+            Log.d(TAG, "Wake lock released")
+            
+            // End any active trip in database
+            currentTripId?.let { tripId ->
+                serviceScope.launch {
+                    try {
+                        val trip = database.tripDao().getTripById(tripId)
+                        if (trip != null && trip.endTime == null) {
+                            val endedTrip = trip.copy(
+                                endTime = Date(),
+                                lastModified = Date()
+                            )
+                            database.tripDao().updateTrip(endedTrip)
+                            Log.d(TAG, "Force ended trip: $tripId")
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error force ending trip", e)
+                    }
+                }
+            }
+            
+            // Reset state
+            currentTripId = null
+            isTracking = false
+            
+            // Stop foreground and service
+            stopForeground(STOP_FOREGROUND_REMOVE)
+            stopSelf()
+            
+            Log.d(TAG, "Force stop completed")
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Error in force stop", e)
+            
+            // Last resort - just stop the service
+            try {
+                currentTripId = null
+                isTracking = false
+                stopSelf()
+            } catch (lastResortError: Exception) {
+                Log.e(TAG, "Error in last resort stop", lastResortError)
+            }
+        }
     }
 
     /**
@@ -199,45 +279,74 @@ class GpsTrackingService : Service() {
      * Stop the current trip and end GPS tracking
      */
     fun stopTrip() {
-        if (!isTracking || currentTripId == null) {
-            Log.w(TAG, "No active trip to stop")
-            return
-        }
-        
-        Log.d(TAG, "Stopping trip: $currentTripId")
+        Log.d(TAG, "stopTrip() called - isTracking: $isTracking, currentTripId: $currentTripId")
         
         serviceScope.launch {
             try {
-                // Update trip with end time
-                val trip = database.tripDao().getTripById(currentTripId!!)
-                if (trip != null) {
-                    val updatedTrip = trip.copy(
-                        endTime = Date(),
-                        lastModified = Date()
-                    )
-                    database.tripDao().updateTrip(updatedTrip)
-                    Log.d(TAG, "Trip updated with end time: ${updatedTrip.endTime}")
-                } else {
-                    Log.e(TAG, "Trip not found in database: $currentTripId")
+                // Update trip with end time if we have one
+                currentTripId?.let { tripId ->
+                    Log.d(TAG, "Updating trip $tripId with end time")
+                    val trip = database.tripDao().getTripById(tripId)
+                    if (trip != null) {
+                        val updatedTrip = trip.copy(
+                            endTime = Date(),
+                            lastModified = Date()
+                        )
+                        database.tripDao().updateTrip(updatedTrip)
+                        Log.d(TAG, "Trip updated with end time: ${updatedTrip.endTime}")
+                    } else {
+                        Log.e(TAG, "Trip not found in database: $tripId")
+                    }
                 }
                 
-                // Stop tracking
+                // Stop tracking immediately
+                Log.d(TAG, "Stopping location updates")
                 stopTracking()
-                Log.d(TAG, "Location updates stopped")
                 
+                // Release wake lock
+                Log.d(TAG, "Releasing wake lock")
                 releaseWakeLock()
-                Log.d(TAG, "Wake lock released")
                 
+                // Reset state
                 currentTripId = null
                 isTracking = false
                 
-                // Stop foreground service
-                stopForeground(STOP_FOREGROUND_REMOVE)
-                stopSelf()
-                Log.d(TAG, "Trip stopped successfully")
+                Log.d(TAG, "Service state reset - stopping foreground service")
+                
+                // Stop foreground service and remove notification
+                try {
+                    stopForeground(STOP_FOREGROUND_REMOVE)
+                    Log.d(TAG, "Foreground service stopped")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error stopping foreground service", e)
+                }
+                
+                // Stop the service entirely
+                try {
+                    stopSelf()
+                    Log.d(TAG, "Service stopped via stopSelf()")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error calling stopSelf()", e)
+                }
+                
+                Log.d(TAG, "Trip stop completed successfully")
+                
             } catch (e: Exception) {
                 Log.e(TAG, "Error stopping trip", e)
                 e.printStackTrace()
+                
+                // Force stop even if there was an error
+                try {
+                    stopTracking()
+                    releaseWakeLock()
+                    currentTripId = null
+                    isTracking = false
+                    stopForeground(STOP_FOREGROUND_REMOVE)
+                    stopSelf()
+                    Log.d(TAG, "Force stop completed after error")
+                } catch (forceStopError: Exception) {
+                    Log.e(TAG, "Error in force stop", forceStopError)
+                }
             }
         }
     }

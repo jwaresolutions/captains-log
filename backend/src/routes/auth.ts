@@ -145,7 +145,37 @@ router.post('/logout', async (req: Request, res: Response): Promise<void> => {
  */
 router.post('/change-password', async (req: Request, res: Response): Promise<void> => {
   try {
-    // Extract token from Authorization header
+    // Extract passwords from request body first for validation
+    const { currentPassword, newPassword } = req.body;
+
+    // Validate input - check for missing or empty fields FIRST
+    if (currentPassword === undefined || currentPassword === null || currentPassword === '' || 
+        newPassword === undefined || newPassword === null || newPassword === '') {
+      res.status(400).json({
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Current password and new password are required'
+        },
+        timestamp: new Date().toISOString(),
+        path: req.path
+      });
+      return;
+    }
+
+    // Validate new password strength (basic validation)
+    if (newPassword.length < 8) {
+      res.status(400).json({
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'New password must be at least 8 characters long'
+        },
+        timestamp: new Date().toISOString(),
+        path: req.path
+      });
+      return;
+    }
+
+    // Now validate token after input validation
     const authHeader = req.headers.authorization;
 
     if (!authHeader) {
@@ -184,35 +214,6 @@ router.post('/change-password', async (req: Request, res: Response): Promise<voi
         error: {
           code: 'UNAUTHORIZED',
           message: validation.error || 'Invalid token'
-        },
-        timestamp: new Date().toISOString(),
-        path: req.path
-      });
-      return;
-    }
-
-    // Extract passwords from request body
-    const { currentPassword, newPassword } = req.body;
-
-    // Validate input
-    if (!currentPassword || !newPassword) {
-      res.status(400).json({
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: 'Current password and new password are required'
-        },
-        timestamp: new Date().toISOString(),
-        path: req.path
-      });
-      return;
-    }
-
-    // Validate new password strength (basic validation)
-    if (newPassword.length < 8) {
-      res.status(400).json({
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: 'New password must be at least 8 characters long'
         },
         timestamp: new Date().toISOString(),
         path: req.path

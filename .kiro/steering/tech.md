@@ -111,6 +111,13 @@ npm run build
 
 # Start production server
 npm start
+
+# User management commands
+npm run create-user -- --username admin --password secret
+npm run list-users
+npm run change-password -- --username admin --old-password secret --new-password newsecret
+npm run reset-db -- --username admin --password secret
+npm run seed-db
 ```
 
 ### Web Application
@@ -214,6 +221,12 @@ docker-compose ps
 
 # Access backend container shell
 docker-compose exec backend sh
+
+# User management via Docker
+docker-compose exec backend npm run create-user -- --username admin --password secret
+docker-compose exec backend npm run list-users
+docker-compose exec backend npm run change-password -- --username admin --old-password secret --new-password newsecret
+docker-compose exec backend npm run reset-db -- --username admin --password secret
 ```
 
 ### macOS System Commands
@@ -255,6 +268,40 @@ npm --version
 docker --version
 ```
 
+## Environment Variables
+
+### Backend Environment Variables
+```bash
+# Database Configuration
+DATABASE_URL="postgresql://boat_user:password@localhost:5432/boat_tracking"
+
+# API Configuration
+PORT=8585
+NODE_ENV=development
+
+# JWT Authentication
+JWT_SECRET=your-secret-key-change-in-production
+JWT_EXPIRATION=30d
+
+# Initial Setup (only used when no users exist)
+INITIAL_USER=admin
+INITIAL_PASSWORD=your-initial-password
+
+# Rate Limiting
+RATE_LIMIT_WINDOW_MS=60000
+RATE_LIMIT_MAX_REQUESTS=100
+
+# Storage and Backup
+PHOTO_STORAGE_PATH=./uploads
+MAX_PHOTO_SIZE_MB=50
+BACKUP_PATH=./backups
+AUTO_BACKUP_ENABLED=false
+AUTO_BACKUP_SCHEDULE="0 2 * * *"
+
+# Logging
+LOG_LEVEL=info
+```
+
 ## Key Dependencies
 
 ### Backend
@@ -262,7 +309,7 @@ docker --version
 - @prisma/client: Database ORM
 - sharp: Image processing
 - winston: Logging
-- bcrypt: Password hashing
+- bcrypt: Password hashing (replaces scrypt from API key era)
 - jsonwebtoken: JWT session token generation and validation
 - express-rate-limit: Rate limiting
 - jest: Testing framework

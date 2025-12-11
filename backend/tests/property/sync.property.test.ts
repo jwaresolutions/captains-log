@@ -158,7 +158,7 @@ describe('Sync Service Property Tests', () => {
             // Verify server has equivalent data
             expect(syncedTrip.boatId).toBe(testBoatId);
             expect(syncedTrip.startTime.getTime()).toBe(offlineTripData.startTime.getTime());
-            expect(syncedTrip.endTime.getTime()).toBe(offlineTripData.endTime.getTime());
+            expect(syncedTrip.endTime?.getTime()).toBe(offlineTripData.endTime?.getTime());
             expect(syncedTrip.waterType).toBe(offlineTripData.waterType);
             expect(syncedTrip.role).toBe(offlineTripData.role);
 
@@ -328,7 +328,7 @@ describe('Sync Service Property Tests', () => {
               expect(retrievedTrip!.id).toBe(trip.id);
               expect(retrievedTrip!.boatId).toBe(testBoatId);
               expect(retrievedTrip!.startTime.getTime()).toBe(originalStartTime.getTime());
-              expect(retrievedTrip!.endTime.getTime()).toBe(originalEndTime.getTime());
+              expect(retrievedTrip!.endTime?.getTime()).toBe(originalEndTime?.getTime());
               expect(retrievedTrip!.gpsPoints.length).toBe(originalGpsPointCount);
             } finally {
               // Clean up
