@@ -423,19 +423,19 @@ This implementation plan follows a phased approach, allowing verification of eac
 
 ## Phase 2: Manual Data Entry
 
-- [ ] 2. Implement manual data entry for trips
-- [ ] 2.1 Extend Trip schema with manual data fields
+- [x] 2. Implement manual data entry for trips
+- [x] 2.1 Extend Trip schema with manual data fields
   - Add ManualData fields to Prisma schema (engineHours, fuelConsumed, weatherConditions, numberOfPassengers, destination)
   - Create migration
   - Update Trip service to handle manual data
   - _Requirements: 5.4_
 
-- [ ] 2.2 Create API endpoint for adding manual data to trips
+- [x] 2.2 Create API endpoint for adding manual data to trips
   - Implement PATCH /api/v1/trips/:id/manual-data
   - Validate manual data inputs
   - _Requirements: 5.4_
 
-- [ ] 2.3 Implement trip editing functionality in backend
+- [x] 2.3 Implement trip editing functionality in backend
   - Implement endpoint for editing water type, boat selection, role
   - Add validation for editable fields
   - _Requirements: 5.3_
@@ -444,24 +444,24 @@ This implementation plan follows a phased approach, allowing verification of eac
   - **Property 14: Trip Editability**
   - **Validates: Requirements 5.3**
 
-- [ ] 2.5 Create Android UI for manual data entry
+- [x] 2.5 Create Android UI for manual data entry
   - Create manual data entry form in trip detail screen
   - Add fields for engine hours, fuel, weather, passengers, destination
   - Implement form validation
   - Save to Room database and sync to backend
   - _Requirements: 5.4_
 
-- [ ] 2.6 Implement trip editing UI in Android app
+- [x] 2.6 Implement trip editing UI in Android app
   - Add edit button to trip detail screen
   - Create edit form for water type, boat, role
   - Implement save functionality with sync
   - _Requirements: 5.3_
 
-- [ ] 2.7 Run all property tests and verify they pass
+- [x] 2.7 Run all property tests and verify they pass
   - Run property tests with minimum 100 iterations
   - Ensure all tests pass, ask the user if questions arise
 
-- [ ] 2.8 Manual validation: Manual data entry
+- [x] 2.8 Manual validation: Manual data entry
   - **User Action**: Open an existing trip in Android app
   - **User Action**: Add manual data (engine hours, fuel, weather, passengers, destination)
   - **User Action**: Verify data saves and syncs to backend
@@ -473,8 +473,8 @@ This implementation plan follows a phased approach, allowing verification of eac
 
 ## Phase 3: Captain's License Progress Tracking
 
-- [ ] 3. Implement captain's license tracking
-- [ ] 3.1 Create Captain's Log service
+- [x] 3. Implement captain's license tracking
+- [x] 3.1 Create Captain's Log service
   - Implement sea time day calculation logic
   - Handle 4-hour minimum per day rule
   - Handle multi-day trip calculation
@@ -492,7 +492,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - **Property 20: Cross-Boat License Progress**
   - **Validates: Requirements 6.5**
 
-- [ ] 3.3 Create API endpoint for license progress
+- [x] 3.3 Create API endpoint for license progress
   - Implement GET /api/v1/captain-log/progress
   - Return total days, days in last 3 years, total hours
   - _Requirements: 6.6_
@@ -501,7 +501,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - **Property 21: License Progress Display Completeness**
   - **Validates: Requirements 6.6**
 
-- [ ] 3.5 Implement license goal estimation
+- [x] 3.5 Implement license goal estimation
   - Calculate days remaining to 360-day goal
   - Calculate days remaining to 90-day-in-3-years goal
   - Estimate completion date based on current rate
@@ -513,7 +513,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - **Property 23: License Goal Estimation (90 days in 3 years)**
   - **Validates: Requirements 6.8**
 
-- [ ] 3.7 Create Android UI for license progress
+- [x] 3.7 Create Android UI for license progress
   - Create license progress screen
   - Display total days, days in last 3 years
   - Show progress bars for both goals
@@ -521,7 +521,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Add toggle to enable/disable tracking
   - _Requirements: 6.6, 6.7, 6.8, 6.9_
 
-- [ ] 3.8 Run all property tests and verify they pass
+- [x] 3.8 Run all property tests and verify they pass
   - Run property tests with minimum 100 iterations
   - Ensure all tests pass, ask the user if questions arise
 

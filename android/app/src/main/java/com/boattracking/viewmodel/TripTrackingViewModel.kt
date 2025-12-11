@@ -493,6 +493,30 @@ class TripTrackingViewModel(application: Application) : AndroidViewModel(applica
     }
 
     /**
+     * Update manual data for a trip
+     */
+    fun updateTripManualData(trip: TripEntity) {
+        Log.d(TAG, "Updating manual data for trip ${trip.id}")
+        viewModelScope.launch {
+            try {
+                repository.updateTrip(trip)
+                if (trip.id == _currentTripId.value) {
+                    _currentTrip.value = trip
+                }
+                
+                // Trigger sync to upload manual data to backend
+                val syncManager = com.boattracking.sync.SyncManager.getInstance(getApplication())
+                syncManager.triggerImmediateSync()
+                
+                Log.d(TAG, "Manual data updated successfully for trip ${trip.id} and sync triggered")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error updating manual data for trip ${trip.id}", e)
+                _errorMessage.value = "Failed to update manual data: ${e.message}"
+            }
+        }
+    }
+
+    /**
      * Delete a trip
      */
     fun deleteTrip(trip: TripEntity) {

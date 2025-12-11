@@ -7,6 +7,7 @@ import authRoutes from './routes/auth';
 import testRoutes from './routes/test';
 import boatRoutes from './routes/boats';
 import tripRoutes from './routes/trips';
+import captainLogRoutes from './routes/captainLog';
 import { checkAndCreateInitialUser } from './utils/initialSetup';
 
 // Load environment variables
@@ -49,7 +50,8 @@ app.get('/api/v1', (_req: Request, res: Response) => {
       health: '/health',
       auth: '/api/v1/auth',
       boats: '/api/v1/boats',
-      trips: '/api/v1/trips'
+      trips: '/api/v1/trips',
+      captainLog: '/api/v1/captain-log'
     }
   });
 });
@@ -65,6 +67,9 @@ app.use('/api/v1/boats', authenticateToken, boatRoutes);
 
 // Trip routes (requires authentication)
 app.use('/api/v1/trips', authenticateToken, tripRoutes);
+
+// Captain's log routes (requires authentication)
+app.use('/api/v1/captain-log', authenticateToken, captainLogRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

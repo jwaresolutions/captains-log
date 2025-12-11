@@ -122,6 +122,7 @@ fun TripNavigation(
                         trip = trip,
                         gpsPoints = gpsPoints,
                         statistics = statistics,
+                        boats = boats,
                         onNavigateBack = {
                             currentScreen = TripScreen.TripList
                             selectedTripId = null
@@ -132,6 +133,12 @@ fun TripNavigation(
                             viewModel.forceStopEverything(context)
                             currentScreen = TripScreen.TripList
                             selectedTripId = null
+                        },
+                        onUpdateManualData = { updatedTrip ->
+                            android.util.Log.d("TripNavigation", "Updating trip data for trip ${updatedTrip.id}")
+                            scope.launch {
+                                viewModel.updateTripManualData(updatedTrip)
+                            }
                         }
                     )
                 }

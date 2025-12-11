@@ -69,4 +69,22 @@ interface ApiService {
         @Path("id") id: String,
         @Body manualData: ManualData
     ): Response<TripResponse>
+
+    // Captain's Log endpoints
+    @GET("api/v1/captain-log/progress")
+    suspend fun getLicenseProgress(): Response<LicenseProgressResponse>
+
+    @GET("api/v1/captain-log/sea-time-days")
+    suspend fun getSeaTimeDays(
+        @Query("startDate") startDate: String? = null,
+        @Query("endDate") endDate: String? = null
+    ): Response<List<SeaTimeDayResponse>>
+
+    @GET("api/v1/captain-log/breakdown")
+    suspend fun getSeaTimeBreakdown(
+        @Query("year") year: Int? = null
+    ): Response<List<SeaTimeBreakdownResponse>>
+
+    @GET("api/v1/captain-log/check-day/{date}")
+    suspend fun checkSeaTimeDay(@Path("date") date: String): Response<SeaTimeDayCheckResponse>
 }

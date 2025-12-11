@@ -29,6 +29,7 @@ export interface TripCreateDTO {
 }
 
 export interface TripUpdateDTO {
+  boatId?: string;
   waterType?: 'inland' | 'coastal' | 'offshore';
   role?: 'captain' | 'crew' | 'observer';
   engineHours?: number;
@@ -475,9 +476,21 @@ export class TripService {
       throw new Error('Trip not found');
     }
 
+    // If boatId is being changed, verify the new boat exists
+    if (data.boatId && data.boatId !== trip.boatId) {
+      const boat = await prisma.boat.findUnique({
+        where: { id: data.boatId }
+      });
+
+      if (!boat) {
+        throw new Error('Boat not found');
+      }
+    }
+
     const updated = await prisma.trip.update({
       where: { id },
       data: {
+        ...(data.boatId !== undefined && { boatId: data.boatId }),
         ...(data.waterType !== undefined && { waterType: data.waterType }),
         ...(data.role !== undefined && { role: data.role }),
         ...(data.engineHours !== undefined && { engineHours: data.engineHours }),
@@ -488,7 +501,7 @@ export class TripService {
       }
     });
 
-    logger.info('Trip updated', { tripId: id });
+    logger.info('Trip updated', { tripId: id, boatChanged: data.boatId !== undefined });
 
     return updated;
   }

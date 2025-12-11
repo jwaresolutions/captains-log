@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,6 +28,7 @@ import com.boattracking.connection.ConnectionManager
 import com.boattracking.security.SecurePreferences
 import com.boattracking.sync.ConflictLogger
 import com.boattracking.util.DebugPreferences
+import com.boattracking.util.LicenseTrackingPreferences
 import com.boattracking.viewmodel.TripTrackingViewModel
 import kotlinx.coroutines.launch
 
@@ -37,7 +39,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun SettingsScreen(
     modifier: Modifier = Modifier,
-    viewModel: TripTrackingViewModel = viewModel()
+    viewModel: TripTrackingViewModel = viewModel(),
+    onLicenseTrackingChanged: ((Boolean) -> Unit)? = null
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -142,6 +145,15 @@ fun SettingsScreen(
                             // Restart the activity to show login screen
                             (context as? android.app.Activity)?.recreate()
                         }
+                    )
+                }
+
+                Divider()
+
+                // Features Section
+                SettingsSection(title = "Features") {
+                    LicenseTrackingToggleItem(
+                        onToggle = onLicenseTrackingChanged
                     )
                 }
 
@@ -502,6 +514,58 @@ fun DebugToggleItem(
             Switch(
                 checked = isEnabled,
                 onCheckedChange = onToggle
+            )
+        }
+    }
+}
+
+@Composable
+fun LicenseTrackingToggleItem(
+    onToggle: ((Boolean) -> Unit)? = null
+) {
+    val context = LocalContext.current
+    val licensePrefs = remember { LicenseTrackingPreferences(context) }
+    var isEnabled by remember { mutableStateOf(licensePrefs.isLicenseTrackingEnabled) }
+    
+    Surface(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.Star,
+                contentDescription = null,
+                tint = if (isEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(24.dp)
+            )
+            
+            Spacer(modifier = Modifier.width(16.dp))
+            
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = "Captain's License Tracking",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Text(
+                    text = if (isEnabled) "Track sea time progress toward 6-pack OUPV license" else "License progress tracking is disabled",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            
+            Switch(
+                checked = isEnabled,
+                onCheckedChange = { enabled ->
+                    isEnabled = enabled
+                    licensePrefs.isLicenseTrackingEnabled = enabled
+                    onToggle?.invoke(enabled)
+                }
             )
         }
     }

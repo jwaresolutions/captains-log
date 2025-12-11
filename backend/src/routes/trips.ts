@@ -239,6 +239,7 @@ router.put('/:id', async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const {
+      boatId,
       waterType,
       role,
       engineHours,
@@ -248,7 +249,34 @@ router.put('/:id', async (req: Request, res: Response): Promise<void> => {
       destination
     } = req.body;
 
+    // Validate water type if provided
+    if (waterType && !['inland', 'coastal', 'offshore'].includes(waterType)) {
+      res.status(400).json({
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Water type must be one of: inland, coastal, offshore'
+        },
+        timestamp: new Date().toISOString(),
+        path: req.path
+      });
+      return;
+    }
+
+    // Validate role if provided
+    if (role && !['captain', 'crew', 'observer'].includes(role)) {
+      res.status(400).json({
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Role must be one of: captain, crew, observer'
+        },
+        timestamp: new Date().toISOString(),
+        path: req.path
+      });
+      return;
+    }
+
     const trip = await tripService.updateTrip(id, {
+      boatId,
       waterType,
       role,
       engineHours,
@@ -265,6 +293,141 @@ router.put('/:id', async (req: Request, res: Response): Promise<void> => {
   } catch (error) {
     logger.error('Error updating trip', { error });
 
+    if (error instanceof Error) {
+      if (error.message === 'Trip not found' || error.message === 'Boat not found') {
+        res.status(404).json({
+          error: {
+            code: 'NOT_FOUND',
+            message: error.message
+          },
+          timestamp: new Date().toISOString(),
+          path: req.path
+        });
+        return;
+      }
+    }
+
+    res.status(500).json({
+      error: {
+        code: 'INTERNAL_SERVER_ERROR',
+        message: error instanceof Error ? error.message : 'Failed to update trip'
+      },
+      timestamp: new Date().toISOString(),
+      path: req.path
+    });
+  }
+});
+
+/**
+ * PATCH /api/v1/trips/:id/manual-data
+ * Add or update manual data for a trip
+ */
+router.patch('/:id/manual-data', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const {
+      engineHours,
+      fuelConsumed,
+      weatherConditions,
+      numberOfPassengers,
+      destination
+    } = req.body;
+
+    // Validate manual data inputs
+    if (engineHours !== undefined && (typeof engineHours !== 'number' || engineHours < 0)) {
+      res.status(400).json({
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Engine hours must be a non-negative number'
+        },
+        timestamp: new Date().toISOString(),
+        path: req.path
+      });
+      return;
+    }
+
+    if (fuelConsumed !== undefined && (typeof fuelConsumed !== 'number' || fuelConsumed < 0)) {
+      res.status(400).json({
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Fuel consumed must be a non-negative number'
+        },
+        timestamp: new Date().toISOString(),
+        path: req.path
+      });
+      return;
+    }
+
+    if (weatherConditions !== undefined && typeof weatherConditions !== 'string') {
+      res.status(400).json({
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Weather conditions must be a string'
+        },
+        timestamp: new Date().toISOString(),
+        path: req.path
+      });
+      return;
+    }
+
+    if (numberOfPassengers !== undefined && (typeof numberOfPassengers !== 'number' || numberOfPassengers < 0 || !Number.isInteger(numberOfPassengers))) {
+      res.status(400).json({
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Number of passengers must be a non-negative integer'
+        },
+        timestamp: new Date().toISOString(),
+        path: req.path
+      });
+      return;
+    }
+
+    if (destination !== undefined && typeof destination !== 'string') {
+      res.status(400).json({
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Destination must be a string'
+        },
+        timestamp: new Date().toISOString(),
+        path: req.path
+      });
+      return;
+    }
+
+    // Validate that at least one manual data field is provided
+    if (
+      engineHours === undefined &&
+      fuelConsumed === undefined &&
+      weatherConditions === undefined &&
+      numberOfPassengers === undefined &&
+      destination === undefined
+    ) {
+      res.status(400).json({
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'At least one manual data field must be provided'
+        },
+        timestamp: new Date().toISOString(),
+        path: req.path
+      });
+      return;
+    }
+
+    const trip = await tripService.updateTrip(id, {
+      engineHours,
+      fuelConsumed,
+      weatherConditions,
+      numberOfPassengers,
+      destination
+    });
+
+    res.json({
+      data: trip,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    logger.error('Error updating trip manual data', { error });
+
     if (error instanceof Error && error.message === 'Trip not found') {
       res.status(404).json({
         error: {
@@ -280,7 +443,7 @@ router.put('/:id', async (req: Request, res: Response): Promise<void> => {
     res.status(500).json({
       error: {
         code: 'INTERNAL_SERVER_ERROR',
-        message: error instanceof Error ? error.message : 'Failed to update trip'
+        message: error instanceof Error ? error.message : 'Failed to update trip manual data'
       },
       timestamp: new Date().toISOString(),
       path: req.path
