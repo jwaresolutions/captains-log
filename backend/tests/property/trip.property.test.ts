@@ -510,4 +510,199 @@ describe('Trip Service Property Tests', () => {
       await tripService.deleteTrip(trip.id);
     });
   });
+
+  /**
+   * **Feature: boat-tracking-system, Property 14: Trip Editability**
+   * **Validates: Requirements 5.3**
+   * 
+   * For any completed trip, the system should allow editing of water type, boat selection,
+   * role, and manual data fields.
+   */
+  describe('Property 14: Trip Editability', () => {
+    test('should allow editing water type, boat selection, role, and manual data for any completed trip', async () => {
+      // Verify boat exists
+      const boat = await boatService.getBoat(testBoatId);
+      if (!boat) {
+        throw new Error(`Test boat ${testBoatId} not found`);
+      }
+
+      // Create a second boat for testing boat selection changes
+      const secondBoat = await boatService.createBoat({ name: 'Second Test Boat' });
+
+      try {
+        // Use deterministic mock data for different scenarios
+        const mockScenarios = [
+          {
+            initialWaterType: 'inland' as const,
+            initialRole: 'captain' as const,
+            initialManualData: {
+              engineHours: 2.5,
+              fuelConsumed: 15.0,
+              weatherConditions: 'Sunny',
+              numberOfPassengers: 3,
+              destination: 'Marina A'
+            },
+            updatedWaterType: 'coastal' as const,
+            updatedRole: 'crew' as const,
+            updatedManualData: {
+              engineHours: 3.0,
+              fuelConsumed: 18.5,
+              weatherConditions: 'Partly Cloudy',
+              numberOfPassengers: 4,
+              destination: 'Marina B'
+            }
+          },
+          {
+            initialWaterType: 'coastal' as const,
+            initialRole: 'crew' as const,
+            initialManualData: {
+              engineHours: 1.0,
+              fuelConsumed: 8.0,
+              weatherConditions: 'Overcast',
+              numberOfPassengers: 2,
+              destination: 'Fishing Spot'
+            },
+            updatedWaterType: 'offshore' as const,
+            updatedRole: 'observer' as const,
+            updatedManualData: {
+              engineHours: 1.5,
+              fuelConsumed: 10.0,
+              weatherConditions: 'Windy',
+              numberOfPassengers: 5,
+              destination: 'Deep Sea'
+            }
+          }
+        ];
+
+        for (const scenario of mockScenarios) {
+          // Create a completed trip with initial data
+          const mockPoints = [
+            { lat: 40.7128, lon: -74.0060, time: new Date('2024-01-01T10:00:00Z') },
+            { lat: 40.7138, lon: -74.0070, time: new Date('2024-01-01T10:05:00Z') },
+            { lat: 40.7148, lon: -74.0080, time: new Date('2024-01-01T10:10:00Z') }
+          ];
+
+          const gpsPoints = mockPoints.map(p => ({
+            latitude: p.lat,
+            longitude: p.lon,
+            timestamp: p.time
+          }));
+
+          const startTime = gpsPoints[0].timestamp;
+          const endTime = new Date(gpsPoints[gpsPoints.length - 1].timestamp.getTime() + 60000);
+
+          const trip = await tripService.createTrip({
+            boatId: testBoatId,
+            startTime,
+            endTime,
+            waterType: scenario.initialWaterType,
+            role: scenario.initialRole,
+            gpsPoints,
+            ...scenario.initialManualData
+          });
+
+          // Verify initial values
+          expect(trip.waterType).toBe(scenario.initialWaterType);
+          expect(trip.role).toBe(scenario.initialRole);
+          expect(trip.engineHours).toBe(scenario.initialManualData.engineHours);
+          expect(trip.fuelConsumed).toBe(scenario.initialManualData.fuelConsumed);
+          expect(trip.weatherConditions).toBe(scenario.initialManualData.weatherConditions);
+          expect(trip.numberOfPassengers).toBe(scenario.initialManualData.numberOfPassengers);
+          expect(trip.destination).toBe(scenario.initialManualData.destination);
+
+          // Test editing water type, role, and manual data
+          const updatedTrip1 = await tripService.updateTrip(trip.id, {
+            waterType: scenario.updatedWaterType,
+            role: scenario.updatedRole,
+            ...scenario.updatedManualData
+          });
+
+          // Verify updates were applied
+          expect(updatedTrip1.waterType).toBe(scenario.updatedWaterType);
+          expect(updatedTrip1.role).toBe(scenario.updatedRole);
+          expect(updatedTrip1.engineHours).toBe(scenario.updatedManualData.engineHours);
+          expect(updatedTrip1.fuelConsumed).toBe(scenario.updatedManualData.fuelConsumed);
+          expect(updatedTrip1.weatherConditions).toBe(scenario.updatedManualData.weatherConditions);
+          expect(updatedTrip1.numberOfPassengers).toBe(scenario.updatedManualData.numberOfPassengers);
+          expect(updatedTrip1.destination).toBe(scenario.updatedManualData.destination);
+
+          // Test editing boat selection
+          const updatedTrip2 = await tripService.updateTrip(trip.id, {
+            boatId: secondBoat.id
+          });
+
+          // Verify boat was changed
+          expect(updatedTrip2.boatId).toBe(secondBoat.id);
+
+          // Test partial updates (should not affect other fields)
+          const updatedTrip3 = await tripService.updateTrip(trip.id, {
+            waterType: 'inland'
+          });
+
+          // Verify only water type changed, other fields remain
+          expect(updatedTrip3.waterType).toBe('inland');
+          expect(updatedTrip3.boatId).toBe(secondBoat.id); // Should remain changed
+          expect(updatedTrip3.role).toBe(scenario.updatedRole); // Should remain changed
+
+          // Clean up
+          await tripService.deleteTrip(trip.id);
+        }
+      } finally {
+        // Clean up second boat
+        await boatService.deleteBoat(secondBoat.id);
+      }
+    });
+
+    test('should reject editing with invalid boat ID', async () => {
+      // Verify boat exists
+      const boat = await boatService.getBoat(testBoatId);
+      if (!boat) {
+        throw new Error(`Test boat ${testBoatId} not found`);
+      }
+
+      // Create a completed trip
+      const mockPoints = [
+        { lat: 40.7128, lon: -74.0060, time: new Date('2024-01-01T10:00:00Z') },
+        { lat: 40.7138, lon: -74.0070, time: new Date('2024-01-01T10:05:00Z') }
+      ];
+
+      const gpsPoints = mockPoints.map(p => ({
+        latitude: p.lat,
+        longitude: p.lon,
+        timestamp: p.time
+      }));
+
+      const startTime = gpsPoints[0].timestamp;
+      const endTime = new Date(gpsPoints[gpsPoints.length - 1].timestamp.getTime() + 60000);
+
+      const trip = await tripService.createTrip({
+        boatId: testBoatId,
+        startTime,
+        endTime,
+        gpsPoints
+      });
+
+      // Try to update with invalid boat ID
+      const invalidBoatId = 'invalid-boat-id-12345';
+
+      await expect(
+        tripService.updateTrip(trip.id, {
+          boatId: invalidBoatId
+        })
+      ).rejects.toThrow('Boat not found');
+
+      // Clean up
+      await tripService.deleteTrip(trip.id);
+    });
+
+    test('should reject editing non-existent trip', async () => {
+      const invalidTripId = 'invalid-trip-id-12345';
+
+      await expect(
+        tripService.updateTrip(invalidTripId, {
+          waterType: 'coastal'
+        })
+      ).rejects.toThrow('Trip not found');
+    });
+  });
 });

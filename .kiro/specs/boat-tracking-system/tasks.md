@@ -440,7 +440,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Add validation for editable fields
   - _Requirements: 5.3_
 
-- [ ]* 2.4 Write property test for trip editability
+- [x] 2.4 Write property test for trip editability
   - **Property 14: Trip Editability**
   - **Validates: Requirements 5.3**
 
@@ -482,7 +482,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Calculate days in last 3 years
   - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5_
 
-- [ ]* 3.2 Write property tests for sea time calculations
+- [x] 3.2 Write property tests for sea time calculations
   - **Property 17: Sea Time Day Calculation**
   - **Validates: Requirements 6.1**
   - **Property 18: Multi-Day Trip Sea Time**
@@ -497,7 +497,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Return total days, days in last 3 years, total hours
   - _Requirements: 6.6_
 
-- [ ]* 3.4 Write property test for license progress display
+- [x] 3.4 Write property test for license progress display
   - **Property 21: License Progress Display Completeness**
   - **Validates: Requirements 6.6**
 
@@ -507,7 +507,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Estimate completion date based on current rate
   - _Requirements: 6.7, 6.8_
 
-- [ ]* 3.6 Write property tests for goal estimation
+- [x] 3.6 Write property tests for goal estimation
   - **Property 22: License Goal Estimation (360 days)**
   - **Validates: Requirements 6.7**
   - **Property 23: License Goal Estimation (90 days in 3 years)**
@@ -525,7 +525,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Run property tests with minimum 100 iterations
   - Ensure all tests pass, ask the user if questions arise
 
-- [ ] 3.9 Manual validation: Captain's license tracking
+- [x] 3.9 Manual validation: Captain's license tracking
   - **User Action**: Navigate to license progress screen in Android app
   - **User Action**: Verify total sea time days are calculated correctly (4+ hours = 1 day)
     - **Android Studio**: Check Logcat for sea time calculation logs

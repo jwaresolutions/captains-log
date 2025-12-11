@@ -12,7 +12,7 @@ const router = Router();
  * - Progress toward 360-day and 90-day goals
  * - Estimated completion dates
  */
-router.get('/progress', async (req, res) => {
+router.get('/progress', async (_req, res) => {
   try {
     const progress = await captainLogService.getLicenseProgress();
     
@@ -46,17 +46,19 @@ router.get('/sea-time-days', async (req, res) => {
     
     // Validate dates if provided
     if (startDate && isNaN(startDateObj!.getTime())) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         error: 'Invalid startDate format. Use ISO date string.'
       });
+      return;
     }
     
     if (endDate && isNaN(endDateObj!.getTime())) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         error: 'Invalid endDate format. Use ISO date string.'
       });
+      return;
     }
     
     const seaTimeDays = await captainLogService.calculateSeaTimeDays(startDateObj, endDateObj);
@@ -89,10 +91,11 @@ router.get('/breakdown', async (req, res) => {
     if (year) {
       yearNum = parseInt(year as string);
       if (isNaN(yearNum) || yearNum < 1900 || yearNum > 2100) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           error: 'Invalid year. Must be a number between 1900 and 2100.'
         });
+        return;
       }
     }
     
@@ -125,19 +128,21 @@ router.get('/check-day/:date', async (req, res) => {
     // Validate date format (YYYY-MM-DD)
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (!dateRegex.test(date)) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         error: 'Invalid date format. Use YYYY-MM-DD.'
       });
+      return;
     }
     
     // Validate that it's a valid date
     const dateObj = new Date(date + 'T00:00:00');
     if (isNaN(dateObj.getTime())) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         error: 'Invalid date.'
       });
+      return;
     }
     
     const isSeaTimeDay = await captainLogService.isSeaTimeDay(date);
