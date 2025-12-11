@@ -588,20 +588,20 @@ This implementation plan follows a phased approach, allowing verification of eac
 
 ## Phase 5: To-Do Lists
 
-- [ ] 5. Implement to-do list management
-- [ ] 5.1 Create TodoList and TodoItem schemas
+- [x] 5. Implement to-do list management
+- [x] 5.1 Create TodoList and TodoItem schemas
   - Add TodoList and TodoItem entities to Prisma schema
   - Create Todo service with CRUD operations
   - _Requirements: 8.1, 8.2, 8.3_
 
-- [ ] 5.2 Create API endpoints for to-do lists
+- [x] 5.2 Create API endpoints for to-do lists
   - Implement POST /api/v1/todos (create list)
   - Implement GET /api/v1/todos (list all lists)
   - Implement POST /api/v1/todos/:id/items (add item)
   - Implement PATCH /api/v1/todos/items/:id/complete (toggle completion)
   - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5_
 
-- [ ] 5.3 Write property tests for to-do lists
+- [x] 5.3 Write property tests for to-do lists
   - **Property 27: Todo List Title Validation**
   - **Validates: Requirements 8.1**
   - **Property 28: Boat-Specific Todo Association**
@@ -613,7 +613,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - **Property 31: Todo List Display Completeness**
   - **Validates: Requirements 8.5**
 
-- [ ] 5.4 Create Android to-do list UI
+- [x] 5.4 Create Android to-do list UI
   - Create to-do lists screen showing all lists
   - Create list detail screen with items
   - Implement item completion toggle
@@ -621,11 +621,11 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Implement offline storage and sync
   - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5_
 
-- [ ] 5.5 Run all property tests and verify they pass
+- [x] 5.5 Run all property tests and verify they pass
   - Run property tests with minimum 100 iterations
   - Ensure all tests pass, ask the user if questions arise
 
-- [ ] 5.6 Manual validation: To-do lists
+- [x] 5.6 Manual validation: To-do lists
   - **User Action**: Create a general to-do list and add items
   - **User Action**: Create a boat-specific to-do list
   - **User Action**: Toggle item completion and verify timestamp is recorded

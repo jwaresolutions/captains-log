@@ -13,7 +13,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.boattracking.database.entities.BoatEntity
 import com.boattracking.database.entities.TodoListEntity
@@ -26,12 +27,12 @@ import java.util.*
 @Composable
 fun TodoListScreen(
     onNavigateToTodoDetail: (String) -> Unit,
-    todoViewModel: TodoViewModel = hiltViewModel(),
-    boatViewModel: BoatViewModel = hiltViewModel()
+    todoViewModel: TodoViewModel = viewModel(),
+    boatViewModel: BoatViewModel = viewModel()
 ) {
     val todoUiState by todoViewModel.uiState.collectAsStateWithLifecycle()
     val allTodoLists by todoViewModel.allTodoLists.collectAsStateWithLifecycle(initialValue = emptyList())
-    val boats by boatViewModel.boats.collectAsStateWithLifecycle(initialValue = emptyList())
+    val boats by boatViewModel.getAllBoats().collectAsState(initial = emptyList())
     
     var showCreateDialog by remember { mutableStateOf(false) }
     var showEditDialog by remember { mutableStateOf<TodoListEntity?>(null) }
@@ -234,6 +235,7 @@ private fun TodoListCard(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CreateTodoListDialog(
     boats: List<BoatEntity>,
@@ -316,6 +318,7 @@ private fun CreateTodoListDialog(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EditTodoListDialog(
     todoList: TodoListEntity,

@@ -15,7 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.boattracking.database.entities.BoatEntity
 import com.boattracking.database.entities.TodoItemEntity
@@ -30,22 +31,20 @@ import java.util.*
 fun TodoDetailScreen(
     listId: String,
     onNavigateBack: () -> Unit,
-    todoViewModel: TodoViewModel = hiltViewModel(),
-    boatViewModel: BoatViewModel = hiltViewModel()
+    todoViewModel: TodoViewModel = viewModel(),
+    boatViewModel: BoatViewModel = viewModel()
 ) {
     val todoUiState by todoViewModel.uiState.collectAsStateWithLifecycle()
     val todoItems by todoViewModel.selectedListItems.collectAsStateWithLifecycle(initialValue = emptyList())
-    val boats by boatViewModel.boats.collectAsStateWithLifecycle(initialValue = emptyList())
+    val todoList by todoViewModel.selectedTodoList.collectAsStateWithLifecycle(initialValue = null)
+    val boats by boatViewModel.getAllBoats().collectAsState(initial = emptyList())
     
-    var todoList by remember { mutableStateOf<TodoListEntity?>(null) }
     var showAddItemDialog by remember { mutableStateOf(false) }
     var showEditItemDialog by remember { mutableStateOf<TodoItemEntity?>(null) }
     var showDeleteItemDialog by remember { mutableStateOf<TodoItemEntity?>(null) }
 
     LaunchedEffect(listId) {
         todoViewModel.selectTodoList(listId)
-        // Fetch the todo list details
-        // Note: In a real implementation, you might want to add a method to get a single todo list
     }
 
     Column(

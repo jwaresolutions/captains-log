@@ -1,22 +1,33 @@
 package com.boattracking.viewmodel
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.boattracking.connection.ConnectionManager
+import com.boattracking.database.AppDatabase
 import com.boattracking.database.entities.TodoItemEntity
 import com.boattracking.database.entities.TodoListEntity
 import com.boattracking.repository.TodoRepository
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+import kotlinx.coroutines.runBlocking
 
-@HiltViewModel
-class TodoViewModel @Inject constructor(
+class TodoViewModel(application: Application) : AndroidViewModel(application) {
+
     private val todoRepository: TodoRepository
-) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TodoUiState())
     val uiState: StateFlow<TodoUiState> = _uiState.asStateFlow()
+
+    init {
+        val database = AppDatabase.getDatabase(application)
+        val connectionManager = ConnectionManager.getInstance(application)
+        connectionManager.initialize()
+        
+        // Initialize repository - get API service synchronously in init
+        val apiService = runBlocking { connectionManager.getApiService() }
+        todoRepository = TodoRepository(apiService, database.todoListDao(), database.todoItemDao())
+    }
 
     private val _selectedListId = MutableStateFlow<String?>(null)
     val selectedListId: StateFlow<String?> = _selectedListId.asStateFlow()
@@ -34,6 +45,16 @@ class TodoViewModel @Inject constructor(
         .filterNotNull()
         .flatMapLatest { listId ->
             todoRepository.getTodoItemsByListId(listId)
+        }
+
+    // Selected todo list details
+    val selectedTodoList: Flow<TodoListEntity?> = selectedListId
+        .flatMapLatest { listId ->
+            if (listId != null) {
+                todoRepository.getTodoListByIdFlow(listId)
+            } else {
+                flowOf(null)
+            }
         }
 
     fun selectTodoList(listId: String?) {

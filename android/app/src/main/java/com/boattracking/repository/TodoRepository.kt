@@ -11,11 +11,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.text.SimpleDateFormat
 import java.util.*
-import javax.inject.Inject
-import javax.inject.Singleton
-
-@Singleton
-class TodoRepository @Inject constructor(
+class TodoRepository constructor(
     private val apiService: ApiService,
     private val todoListDao: TodoListDao,
     private val todoItemDao: TodoItemDao
@@ -36,6 +32,9 @@ class TodoRepository @Inject constructor(
     fun getGeneralTodoLists(): Flow<List<TodoListEntity>> = todoListDao.getGeneralTodoLists()
 
     suspend fun getTodoListById(id: String): TodoListEntity? = todoListDao.getTodoListById(id)
+
+    fun getTodoListByIdFlow(id: String): Flow<TodoListEntity?> = 
+        todoListDao.getAllTodoLists().map { lists -> lists.find { it.id == id } }
 
     suspend fun createTodoList(title: String, boatId: String? = null): Result<TodoListEntity> {
         return try {
