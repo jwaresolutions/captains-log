@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: boat-tracking-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ${DB_NAME:-boat_tracking}
+      POSTGRES_USER: ${DB_USER:-boat_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - boat-tracking-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-boat_user} -d ${DB_NAME:-boat_tracking}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: boat-tracking-api
+    ports:
+      - "8585:8585"
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-boat_user}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-boat_tracking}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-30d}
+      INITIAL_USER: ${INITIAL_USER}
+      INITIAL_PASSWORD: ${INITIAL_PASSWORD}
+      PORT: 8585
+      NODE_ENV: ${NODE_ENV:-production}
+      RATE_LIMIT_WINDOW_MS: ${RATE_LIMIT_WINDOW_MS:-60000}
+      RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS:-100}
+      PHOTO_STORAGE_PATH: /app/uploads
+      MAX_PHOTO_SIZE_MB: ${MAX_PHOTO_SIZE_MB:-50}
+      BACKUP_PATH: /app/backups
+      AUTO_BACKUP_ENABLED: ${AUTO_BACKUP_ENABLED:-false}
+      AUTO_BACKUP_SCHEDULE: ${AUTO_BACKUP_SCHEDULE:-0 2 * * *}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    volumes:
+      - photo_storage:/app/uploads
+      - backup_storage:/app/backups
+      - log_storage:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - boat-tracking-network
+    restart: unless-stopped
+    command: sh -c "npx prisma migrate deploy && node dist/index.js"
+
+volumes:
+  postgres_data:
+    driver: local
+  photo_storage:
+    driver: local
+  backup_storage:
+    driver: local
+  log_storage:
+    driver: local
+
+networks:
+  boat-tracking-network:
+    driver: bridge

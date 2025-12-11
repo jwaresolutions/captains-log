@@ -1,0 +1,55 @@
+{
+  "name": "boat-tracking-backend",
+  "version": "1.0.0",
+  "description": "Backend API for Boat Tracking System",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "jest",
+    "test:property": "jest --testPathPattern=property",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio",
+    "regenerate-key": "node dist/scripts/regenerate-key-cli.js",
+    "create-user": "tsx src/scripts/create-user-cli.ts",
+    "list-users": "tsx src/scripts/list-users-cli.ts",
+    "change-password": "tsx src/scripts/change-password-cli.ts",
+    "reset-db": "tsx src/scripts/reset-db-cli.ts",
+    "seed-db": "tsx src/scripts/seed-db-cli.ts"
+  },
+  "keywords": [
+    "boat",
+    "tracking",
+    "gps",
+    "api"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@prisma/client": "^5.7.0",
+    "bcrypt": "^6.0.0",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
+    "jsonwebtoken": "^9.0.3",
+    "sharp": "^0.33.1",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.11",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^20.10.5",
+    "@types/supertest": "^6.0.2",
+    "fast-check": "^3.15.0",
+    "jest": "^29.7.0",
+    "prisma": "^5.7.0",
+    "supertest": "^6.3.3",
+    "ts-jest": "^29.1.1",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3"
+  }
+}

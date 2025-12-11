@@ -1,0 +1,6 @@
+# Temporary test orchestration scripts
+temp/
+
+# OS files
+.DS_Store
+.env

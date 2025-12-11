@@ -1,0 +1,104 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Boat {
+  id        String   @id @default(uuid())
+  name      String
+  enabled   Boolean  @default(true)
+  isActive  Boolean  @default(false)
+  metadata  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  trips Trip[]
+
+  @@index([enabled])
+  @@index([isActive])
+}
+
+model Trip {
+  id         String   @id @default(uuid())
+  boatId     String
+  startTime  DateTime
+  endTime    DateTime? // Nullable for trips in progress
+  waterType  String   @default("inland") // inland, coastal, offshore
+  role       String   @default("captain") // captain, crew, observer
+  timezone   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  boat      Boat       @relation(fields: [boatId], references: [id], onDelete: Cascade)
+  gpsPoints GPSPoint[]
+
+  // Statistics (computed and stored)
+  durationSeconds  Int?
+  distanceMeters   Float?
+  averageSpeedKnots Float?
+  maxSpeedKnots    Float?
+
+  // Manual data
+  engineHours       Float?
+  fuelConsumed      Float?
+  weatherConditions String?
+  numberOfPassengers Int?
+  destination       String?
+
+  @@index([boatId])
+  @@index([startTime])
+  @@index([endTime])
+}
+
+model GPSPoint {
+  id        String   @id @default(uuid())
+  tripId    String
+  latitude  Float
+  longitude Float
+  altitude  Float?
+  accuracy  Float?
+  speed     Float?
+  heading   Float?
+  timestamp DateTime
+  isStopPoint Boolean @default(false)
+
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([tripId])
+  @@index([timestamp])
+}
+
+model User {
+  id           String   @id @default(uuid())
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  sessionTokens SessionToken[]
+
+  @@index([username])
+}
+
+model SessionToken {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  isRevoked Boolean  @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+  @@index([isRevoked])
+}
