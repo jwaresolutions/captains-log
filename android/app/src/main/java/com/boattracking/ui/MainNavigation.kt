@@ -2,12 +2,14 @@ package com.boattracking.ui
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -15,6 +17,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import com.boattracking.ui.boats.BoatListScreen
 import com.boattracking.ui.license.LicenseProgressScreen
+import com.boattracking.ui.maintenance.MaintenanceNavigation
+import com.boattracking.ui.map.MapScreen
 import com.boattracking.ui.notes.NotesNavigation
 import com.boattracking.ui.settings.SettingsScreen
 import com.boattracking.ui.todos.TodoNavigation
@@ -75,6 +79,12 @@ fun MainNavigation() {
             NavigationTab.Todos -> {
                 TodoNavigation()
             }
+            NavigationTab.Maintenance -> {
+                MaintenanceNavigation(modifier = Modifier.padding(paddingValues))
+            }
+            NavigationTab.Map -> {
+                MapScreen(modifier = Modifier.padding(paddingValues))
+            }
             NavigationTab.License -> {
                 LicenseProgressScreen(modifier = Modifier.padding(paddingValues))
             }
@@ -98,6 +108,8 @@ enum class NavigationTab(val label: String, val icon: ImageVector) {
     Boats("Boats", Icons.Filled.List),
     Notes("Notes", Icons.Filled.Edit),
     Todos("Todos", Icons.Filled.CheckCircle),
+    Maintenance("Maintenance", Icons.Filled.Build),
+    Map("Map", Icons.Filled.LocationOn),
     License("License", Icons.Filled.Star),
     Settings("Settings", Icons.Filled.Settings)
 }

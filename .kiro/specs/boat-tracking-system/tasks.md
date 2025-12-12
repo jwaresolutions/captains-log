@@ -639,13 +639,13 @@ This implementation plan follows a phased approach, allowing verification of eac
 ## Phase 6: Maintenance Tasks
 
 - [ ] 6. Implement maintenance task management
-- [ ] 6.1 Create MaintenanceTask schema and service
+- [x] 6.1 Create MaintenanceTask schema and service
   - Add MaintenanceTask and MaintenanceCompletion entities to Prisma schema
   - Create Maintenance service with CRUD operations
   - Implement recurrence scheduling logic
   - _Requirements: 9.1, 9.2, 9.3_
 
-- [ ] 6.2 Create API endpoints for maintenance tasks
+- [x] 6.2 Create API endpoints for maintenance tasks
   - Implement POST /api/v1/maintenance (create task)
   - Implement GET /api/v1/maintenance (list tasks)
   - Implement POST /api/v1/maintenance/:id/complete (complete task)
@@ -653,7 +653,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Auto-schedule next occurrence on completion
   - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.8_
 
-- [ ] 6.3 Write property tests for maintenance tasks
+- [x] 6.3 Write property tests for maintenance tasks
   - **Property 32: Maintenance Task-Boat Association**
   - **Validates: Requirements 9.1**
   - **Property 33: Recurring Task Auto-Scheduling**
@@ -661,22 +661,38 @@ This implementation plan follows a phased approach, allowing verification of eac
   - **Property 35: Maintenance History Completeness**
   - **Validates: Requirements 9.8**
 
-- [ ] 6.4 Implement notification service
+- [x] 6.4 Implement notification service
   - Create Notification service
   - Implement scheduled job to check for tasks due within 7 days
   - Create notifications for both web and Android
   - Respect boat enabled/disabled status
   - _Requirements: 9.6, 18.1, 18.2, 18.3, 18.4_
 
-- [ ] 6.5 Write property tests for notifications
+- [x] 6.5 Write property test for disabled boat notification suppression
   - **Property 4: Disabled Boat Notification Suppression**
   - **Validates: Requirements 3.3, 9.7, 18.3**
+  - Generate random boats with enabled/disabled status
+  - Create maintenance tasks for both enabled and disabled boats
+  - Verify notifications are only generated for enabled boats
+  - Test that disabling a boat suppresses its existing notifications
+
+- [x] 6.6 Write property test for maintenance due notifications
   - **Property 34: Maintenance Due Notifications**
   - **Validates: Requirements 9.6, 18.1, 18.2**
+  - Generate random maintenance tasks with various due dates
+  - Verify notifications are created for tasks due within 7 days
+  - Verify notifications are not created for tasks due beyond 7 days
+  - Test notification timing accuracy
+
+- [x] 6.7 Write property test for notification content completeness
   - **Property 47: Notification Content Completeness**
   - **Validates: Requirements 18.4**
+  - Generate random maintenance tasks and notifications
+  - Verify all required notification fields are present (title, message, boat info, due date)
+  - Test notification content accuracy and formatting
+  - Verify notification data matches source maintenance task
 
-- [ ] 6.6 Create Android maintenance UI
+- [x] 6.8 Create Android maintenance UI
   - Create maintenance task list screen
   - Create task detail screen with history
   - Create task completion form with cost and notes
@@ -684,11 +700,11 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Add recurrence configuration UI
   - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.8_
 
-- [ ] 6.7 Run all property tests and verify they pass
+- [x] 6.9 Run all property tests and verify they pass
   - Run property tests with minimum 100 iterations
   - Ensure all tests pass, ask the user if questions arise
 
-- [ ] 6.8 Manual validation: Maintenance tasks
+- [x] 6.10 Manual validation: Maintenance tasks
   - **User Action**: Create a maintenance task with recurrence schedule
   - **User Action**: Verify task appears in maintenance list
   - **User Action**: Complete a task and verify next occurrence is auto-scheduled
@@ -703,14 +719,14 @@ This implementation plan follows a phased approach, allowing verification of eac
 
 ## Phase 7: Map Visualization and Marked Locations
 
-- [ ] 7. Implement map features
-- [ ] 7.1 Create MarkedLocation schema and service
+- [-] 7. Implement map features
+- [x] 7.1 Create MarkedLocation schema and service
   - Add MarkedLocation entity to Prisma schema
   - Create Location service with CRUD operations
   - Implement distance calculation utility
   - _Requirements: 10.2, 10.5, 10.6_
 
-- [ ] 7.2 Create API endpoints for marked locations
+- [x] 7.2 Create API endpoints for marked locations
   - Implement POST /api/v1/locations (create location)
   - Implement GET /api/v1/locations (list locations)
   - Implement PUT /api/v1/locations/:id (update location)
@@ -718,19 +734,19 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Implement GET /api/v1/locations/nearby (find nearby locations)
   - _Requirements: 10.2, 10.4, 10.5, 10.6_
 
-- [ ] 7.3 Write property tests for locations
+- [x] 7.3 Write property tests for locations
   - **Property 36: Marked Location Storage**
   - **Validates: Requirements 10.2**
   - **Property 37: Distance Calculation**
   - **Validates: Requirements 10.5**
 
-- [ ] 7.4 Implement time zone service
+- [x] 7.4 Implement time zone service
   - Create time zone lookup utility using GPS coordinates
   - Implement timezone storage with trips
   - Default to device timezone when GPS unavailable
   - _Requirements: 16.1, 16.2, 16.3, 16.4_
 
-- [ ] 7.5 Write property tests for time zones
+- [x] 7.5 Write property tests for time zones
   - **Property 44: Timezone Determination**
   - **Validates: Requirements 16.1**
   - **Property 45: Timezone Display**
@@ -738,7 +754,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - **Property 46: Timezone Preservation**
   - **Validates: Requirements 16.4**
 
-- [ ] 7.6 Implement Android map UI with Google Maps
+- [x] 7.6 Implement Android map UI with Google Maps
   - Create map screen with Google Maps integration
   - Display trip routes as lines with start/end/stop markers
   - Display marked locations with labels
@@ -747,11 +763,11 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Make locations selectable during trip planning
   - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5_
 
-- [ ] 7.7 Run all property tests and verify they pass
+- [x] 7.7 Run all property tests and verify they pass
   - Run property tests with minimum 100 iterations
   - Ensure all tests pass, ask the user if questions arise
 
-- [ ] 7.8 Manual validation: Map and locations
+- [x] 7.8 Manual validation: Map and locations
   - **User Action**: View map screen and verify trip routes are displayed correctly
     - **Android Studio**: Use Layout Inspector to verify Google Maps integration
   - **User Action**: Mark a location on the map with category and notes

@@ -8,6 +8,9 @@ import androidx.room.TypeConverters
 import com.boattracking.database.converters.DateConverter
 import com.boattracking.database.dao.BoatDao
 import com.boattracking.database.dao.GpsPointDao
+import com.boattracking.database.dao.MaintenanceCompletionDao
+import com.boattracking.database.dao.MaintenanceTaskDao
+import com.boattracking.database.dao.MarkedLocationDao
 import com.boattracking.database.dao.NoteDao
 import com.boattracking.database.dao.PhotoDao
 import com.boattracking.database.dao.TodoItemDao
@@ -15,6 +18,9 @@ import com.boattracking.database.dao.TodoListDao
 import com.boattracking.database.dao.TripDao
 import com.boattracking.database.entities.BoatEntity
 import com.boattracking.database.entities.GpsPointEntity
+import com.boattracking.database.entities.MaintenanceCompletionEntity
+import com.boattracking.database.entities.MaintenanceTaskEntity
+import com.boattracking.database.entities.MarkedLocationEntity
 import com.boattracking.database.entities.NoteEntity
 import com.boattracking.database.entities.PhotoEntity
 import com.boattracking.database.entities.TodoItemEntity
@@ -29,9 +35,12 @@ import com.boattracking.database.entities.TripEntity
         BoatEntity::class,
         NoteEntity::class,
         TodoListEntity::class,
-        TodoItemEntity::class
+        TodoItemEntity::class,
+        MaintenanceTaskEntity::class,
+        MaintenanceCompletionEntity::class,
+        MarkedLocationEntity::class
     ],
-    version = 4,
+    version = 6,
     exportSchema = false
 )
 @TypeConverters(DateConverter::class)
@@ -43,6 +52,9 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun noteDao(): NoteDao
     abstract fun todoListDao(): TodoListDao
     abstract fun todoItemDao(): TodoItemDao
+    abstract fun maintenanceTaskDao(): MaintenanceTaskDao
+    abstract fun maintenanceCompletionDao(): MaintenanceCompletionDao
+    abstract fun markedLocationDao(): MarkedLocationDao
 
     companion object {
         @Volatile

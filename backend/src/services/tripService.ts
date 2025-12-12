@@ -1,5 +1,6 @@
 import { PrismaClient, Trip, GPSPoint } from '@prisma/client';
 import { logger } from '../utils/logger';
+import { determineTripTimezone } from './timezoneService';
 
 const prisma = new PrismaClient();
 
@@ -302,6 +303,20 @@ export class TripService {
       throw new Error('Boat not found');
     }
 
+    // Determine timezone if not provided
+    let timezone = data.timezone;
+    if (!timezone && data.gpsPoints.length > 0) {
+      // Use the first GPS point to determine timezone
+      const firstPoint = data.gpsPoints[0];
+      timezone = determineTripTimezone({
+        latitude: firstPoint.latitude,
+        longitude: firstPoint.longitude
+      });
+    } else if (!timezone) {
+      // Fallback to device timezone if no GPS points
+      timezone = determineTripTimezone();
+    }
+
     // Calculate statistics
     const statistics = this.calculateTripStatistics(data.gpsPoints);
 
@@ -317,7 +332,7 @@ export class TripService {
           endTime: data.endTime,
           waterType: data.waterType || 'inland',
           role: data.role || 'captain',
-          timezone: data.timezone,
+          timezone: timezone,
           durationSeconds: statistics.durationSeconds,
           distanceMeters: statistics.distanceMeters,
           averageSpeedKnots: statistics.averageSpeedKnots,

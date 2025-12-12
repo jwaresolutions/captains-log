@@ -19,9 +19,10 @@ model Boat {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  trips     Trip[]
-  notes     Note[]
-  todoLists TodoList[]
+  trips           Trip[]
+  notes           Note[]
+  todoLists       TodoList[]
+  maintenanceTasks MaintenanceTask[]
 
   @@index([enabled])
   @@index([isActive])
@@ -152,5 +153,72 @@ model TodoItem {
 
   @@index([todoListId])
   @@index([completed])
+  @@index([createdAt])
+}
+
+model MaintenanceTask {
+  id          String   @id @default(uuid())
+  boatId      String
+  title       String
+  description String?
+  component   String?  // Optional component/system linkage
+  dueDate     DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Recurrence configuration (JSON to support flexible schedules)
+  recurrence  Json?    // { type: 'days'|'weeks'|'months'|'years'|'engine_hours', interval: number }
+
+  boat        Boat                   @relation(fields: [boatId], references: [id], onDelete: Cascade)
+  completions MaintenanceCompletion[]
+
+  @@index([boatId])
+  @@index([dueDate])
+  @@index([createdAt])
+}
+
+model MaintenanceCompletion {
+  id                String   @id @default(uuid())
+  maintenanceTaskId String
+  completedAt       DateTime @default(now())
+  cost              Float?   // Optional cost tracking
+  notes             String?  // Optional completion notes
+  createdAt         DateTime @default(now())
+
+  maintenanceTask MaintenanceTask @relation(fields: [maintenanceTaskId], references: [id], onDelete: Cascade)
+
+  @@index([maintenanceTaskId])
+  @@index([completedAt])
+}
+
+model Notification {
+  id         String   @id @default(uuid())
+  type       String   // 'maintenance_due', 'system'
+  title      String
+  message    String
+  entityType String?  // Optional - type of entity this notification relates to
+  entityId   String?  // Optional - ID of entity this notification relates to
+  read       Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([type])
+  @@index([read])
+  @@index([createdAt])
+  @@index([entityType, entityId])
+}
+
+model MarkedLocation {
+  id        String   @id @default(uuid())
+  name      String
+  latitude  Float
+  longitude Float
+  category  String   // 'fishing', 'marina', 'anchorage', 'hazard', 'other'
+  notes     String?
+  tags      String[] // Array of tags for organization
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@index([latitude, longitude])
   @@index([createdAt])
 }

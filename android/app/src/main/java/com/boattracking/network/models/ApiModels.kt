@@ -236,6 +236,105 @@ data class UpdateTodoItemRequest(
     val completed: Boolean?
 )
 
+// Maintenance models
+data class MaintenanceTaskResponse(
+    val id: String,
+    val boatId: String,
+    val title: String,
+    val description: String?,
+    val component: String?,
+    val dueDate: String,
+    val recurrence: RecurrenceSchedule?,
+    val createdAt: String,
+    val updatedAt: String,
+    val boat: BoatResponse,
+    val completions: List<MaintenanceCompletionResponse>
+)
+
+data class MaintenanceCompletionResponse(
+    val id: String,
+    val maintenanceTaskId: String,
+    val completedAt: String,
+    val cost: Double?,
+    val notes: String?,
+    val createdAt: String
+)
+
+data class RecurrenceSchedule(
+    val type: String, // 'days', 'weeks', 'months', 'years', 'engine_hours'
+    val interval: Int
+)
+
+data class CreateMaintenanceTaskRequest(
+    val boatId: String,
+    val title: String,
+    val description: String? = null,
+    val component: String? = null,
+    val dueDate: String,
+    val recurrence: RecurrenceSchedule? = null
+)
+
+data class UpdateMaintenanceTaskRequest(
+    val title: String? = null,
+    val description: String? = null,
+    val component: String? = null,
+    val dueDate: String? = null,
+    val recurrence: RecurrenceSchedule? = null
+)
+
+data class CompleteMaintenanceTaskRequest(
+    val cost: Double? = null,
+    val notes: String? = null
+)
+
+// Notification models
+data class NotificationResponse(
+    val id: String,
+    val type: String,
+    val title: String,
+    val message: String,
+    val entityType: String?,
+    val entityId: String?,
+    val read: Boolean,
+    val createdAt: String
+)
+
+data class MarkNotificationReadRequest(
+    val read: Boolean = true
+)
+
+// Marked Location models
+data class MarkedLocationResponse(
+    val id: String,
+    val name: String,
+    val latitude: Double,
+    val longitude: Double,
+    val category: String,
+    val notes: String?,
+    val tags: List<String>,
+    val createdAt: String,
+    val updatedAt: String,
+    val distanceMeters: Double? = null
+)
+
+data class CreateMarkedLocationRequest(
+    val name: String,
+    val latitude: Double,
+    val longitude: Double,
+    val category: String,
+    val notes: String? = null,
+    val tags: List<String> = emptyList()
+)
+
+data class UpdateMarkedLocationRequest(
+    val name: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val category: String? = null,
+    val notes: String? = null,
+    val tags: List<String>? = null
+)
+
 // Generic response wrapper
 data class ApiResponse<T>(
     val data: T?,

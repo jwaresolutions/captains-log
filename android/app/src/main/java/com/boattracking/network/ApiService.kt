@@ -168,4 +168,87 @@ interface ApiService {
 
     @DELETE("api/v1/todos/items/{itemId}")
     suspend fun deleteTodoItem(@Path("itemId") itemId: String): Response<Unit>
+
+    // Maintenance endpoints
+    @POST("api/v1/maintenance")
+    suspend fun createMaintenanceTask(@Body request: CreateMaintenanceTaskRequest): Response<MaintenanceTaskResponse>
+
+    @GET("api/v1/maintenance")
+    suspend fun getMaintenanceTasks(
+        @Query("boatId") boatId: String? = null
+    ): Response<List<MaintenanceTaskResponse>>
+
+    @GET("api/v1/maintenance/upcoming")
+    suspend fun getUpcomingMaintenanceTasks(
+        @Query("days") days: Int? = null
+    ): Response<List<MaintenanceTaskResponse>>
+
+    @GET("api/v1/maintenance/{id}")
+    suspend fun getMaintenanceTask(@Path("id") id: String): Response<MaintenanceTaskResponse>
+
+    @PUT("api/v1/maintenance/{id}")
+    suspend fun updateMaintenanceTask(
+        @Path("id") id: String,
+        @Body request: UpdateMaintenanceTaskRequest
+    ): Response<MaintenanceTaskResponse>
+
+    @DELETE("api/v1/maintenance/{id}")
+    suspend fun deleteMaintenanceTask(@Path("id") id: String): Response<Unit>
+
+    @POST("api/v1/maintenance/{id}/complete")
+    suspend fun completeMaintenanceTask(
+        @Path("id") id: String,
+        @Body request: CompleteMaintenanceTaskRequest
+    ): Response<MaintenanceTaskResponse>
+
+    @GET("api/v1/maintenance/{id}/history")
+    suspend fun getMaintenanceTaskHistory(@Path("id") id: String): Response<List<MaintenanceCompletionResponse>>
+
+    // Notification endpoints
+    @GET("api/v1/notifications")
+    suspend fun getNotifications(): Response<List<NotificationResponse>>
+
+    @PATCH("api/v1/notifications/{id}/read")
+    suspend fun markNotificationAsRead(
+        @Path("id") id: String,
+        @Body request: MarkNotificationReadRequest
+    ): Response<NotificationResponse>
+
+    // Marked Location endpoints
+    @GET("api/v1/locations")
+    suspend fun getMarkedLocations(
+        @Query("category") category: String? = null,
+        @Query("tags") tags: String? = null,
+        @Query("search") search: String? = null,
+        @Query("lat") lat: Double? = null,
+        @Query("lon") lon: Double? = null
+    ): Response<List<MarkedLocationResponse>>
+
+    @GET("api/v1/locations/nearby")
+    suspend fun getNearbyMarkedLocations(
+        @Query("lat") lat: Double,
+        @Query("lon") lon: Double,
+        @Query("radius") radius: Double
+    ): Response<List<MarkedLocationResponse>>
+
+    @GET("api/v1/locations/{id}")
+    suspend fun getMarkedLocation(
+        @Path("id") id: String
+    ): Response<MarkedLocationResponse>
+
+    @POST("api/v1/locations")
+    suspend fun createMarkedLocation(
+        @Body request: CreateMarkedLocationRequest
+    ): Response<MarkedLocationResponse>
+
+    @PUT("api/v1/locations/{id}")
+    suspend fun updateMarkedLocation(
+        @Path("id") id: String,
+        @Body request: UpdateMarkedLocationRequest
+    ): Response<MarkedLocationResponse>
+
+    @DELETE("api/v1/locations/{id}")
+    suspend fun deleteMarkedLocation(
+        @Path("id") id: String
+    ): Response<Unit>
 }

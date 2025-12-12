@@ -108,6 +108,13 @@ export class BoatService {
       data: { enabled }
     });
 
+    // If boat is being disabled, remove its maintenance notifications
+    if (!enabled) {
+      // Import here to avoid circular dependency
+      const { notificationService } = await import('./notificationService');
+      await notificationService.removeNotificationsForBoat(id);
+    }
+
     logger.info('Boat status toggled', { boatId: id, enabled });
 
     return updated;

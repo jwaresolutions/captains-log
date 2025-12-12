@@ -10,7 +10,11 @@ import tripRoutes from './routes/trips';
 import captainLogRoutes from './routes/captainLog';
 import noteRoutes from './routes/notes';
 import todoRoutes from './routes/todos';
+import maintenanceRoutes from './routes/maintenance';
+import notificationRoutes from './routes/notifications';
+import locationRoutes from './routes/locations';
 import { checkAndCreateInitialUser } from './utils/initialSetup';
+import { schedulerService } from './services/schedulerService';
 
 // Load environment variables
 dotenv.config();
@@ -55,7 +59,10 @@ app.get('/api/v1', (_req: Request, res: Response) => {
       trips: '/api/v1/trips',
       captainLog: '/api/v1/captain-log',
       notes: '/api/v1/notes',
-      todos: '/api/v1/todos'
+      todos: '/api/v1/todos',
+      maintenance: '/api/v1/maintenance',
+      notifications: '/api/v1/notifications',
+      locations: '/api/v1/locations'
     }
   });
 });
@@ -80,6 +87,15 @@ app.use('/api/v1/notes', authenticateToken, noteRoutes);
 
 // Todo routes (requires authentication)
 app.use('/api/v1/todos', authenticateToken, todoRoutes);
+
+// Maintenance routes (requires authentication)
+app.use('/api/v1/maintenance', authenticateToken, maintenanceRoutes);
+
+// Notification routes (requires authentication)
+app.use('/api/v1/notifications', authenticateToken, notificationRoutes);
+
+// Location routes (requires authentication)
+app.use('/api/v1/locations', authenticateToken, locationRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
@@ -118,6 +134,9 @@ app.listen(port, async () => {
   
   // Check for initial setup on startup
   await checkAndCreateInitialUser();
+  
+  // Start scheduled jobs
+  schedulerService.start();
 });
 
 export default app;
