@@ -14,9 +14,13 @@ class SyncManager(private val context: Context) {
         const val TAG = "SyncManager"
         const val PERIODIC_SYNC_WORK_NAME = "periodic_trip_sync"
         const val ONE_TIME_SYNC_WORK_NAME = "one_time_trip_sync"
+        const val PERIODIC_PHOTO_SYNC_WORK_NAME = "periodic_photo_sync"
+        const val ONE_TIME_PHOTO_SYNC_WORK_NAME = "one_time_photo_sync"
         
         // Sync every 15 minutes when online
         private const val SYNC_INTERVAL_MINUTES = 15L
+        // Photo sync every 30 minutes (less frequent due to WiFi requirement)
+        private const val PHOTO_SYNC_INTERVAL_MINUTES = 30L
 
         @Volatile
         private var INSTANCE: SyncManager? = null
@@ -35,15 +39,16 @@ class SyncManager(private val context: Context) {
      * This will run every 15 minutes when the device has internet connectivity
      */
     fun schedulePeriodicSync() {
-        val constraints = Constraints.Builder()
+        // Schedule trip sync
+        val tripConstraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
-        val syncRequest = PeriodicWorkRequestBuilder<TripSyncWorker>(
+        val tripSyncRequest = PeriodicWorkRequestBuilder<TripSyncWorker>(
             SYNC_INTERVAL_MINUTES,
             TimeUnit.MINUTES
         )
-            .setConstraints(constraints)
+            .setConstraints(tripConstraints)
             .setBackoffCriteria(
                 BackoffPolicy.EXPONENTIAL,
                 WorkRequest.MIN_BACKOFF_MILLIS,
@@ -54,10 +59,34 @@ class SyncManager(private val context: Context) {
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
             PERIODIC_SYNC_WORK_NAME,
             ExistingPeriodicWorkPolicy.KEEP,
-            syncRequest
+            tripSyncRequest
         )
 
-        Log.d(TAG, "Scheduled periodic sync every $SYNC_INTERVAL_MINUTES minutes")
+        // Schedule photo sync (WiFi only)
+        val photoConstraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.UNMETERED) // WiFi only
+            .build()
+
+        val photoSyncRequest = PeriodicWorkRequestBuilder<PhotoSyncWorker>(
+            PHOTO_SYNC_INTERVAL_MINUTES,
+            TimeUnit.MINUTES
+        )
+            .setConstraints(photoConstraints)
+            .setBackoffCriteria(
+                BackoffPolicy.EXPONENTIAL,
+                WorkRequest.MIN_BACKOFF_MILLIS,
+                TimeUnit.MILLISECONDS
+            )
+            .build()
+
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+            PERIODIC_PHOTO_SYNC_WORK_NAME,
+            ExistingPeriodicWorkPolicy.KEEP,
+            photoSyncRequest
+        )
+
+        Log.d(TAG, "Scheduled periodic trip sync every $SYNC_INTERVAL_MINUTES minutes")
+        Log.d(TAG, "Scheduled periodic photo sync every $PHOTO_SYNC_INTERVAL_MINUTES minutes (WiFi only)")
     }
 
     /**
@@ -84,7 +113,34 @@ class SyncManager(private val context: Context) {
             syncRequest
         )
 
-        Log.d(TAG, "Triggered immediate sync")
+        Log.d(TAG, "Triggered immediate trip sync")
+    }
+
+    /**
+     * Trigger an immediate photo sync
+     * Only works if on WiFi
+     */
+    fun triggerImmediatePhotoSync() {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.UNMETERED) // WiFi only
+            .build()
+
+        val photoSyncRequest = OneTimeWorkRequestBuilder<PhotoSyncWorker>()
+            .setConstraints(constraints)
+            .setBackoffCriteria(
+                BackoffPolicy.EXPONENTIAL,
+                WorkRequest.MIN_BACKOFF_MILLIS,
+                TimeUnit.MILLISECONDS
+            )
+            .build()
+
+        WorkManager.getInstance(context).enqueueUniqueWork(
+            ONE_TIME_PHOTO_SYNC_WORK_NAME,
+            ExistingWorkPolicy.REPLACE,
+            photoSyncRequest
+        )
+
+        Log.d(TAG, "Triggered immediate photo sync (WiFi only)")
     }
 
     /**
@@ -93,6 +149,8 @@ class SyncManager(private val context: Context) {
     fun cancelAllSync() {
         WorkManager.getInstance(context).cancelUniqueWork(PERIODIC_SYNC_WORK_NAME)
         WorkManager.getInstance(context).cancelUniqueWork(ONE_TIME_SYNC_WORK_NAME)
+        WorkManager.getInstance(context).cancelUniqueWork(PERIODIC_PHOTO_SYNC_WORK_NAME)
+        WorkManager.getInstance(context).cancelUniqueWork(ONE_TIME_PHOTO_SYNC_WORK_NAME)
         Log.d(TAG, "Cancelled all sync work")
     }
 
@@ -105,13 +163,10 @@ class SyncManager(private val context: Context) {
     }
 
     /**
-     * Check if sync is currently running
+     * Get sync work status
      */
-    suspend fun isSyncRunning(): Boolean {
-        val workInfos = WorkManager.getInstance(context)
-            .getWorkInfosForUniqueWork(PERIODIC_SYNC_WORK_NAME)
-            .await()
-        
-        return workInfos.any { it.state == WorkInfo.State.RUNNING }
+    fun getSyncStatus(): androidx.lifecycle.LiveData<List<WorkInfo>> {
+        return WorkManager.getInstance(context)
+            .getWorkInfosForUniqueWorkLiveData(PERIODIC_SYNC_WORK_NAME)
     }
 }

@@ -353,6 +353,15 @@ private fun MaintenanceCompletionCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+
+            // Photos for this maintenance completion
+            com.boattracking.ui.components.PhotoGrid(
+                entityType = "maintenance",
+                entityId = completion.id,
+                maxPhotosToShow = 4,
+                photoSize = 60.dp,
+                showTitle = false
+            )
         }
     }
 }

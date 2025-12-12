@@ -782,15 +782,15 @@ This implementation plan follows a phased approach, allowing verification of eac
 
 ## Phase 8: Photo Attachments
 
-- [ ] 8. Implement photo management
-- [ ] 8.1 Create Photo schema and service
+- [-] 8. Implement photo management
+- [x] 8.1 Create Photo schema and service
   - Add Photo entity to Prisma schema
   - Create Photo service with upload and optimization
   - Set up Sharp for image processing
   - Configure photo storage directories
   - _Requirements: 11.1, 11.2, 11.6_
 
-- [ ] 8.2 Create API endpoints for photos
+- [x] 8.2 Create API endpoints for photos
   - Implement POST /api/v1/photos (upload photo)
   - Implement GET /api/v1/photos/:id (get photo)
   - Implement GET /api/v1/photos (list photos by entity)
@@ -798,7 +798,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Implement web optimization (1920px width)
   - _Requirements: 11.1, 11.2, 11.5, 11.6_
 
-- [ ] 8.3 Write property tests for photos
+- [x] 8.3 Write property tests for photos
   - **Property 15: Photo-Trip Association**
   - **Validates: Requirements 5.5, 11.6**
   - **Property 38: Photo Storage and Retrieval**
@@ -806,7 +806,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - **Property 39: Photo Web Optimization**
   - **Validates: Requirements 11.2**
 
-- [ ] 8.4 Implement Android photo capture and upload
+- [x] 8.4 Implement Android photo capture and upload
   - Add camera permission handling
   - Implement photo capture functionality
   - Store photos locally in Room database
@@ -815,7 +815,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Retain local photos for 7 days after successful upload before deletion
   - _Requirements: 11.3, 11.4, 11.5_
 
-- [ ] 8.5 Write property tests for photo upload restrictions
+- [x] 8.5 Write property tests for photo upload restrictions
   - **Property 50: Photo Upload Network Restriction**
   - **Validates: Requirements 11.3**
   - **Property 51: Local Photo Upload Preference**
@@ -823,7 +823,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - **Property 52: Photo Retention Period**
   - **Validates: Requirements 11.5**
 
-- [ ] 8.6 Add photo attachment UI to trips and maintenance
+- [x] 8.6 Add photo attachment UI to trips and maintenance
   - Add photo attachment button to trip detail screen
   - Add photo attachment button to maintenance completion form
   - Display attached photos in grid view
@@ -831,11 +831,11 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Show upload status and pending count
   - _Requirements: 5.5, 9.5, 11.4_
 
-- [ ] 8.7 Run all property tests and verify they pass
+- [x] 8.7 Run all property tests and verify they pass
   - Run property tests with minimum 100 iterations
   - Ensure all tests pass, ask the user if questions arise
 
-- [ ] 8.8 Manual validation: Photo attachments
+- [x] 8.8 Manual validation: Photo attachments
   - **User Action**: Attach a photo to a trip using Android camera
     - **Android Studio**: Emulator camera can use virtual scene or host webcam
     - **Android Studio**: Extended Controls → Camera to configure camera settings

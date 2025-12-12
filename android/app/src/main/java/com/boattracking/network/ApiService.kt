@@ -251,4 +251,29 @@ interface ApiService {
     suspend fun deleteMarkedLocation(
         @Path("id") id: String
     ): Response<Unit>
+
+    // Photo endpoints
+    @Multipart
+    @POST("api/v1/photos")
+    suspend fun uploadPhoto(
+        @Part("entityType") entityType: okhttp3.RequestBody,
+        @Part("entityId") entityId: okhttp3.RequestBody,
+        @Part photo: okhttp3.MultipartBody.Part
+    ): Response<PhotoResponse>
+
+    @GET("api/v1/photos")
+    suspend fun getPhotos(
+        @Query("entityType") entityType: String,
+        @Query("entityId") entityId: String
+    ): Response<PhotoListResponse>
+
+    @GET("api/v1/photos/{id}")
+    suspend fun getPhoto(
+        @Path("id") id: String
+    ): Response<PhotoResponse>
+
+    @DELETE("api/v1/photos/{id}")
+    suspend fun deletePhoto(
+        @Path("id") id: String
+    ): Response<Unit>
 }

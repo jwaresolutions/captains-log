@@ -104,6 +104,12 @@ fun MaintenanceTaskCompletionScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
+                    // Photo capture component
+                    com.boattracking.ui.components.PhotoCaptureComponent(
+                        entityType = "maintenance",
+                        entityId = taskId
+                    )
+
                     // Complete button
                     Button(
                         onClick = {

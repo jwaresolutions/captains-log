@@ -13,6 +13,7 @@ import todoRoutes from './routes/todos';
 import maintenanceRoutes from './routes/maintenance';
 import notificationRoutes from './routes/notifications';
 import locationRoutes from './routes/locations';
+import photoRoutes from './routes/photos';
 import { checkAndCreateInitialUser } from './utils/initialSetup';
 import { schedulerService } from './services/schedulerService';
 
@@ -62,7 +63,8 @@ app.get('/api/v1', (_req: Request, res: Response) => {
       todos: '/api/v1/todos',
       maintenance: '/api/v1/maintenance',
       notifications: '/api/v1/notifications',
-      locations: '/api/v1/locations'
+      locations: '/api/v1/locations',
+      photos: '/api/v1/photos'
     }
   });
 });
@@ -96,6 +98,9 @@ app.use('/api/v1/notifications', authenticateToken, notificationRoutes);
 
 // Location routes (requires authentication)
 app.use('/api/v1/locations', authenticateToken, locationRoutes);
+
+// Photo routes (requires authentication)
+app.use('/api/v1/photos', authenticateToken, photoRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

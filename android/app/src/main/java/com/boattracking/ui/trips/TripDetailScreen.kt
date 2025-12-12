@@ -197,6 +197,12 @@ fun TripDetailScreen(
                 onEditManualData = onUpdateManualData
             )
             
+            // Photo capture component
+            com.boattracking.ui.components.PhotoCaptureComponent(
+                entityType = "trip",
+                entityId = trip.id
+            )
+            
             // Sync status
             SyncStatusCard(trip = trip)
         }

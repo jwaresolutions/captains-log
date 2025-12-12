@@ -222,3 +222,18 @@ model MarkedLocation {
   @@index([latitude, longitude])
   @@index([createdAt])
 }
+
+model Photo {
+  id                String   @id @default(uuid())
+  entityType        String   // 'trip', 'maintenance', 'note'
+  entityId          String   // ID of the entity this photo is attached to
+  originalPath      String   // Path to original high-resolution image
+  webOptimizedPath  String   // Path to web-optimized version (1920px width)
+  mimeType          String   // Image MIME type (image/jpeg, image/png, etc.)
+  sizeBytes         Int      // File size in bytes
+  metadata          Json?    // Optional metadata (width, height, takenAt, etc.)
+  createdAt         DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
