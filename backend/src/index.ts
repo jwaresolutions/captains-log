@@ -14,6 +14,7 @@ import maintenanceRoutes from './routes/maintenance';
 import notificationRoutes from './routes/notifications';
 import locationRoutes from './routes/locations';
 import photoRoutes from './routes/photos';
+import backupRoutes from './routes/backups';
 import { checkAndCreateInitialUser } from './utils/initialSetup';
 import { schedulerService } from './services/schedulerService';
 
@@ -64,7 +65,8 @@ app.get('/api/v1', (_req: Request, res: Response) => {
       maintenance: '/api/v1/maintenance',
       notifications: '/api/v1/notifications',
       locations: '/api/v1/locations',
-      photos: '/api/v1/photos'
+      photos: '/api/v1/photos',
+      backups: '/api/v1/backups'
     }
   });
 });
@@ -101,6 +103,9 @@ app.use('/api/v1/locations', authenticateToken, locationRoutes);
 
 // Photo routes (requires authentication)
 app.use('/api/v1/photos', authenticateToken, photoRoutes);
+
+// Backup routes (requires authentication)
+app.use('/api/v1/backups', authenticateToken, backupRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
