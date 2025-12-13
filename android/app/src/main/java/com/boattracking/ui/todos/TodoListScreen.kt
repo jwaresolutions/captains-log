@@ -12,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.collectAsState
@@ -26,6 +27,7 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TodoListScreen(
+    modifier: Modifier = Modifier,
     onNavigateToTodoDetail: (String) -> Unit,
     todoViewModel: TodoViewModel = viewModel(),
     boatViewModel: BoatViewModel = viewModel()
@@ -42,19 +44,27 @@ fun TodoListScreen(
         todoViewModel.syncTodoLists()
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Scaffold(
+        modifier = modifier,
+        topBar = {
+            TopAppBar(
+                title = { Text("To-Do Lists") }
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { showCreateDialog = true }
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Create Todo List")
+            }
+        }
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(paddingValues)
                 .padding(16.dp)
         ) {
-            // Header
-            Text(
-                text = "To-Do Lists",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
 
             // Loading indicator
             if (todoUiState.isLoading) {
@@ -83,30 +93,54 @@ fun TodoListScreen(
             }
 
             // Todo Lists
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(allTodoLists) { todoList ->
-                    TodoListCard(
-                        todoList = todoList,
-                        boats = boats,
-                        onNavigateToDetail = { onNavigateToTodoDetail(todoList.id) },
-                        onEdit = { showEditDialog = todoList },
-                        onDelete = { showDeleteDialog = todoList }
-                    )
+            if (allTodoLists.isEmpty() && !todoUiState.isLoading) {
+                // Empty state
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(32.dp)
+                    ) {
+                        Text(
+                            text = "No Todo Lists Yet",
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Create your first todo list to start organizing your tasks",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(
+                            onClick = { showCreateDialog = true }
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = null)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Create Todo List")
+                        }
+                    }
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(allTodoLists) { todoList ->
+                        TodoListCard(
+                            todoList = todoList,
+                            boats = boats,
+                            onNavigateToDetail = { onNavigateToTodoDetail(todoList.id) },
+                            onEdit = { showEditDialog = todoList },
+                            onDelete = { showDeleteDialog = todoList }
+                        )
+                    }
                 }
             }
-        }
-        
-        // Floating Action Button
-        FloatingActionButton(
-            onClick = { showCreateDialog = true },
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(16.dp)
-        ) {
-            Icon(Icons.Default.Add, contentDescription = "Create Todo List")
         }
     }
     

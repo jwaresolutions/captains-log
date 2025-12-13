@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -29,6 +30,7 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TodoDetailScreen(
+    modifier: Modifier = Modifier,
     listId: String,
     onNavigateBack: () -> Unit,
     todoViewModel: TodoViewModel = viewModel(),
@@ -47,32 +49,41 @@ fun TodoDetailScreen(
         todoViewModel.selectTodoList(listId)
     }
 
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        // Top App Bar
-        TopAppBar(
-            title = { 
-                Text(
-                    text = todoList?.title ?: "Todo List",
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            navigationIcon = {
-                IconButton(onClick = onNavigateBack) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+    Scaffold(
+        modifier = modifier,
+        topBar = {
+            TopAppBar(
+                title = { 
+                    Text(
+                        text = todoList?.title ?: "Todo List",
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { showAddItemDialog = true }) {
+                        Icon(Icons.Default.Add, contentDescription = "Add Item")
+                    }
                 }
-            },
-            actions = {
-                IconButton(onClick = { showAddItemDialog = true }) {
-                    Icon(Icons.Default.Add, contentDescription = "Add Item")
-                }
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { showAddItemDialog = true }
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add Item")
             }
-        )
+        }
+    ) { paddingValues ->
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(paddingValues)
                 .padding(16.dp)
         ) {
             // List info
@@ -138,25 +149,35 @@ fun TodoDetailScreen(
             }
 
             // Todo Items
-            if (todoItems.isEmpty()) {
+            if (todoItems.isEmpty() && !todoUiState.isLoading) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(32.dp)
                     ) {
                         Text(
-                            text = "No items yet",
-                            style = MaterialTheme.typography.bodyLarge,
+                            text = "No Items Yet",
+                            style = MaterialTheme.typography.headlineSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Tap the + button to add your first item",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            text = "Add your first todo item using the + button above",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
                         )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(
+                            onClick = { showAddItemDialog = true }
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = null)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Add Item")
+                        }
                     }
                 }
             } else {

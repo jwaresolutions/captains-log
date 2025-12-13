@@ -148,7 +148,7 @@ fun MainNavigation() {
                 NotesNavigation(modifier = Modifier.padding(paddingValues))
             }
             CurrentScreen.Todos -> {
-                TodoNavigation()
+                TodoNavigation(modifier = Modifier.padding(paddingValues))
             }
             CurrentScreen.Settings -> {
                 SettingsScreen(
