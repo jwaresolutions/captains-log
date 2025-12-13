@@ -28,6 +28,10 @@ fun MaintenanceNavigation(
                 onNavigateToCreateTask = {
                     currentScreen = MaintenanceScreen.Create
                 },
+                onNavigateToEdit = { taskId ->
+                    selectedTaskId = taskId
+                    currentScreen = MaintenanceScreen.Edit
+                },
                 modifier = modifier,
                 viewModel = maintenanceViewModel
             )

@@ -24,6 +24,7 @@ import java.util.*
 fun MaintenanceListScreen(
     onNavigateToTaskDetail: (String) -> Unit,
     onNavigateToCreateTask: () -> Unit,
+    onNavigateToEdit: (String) -> Unit = { },
     modifier: Modifier = Modifier,
     viewModel: MaintenanceViewModel
 ) {
@@ -116,7 +117,13 @@ fun MaintenanceListScreen(
                             items(tasksToShow) { task ->
                                 MaintenanceTaskCard(
                                     task = task,
-                                    onClick = { onNavigateToTaskDetail(task.id) },
+                                    onClick = { 
+                                        println("Task clicked: ${task.id}")
+                                        onNavigateToTaskDetail(task.id) 
+                                    },
+                                    onEdit = { onNavigateToEdit(task.id) },
+                                    onDelete = { viewModel.deleteMaintenanceTask(task.id) },
+                                    onComplete = { /* TODO: Add complete functionality */ },
                                     viewModel = viewModel
                                 )
                             }
@@ -176,6 +183,9 @@ fun MaintenanceListScreen(
 private fun MaintenanceTaskCard(
     task: MaintenanceTaskEntity,
     onClick: () -> Unit,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+    onComplete: () -> Unit,
     viewModel: MaintenanceViewModel,
     modifier: Modifier = Modifier
 ) {
@@ -184,6 +194,7 @@ private fun MaintenanceTaskCard(
     val isDueSoon = viewModel.isTaskDueSoon(task)
     val daysUntilDue = viewModel.getDaysUntilDue(task)
     val recurrenceText = viewModel.formatRecurrence(task)
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     Card(
         onClick = onClick,
@@ -283,7 +294,68 @@ private fun MaintenanceTaskCard(
                     )
                 }
             }
+            
+            // Action buttons with debug background
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Button(
+                    onClick = onComplete,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Text("Complete")
+                }
+                Button(
+                    onClick = onEdit,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondary
+                    )
+                ) {
+                    Text("Edit")
+                }
+                Button(
+                    onClick = { showDeleteDialog = true },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Delete")
+                }
+            }
         }
+    }
+    
+    // Delete confirmation dialog
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Delete Maintenance Task") },
+            text = { Text("Are you sure you want to delete \"${task.title}\"? This action cannot be undone.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteDialog = false
+                        onDelete()
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 
