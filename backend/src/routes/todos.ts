@@ -61,8 +61,9 @@ router.get('/', async (req, res) => {
     const todoLists = await todoService.getLists(boatId as string);
 
     res.json({
-      success: true,
-      data: todoLists
+      data: todoLists,
+      count: todoLists.length,
+      timestamp: new Date().toISOString()
     });
   } catch (error) {
     console.error('Error fetching todo lists:', error);

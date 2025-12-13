@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 /**
  * Consistent top bar used across all screens in the app.
  * Features purple background with app title on left and action buttons on right.
+ * Supports highlighting active buttons.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -24,7 +25,10 @@ fun AppTopBar(
     title: String,
     onNotesClick: () -> Unit = {},
     onTodosClick: () -> Unit = {},
-    onSettingsClick: () -> Unit = {}
+    onSettingsClick: () -> Unit = {},
+    notesActive: Boolean = false,
+    todosActive: Boolean = false,
+    settingsActive: Boolean = false
 ) {
     TopAppBar(
         title = {
@@ -40,7 +44,7 @@ fun AppTopBar(
                 Icon(
                     imageVector = Icons.Filled.Edit,
                     contentDescription = "Notes",
-                    tint = Color.White
+                    tint = if (notesActive) Color.Yellow else Color.White
                 )
             }
             
@@ -49,7 +53,7 @@ fun AppTopBar(
                 Icon(
                     imageVector = Icons.Filled.CheckCircle,
                     contentDescription = "Todos",
-                    tint = Color.White
+                    tint = if (todosActive) Color.Yellow else Color.White
                 )
             }
             
@@ -58,7 +62,7 @@ fun AppTopBar(
                 Icon(
                     imageVector = Icons.Filled.Settings,
                     contentDescription = "Settings",
-                    tint = Color.White
+                    tint = if (settingsActive) Color.Yellow else Color.White
                 )
             }
         },

@@ -48,37 +48,9 @@ fun TripListScreen(
     // State for start trip dialog
     var showStartDialog by remember { mutableStateOf(false) }
     
-    Scaffold(
-        topBar = {
-            com.boattracking.ui.components.AppTopBar(
-                title = "Trips",
-                onNotesClick = { /* TODO: Navigate to Notes */ },
-                onTodosClick = { /* TODO: Navigate to Todos */ },
-                onSettingsClick = { /* TODO: Navigate to Settings */ }
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { 
-                    android.util.Log.d("TripListScreen", "Start New Trip FAB clicked")
-                    showStartDialog = true 
-                },
-                containerColor = if (hasActiveTrip) 
-                    MaterialTheme.colorScheme.tertiary 
-                else 
-                    MaterialTheme.colorScheme.primary
-            ) {
-                Icon(
-                    imageVector = if (hasActiveTrip) Icons.Default.Refresh else Icons.Default.Add,
-                    contentDescription = if (hasActiveTrip) "View Active Trip" else "Start New Trip"
-                )
-            }
-        }
-    ) { paddingValues ->
+    Box(modifier = modifier.fillMaxSize()) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
+            modifier = Modifier.fillMaxSize()
         ) {
             // Sync button
             Card(
@@ -248,6 +220,26 @@ fun TripListScreen(
                     }
                 }
             }
+        }
+        
+        // Floating Action Button
+        FloatingActionButton(
+            onClick = { 
+                android.util.Log.d("TripListScreen", "Start New Trip FAB clicked")
+                showStartDialog = true 
+            },
+            containerColor = if (hasActiveTrip) 
+                MaterialTheme.colorScheme.tertiary 
+            else 
+                MaterialTheme.colorScheme.primary,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
+        ) {
+            Icon(
+                imageVector = if (hasActiveTrip) Icons.Default.Refresh else Icons.Default.Add,
+                contentDescription = if (hasActiveTrip) "View Active Trip" else "Start New Trip"
+            )
         }
     }
     

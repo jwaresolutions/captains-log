@@ -37,100 +37,88 @@ fun LicenseProgressScreen(
         viewModel.loadLicenseProgress()
     }
 
-    Scaffold(
-        topBar = {
-            com.boattracking.ui.components.AppTopBar(
-                title = "License Progress",
-                onNotesClick = { /* TODO: Navigate to Notes */ },
-                onTodosClick = { /* TODO: Navigate to Todos */ },
-                onSettingsClick = { /* TODO: Navigate to Settings */ }
-            )
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            when {
-                uiState.isLoading -> {
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        when {
+            uiState.isLoading -> {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
                 }
-                
-                uiState.error != null -> {
-                    Card(
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer
-                        )
+            }
+            
+            uiState.error != null -> {
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp)
+                        Text(
+                            text = "Error Loading Progress",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                        Text(
+                            text = uiState.error ?: "Unknown error",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                        
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        Button(
+                            onClick = { viewModel.loadLicenseProgress() }
                         ) {
-                            Text(
-                                text = "Error Loading Progress",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onErrorContainer
-                            )
-                            Text(
-                                text = uiState.error ?: "Unknown error",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onErrorContainer
-                            )
-                            
-                            Spacer(modifier = Modifier.height(8.dp))
-                            
-                            Button(
-                                onClick = { viewModel.loadLicenseProgress() }
-                            ) {
-                                Text("Retry")
-                            }
+                            Text("Retry")
                         }
                     }
                 }
+            }
+            
+            uiState.progress != null -> {
+                val progress = uiState.progress!!
                 
-                uiState.progress != null -> {
-                    val progress = uiState.progress!!
-                    
-                    // Overview Card
-                    OverviewCard(progress = progress)
-                    
-                    // 360-Day Goal Card
-                    GoalCard(
-                        title = "360-Day Total Goal",
-                        description = "Total sea time days for 6-pack OUPV license",
-                        currentDays = progress.totalDays,
-                        goalDays = 360,
-                        estimatedCompletion = progress.estimatedCompletion360,
-                        progressColor = MaterialTheme.colorScheme.primary
-                    )
-                    
-                    // 90-Day in 3 Years Goal Card
-                    GoalCard(
-                        title = "90 Days in 3 Years Goal",
-                        description = "Recent sea time for license renewal",
-                        currentDays = progress.daysInLast3Years,
-                        goalDays = 90,
-                        estimatedCompletion = progress.estimatedCompletion90In3Years,
-                        progressColor = MaterialTheme.colorScheme.secondary
-                    )
-                    
-                    // Activity Rate Card
-                    ActivityRateCard(progress = progress)
-                    
-                    // Information Card
-                    InformationCard()
-                }
+                // Overview Card
+                OverviewCard(progress = progress)
+                
+                // 360-Day Goal Card
+                GoalCard(
+                    title = "360-Day Total Goal",
+                    description = "Total sea time days for 6-pack OUPV license",
+                    currentDays = progress.totalDays,
+                    goalDays = 360,
+                    estimatedCompletion = progress.estimatedCompletion360,
+                    progressColor = MaterialTheme.colorScheme.primary
+                )
+                
+                // 90-Day in 3 Years Goal Card
+                GoalCard(
+                    title = "90 Days in 3 Years Goal",
+                    description = "Recent sea time for license renewal",
+                    currentDays = progress.daysInLast3Years,
+                    goalDays = 90,
+                    estimatedCompletion = progress.estimatedCompletion90In3Years,
+                    progressColor = MaterialTheme.colorScheme.secondary
+                )
+                
+                // Activity Rate Card
+                ActivityRateCard(progress = progress)
+                
+                // Information Card
+                InformationCard()
             }
         }
     }

@@ -2,6 +2,18 @@ package com.boattracking.network.models
 
 import com.google.gson.annotations.SerializedName
 
+// Wrapper response models for backend API
+data class ApiListResponse<T>(
+    val data: List<T>,
+    val count: Int,
+    val timestamp: String
+)
+
+data class ApiSuccessResponse<T>(
+    val success: Boolean,
+    val data: T
+)
+
 // Boat models
 data class BoatResponse(
     val id: String,

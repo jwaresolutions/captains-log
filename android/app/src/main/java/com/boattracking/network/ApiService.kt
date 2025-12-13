@@ -24,7 +24,7 @@ interface ApiService {
     suspend fun createBoat(@Body request: CreateBoatRequest): Response<BoatResponse>
 
     @GET("api/v1/boats")
-    suspend fun getBoats(): Response<List<BoatResponse>>
+    suspend fun getBoats(): Response<ApiListResponse<BoatResponse>>
 
     @GET("api/v1/boats/{id}")
     suspend fun getBoat(@Path("id") id: String): Response<BoatResponse>
@@ -135,7 +135,7 @@ interface ApiService {
     @GET("api/v1/todos")
     suspend fun getTodoLists(
         @Query("boatId") boatId: String? = null
-    ): Response<List<TodoListResponse>>
+    ): Response<ApiListResponse<TodoListResponse>>
 
     @GET("api/v1/todos/{id}")
     suspend fun getTodoList(@Path("id") id: String): Response<TodoListResponse>

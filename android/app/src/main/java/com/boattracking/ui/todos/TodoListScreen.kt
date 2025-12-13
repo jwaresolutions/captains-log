@@ -42,76 +42,74 @@ fun TodoListScreen(
         todoViewModel.syncTodoLists()
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        // Header with Add button
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
         ) {
+            // Header
             Text(
                 text = "To-Do Lists",
                 style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 16.dp)
             )
-            
-            FloatingActionButton(
-                onClick = { showCreateDialog = true },
-                modifier = Modifier.size(56.dp)
+
+            // Loading indicator
+            if (todoUiState.isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+
+            // Error message
+            todoUiState.error?.let { error ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
+                ) {
+                    Text(
+                        text = error,
+                        modifier = Modifier.padding(16.dp),
+                        color = MaterialTheme.colorScheme.onErrorContainer
+                    )
+                }
+            }
+
+            // Todo Lists
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Create Todo List")
+                items(allTodoLists) { todoList ->
+                    TodoListCard(
+                        todoList = todoList,
+                        boats = boats,
+                        onNavigateToDetail = { onNavigateToTodoDetail(todoList.id) },
+                        onEdit = { showEditDialog = todoList },
+                        onDelete = { showDeleteDialog = todoList }
+                    )
+                }
             }
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Loading indicator
-        if (todoUiState.isLoading) {
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
-        }
-
-        // Error message
-        todoUiState.error?.let { error ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
-            ) {
-                Text(
-                    text = error,
-                    modifier = Modifier.padding(16.dp),
-                    color = MaterialTheme.colorScheme.onErrorContainer
-                )
-            }
-        }
-
-        // Todo Lists
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+        
+        // Floating Action Button
+        FloatingActionButton(
+            onClick = { showCreateDialog = true },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
         ) {
-            items(allTodoLists) { todoList ->
-                TodoListCard(
-                    todoList = todoList,
-                    boats = boats,
-                    onNavigateToDetail = { onNavigateToTodoDetail(todoList.id) },
-                    onEdit = { showEditDialog = todoList },
-                    onDelete = { showDeleteDialog = todoList }
-                )
-            }
+            Icon(Icons.Default.Add, contentDescription = "Create Todo List")
         }
     }
-
+    
     // Create Dialog
     if (showCreateDialog) {
         CreateTodoListDialog(
@@ -196,13 +194,13 @@ private fun TodoListCard(
                     if (boat != null) {
                         Text(
                             text = "Boat: ${boat.name}",
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.primary
                         )
-                    } else if (todoList.boatId == null) {
+                    } else {
                         Text(
-                            text = "General",
-                            style = MaterialTheme.typography.bodyMedium,
+                            text = "General List",
+                            style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.secondary
                         )
                     }
@@ -265,10 +263,7 @@ private fun CreateTodoListDialog(
                     onExpandedChange = { expanded = !expanded }
                 ) {
                     OutlinedTextField(
-                        value = when (selectedBoatId) {
-                            null -> "General (no boat)"
-                            else -> boats.find { it.id == selectedBoatId }?.name ?: "Unknown boat"
-                        },
+                        value = boats.find { it.id == selectedBoatId }?.name ?: "General List",
                         onValueChange = { },
                         readOnly = true,
                         label = { Text("Boat") },
@@ -283,7 +278,7 @@ private fun CreateTodoListDialog(
                         onDismissRequest = { expanded = false }
                     ) {
                         DropdownMenuItem(
-                            text = { Text("General (no boat)") },
+                            text = { Text("General List") },
                             onClick = {
                                 selectedBoatId = null
                                 expanded = false
@@ -349,10 +344,7 @@ private fun EditTodoListDialog(
                     onExpandedChange = { expanded = !expanded }
                 ) {
                     OutlinedTextField(
-                        value = when (selectedBoatId) {
-                            null -> "General (no boat)"
-                            else -> boats.find { it.id == selectedBoatId }?.name ?: "Unknown boat"
-                        },
+                        value = boats.find { it.id == selectedBoatId }?.name ?: "General List",
                         onValueChange = { },
                         readOnly = true,
                         label = { Text("Boat") },
@@ -367,7 +359,7 @@ private fun EditTodoListDialog(
                         onDismissRequest = { expanded = false }
                     ) {
                         DropdownMenuItem(
-                            text = { Text("General (no boat)") },
+                            text = { Text("General List") },
                             onClick = {
                                 selectedBoatId = null
                                 expanded = false

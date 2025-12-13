@@ -42,10 +42,8 @@ fun MainNavigation() {
     var isLicenseEnabled by remember { mutableStateOf(navPrefs.isLicenseEnabled) }
     var selectedTab by remember { mutableStateOf(NavigationTab.Home) }
     
-    // Track overlay screens (Notes, Todos, Settings)
-    var showNotes by remember { mutableStateOf(false) }
-    var showTodos by remember { mutableStateOf(false) }
-    var showSettings by remember { mutableStateOf(false) }
+    // Track current screen (including top bar actions)
+    var currentScreen: CurrentScreen by remember { mutableStateOf(CurrentScreen.Tab(NavigationTab.Home)) }
 
     // Get available tabs based on user preferences
     val availableTabs = remember(isSensorsEnabled, isLicenseEnabled) {
@@ -66,6 +64,7 @@ fun MainNavigation() {
     LaunchedEffect(availableTabs) {
         if (selectedTab !in availableTabs) {
             selectedTab = NavigationTab.Home
+            currentScreen = CurrentScreen.Tab(NavigationTab.Home)
         }
     }
     
@@ -75,95 +74,57 @@ fun MainNavigation() {
         isLicenseEnabled = navPrefs.isLicenseEnabled
     }
 
-    // Handle overlay screens
-    when {
-        showSettings -> {
-            SettingsScreen(
-                onNotesClick = { 
-                    showSettings = false
-                    showNotes = true 
-                },
-                onTodosClick = { 
-                    showSettings = false
-                    showTodos = true 
-                },
-                onNavigationPrefsChanged = refreshNavPrefs
-            )
-            // Add back navigation
-            Box(modifier = Modifier.fillMaxSize()) {
-                IconButton(
-                    onClick = { showSettings = false },
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(16.dp)
-                        .zIndex(1f)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Back"
-                    )
-                }
-            }
-        }
-        showNotes -> {
-            NotesNavigation(modifier = Modifier.fillMaxSize())
-            // Add back navigation
-            Box(modifier = Modifier.fillMaxSize()) {
-                IconButton(
-                    onClick = { showNotes = false },
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(16.dp)
-                        .zIndex(1f)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Back"
-                    )
-                }
-            }
-        }
-        showTodos -> {
-            TodoNavigation()
-            // Add back navigation
-            Box(modifier = Modifier.fillMaxSize()) {
-                IconButton(
-                    onClick = { showTodos = false },
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(16.dp)
-                        .zIndex(1f)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Back"
-                    )
-                }
-            }
-        }
-        else -> {
-            // Main navigation with bottom tabs
-            Scaffold(
-                bottomBar = {
-                    NavigationBar {
-                        availableTabs.forEach { tab ->
-                            NavigationBarItem(
-                                icon = { Icon(tab.icon, contentDescription = tab.label) },
-                                label = { Text(tab.label) },
-                                selected = selectedTab == tab,
-                                onClick = { selectedTab = tab }
-                            )
-                        }
+    // Main navigation with integrated top bar actions
+    Scaffold(
+        topBar = {
+            com.boattracking.ui.components.AppTopBar(
+                title = when (val screen = currentScreen) {
+                    is CurrentScreen.Tab -> when (screen.tab) {
+                        NavigationTab.Home -> "Captain's Log"
+                        NavigationTab.Trips -> "Trips"
+                        NavigationTab.Maintenance -> "Maintenance"
+                        NavigationTab.Map -> "Map"
+                        NavigationTab.Sensors -> "Sensors"
+                        NavigationTab.License -> "License Progress"
                     }
+                    CurrentScreen.Notes -> "Notes"
+                    CurrentScreen.Todos -> "Todos"
+                    CurrentScreen.Settings -> "Settings"
+                },
+                onNotesClick = { currentScreen = CurrentScreen.Notes },
+                onTodosClick = { currentScreen = CurrentScreen.Todos },
+                onSettingsClick = { currentScreen = CurrentScreen.Settings },
+                // Highlight active top bar button
+                notesActive = currentScreen == CurrentScreen.Notes,
+                todosActive = currentScreen == CurrentScreen.Todos,
+                settingsActive = currentScreen == CurrentScreen.Settings
+            )
+        },
+        bottomBar = {
+            NavigationBar {
+                availableTabs.forEach { tab ->
+                    NavigationBarItem(
+                        icon = { Icon(tab.icon, contentDescription = tab.label) },
+                        label = { Text(tab.label) },
+                        selected = currentScreen is CurrentScreen.Tab && (currentScreen as CurrentScreen.Tab).tab == tab,
+                        onClick = { 
+                            selectedTab = tab
+                            currentScreen = CurrentScreen.Tab(tab)
+                        }
+                    )
                 }
-            ) { paddingValues ->
-                when (selectedTab) {
+            }
+        }
+    ) { paddingValues ->
+        when (val screen = currentScreen) {
+            is CurrentScreen.Tab -> {
+                when (screen.tab) {
                     NavigationTab.Home -> {
                         HomeScreen(
                             modifier = Modifier.padding(paddingValues),
-                            onNotesClick = { showNotes = true },
-                            onTodosClick = { showTodos = true },
-                            onSettingsClick = { showSettings = true }
+                            onNotesClick = { currentScreen = CurrentScreen.Notes },
+                            onTodosClick = { currentScreen = CurrentScreen.Todos },
+                            onSettingsClick = { currentScreen = CurrentScreen.Settings }
                         )
                     }
                     NavigationTab.Trips -> {
@@ -183,6 +144,20 @@ fun MainNavigation() {
                     }
                 }
             }
+            CurrentScreen.Notes -> {
+                NotesNavigation(modifier = Modifier.padding(paddingValues))
+            }
+            CurrentScreen.Todos -> {
+                TodoNavigation()
+            }
+            CurrentScreen.Settings -> {
+                SettingsScreen(
+                    modifier = Modifier.padding(paddingValues),
+                    onNotesClick = { currentScreen = CurrentScreen.Notes },
+                    onTodosClick = { currentScreen = CurrentScreen.Todos },
+                    onNavigationPrefsChanged = refreshNavPrefs
+                )
+            }
         }
     }
 }
@@ -199,4 +174,15 @@ enum class NavigationTab(val label: String, val icon: ImageVector) {
     Map("Map", Icons.Filled.LocationOn),
     Sensors("Sensors", Icons.Filled.Info),
     License("License", Icons.Filled.Star)
+}
+
+/**
+ * Sealed class representing all possible screens in the app.
+ * Includes both bottom navigation tabs and top bar actions.
+ */
+sealed class CurrentScreen {
+    data class Tab(val tab: NavigationTab) : CurrentScreen()
+    object Notes : CurrentScreen()
+    object Todos : CurrentScreen()
+    object Settings : CurrentScreen()
 }

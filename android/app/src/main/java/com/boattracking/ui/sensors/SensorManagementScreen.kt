@@ -54,23 +54,11 @@ fun SensorManagementScreen(
     
     var showAddSensorTypeDialog by remember { mutableStateOf(false) }
     
-    Scaffold(
-        modifier = modifier,
-        topBar = {
-            com.boattracking.ui.components.AppTopBar(
-                title = "Sensors",
-                onNotesClick = { /* TODO: Navigate to Notes */ },
-                onTodosClick = { /* TODO: Navigate to Todos */ },
-                onSettingsClick = { /* TODO: Navigate to Settings */ }
-            )
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp)
-        ) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
         
         // Bluetooth Status Card
         BluetoothStatusCard(
@@ -129,7 +117,6 @@ fun SensorManagementScreen(
             },
             onClearError = { viewModel.clearSensorTypeCreationError() }
         )
-        }
     }
 }
 

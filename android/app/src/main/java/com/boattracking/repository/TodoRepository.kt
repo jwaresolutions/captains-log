@@ -341,7 +341,7 @@ class TodoRepository constructor(
             // Fetch from server
             val response = apiService.getTodoLists()
             if (response.isSuccessful && response.body() != null) {
-                val serverTodoLists = response.body()!!
+                val serverTodoLists = response.body()!!.data
                 
                 // Convert to entities and insert
                 val entities = serverTodoLists.map { serverTodoList ->

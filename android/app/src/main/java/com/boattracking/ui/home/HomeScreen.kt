@@ -17,7 +17,6 @@ import com.boattracking.ui.components.AppTopBar
  * Home screen displaying the Captain's Log logo and app branding.
  * This serves as the main landing page of the application.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
@@ -25,21 +24,10 @@ fun HomeScreen(
     onTodosClick: () -> Unit = {},
     onSettingsClick: () -> Unit = {}
 ) {
-    Scaffold(
-        topBar = {
-            AppTopBar(
-                title = "Captain's Log",
-                onNotesClick = onNotesClick,
-                onTodosClick = onTodosClick,
-                onSettingsClick = onSettingsClick
-            )
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(24.dp),
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -85,4 +73,3 @@ fun HomeScreen(
             )
         }
     }
-}

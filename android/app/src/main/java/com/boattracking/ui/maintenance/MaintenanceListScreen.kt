@@ -47,28 +47,9 @@ fun MaintenanceListScreen(
         }
     }
 
-    Scaffold(
-        modifier = modifier,
-        topBar = {
-            com.boattracking.ui.components.AppTopBar(
-                title = "Maintenance",
-                onNotesClick = { /* TODO: Navigate to Notes */ },
-                onTodosClick = { /* TODO: Navigate to Todos */ },
-                onSettingsClick = { /* TODO: Navigate to Settings */ }
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = onNavigateToCreateTask
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Maintenance Task")
-            }
-        }
-    ) { paddingValues ->
+    Box(modifier = modifier.fillMaxSize()) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
+            modifier = Modifier.fillMaxSize()
         ) {
         // Tab row
         TabRow(selectedTabIndex = selectedTab.ordinal) {
@@ -176,6 +157,16 @@ fun MaintenanceListScreen(
                     )
                 }
             }
+        }
+        
+        // Floating Action Button
+        FloatingActionButton(
+            onClick = onNavigateToCreateTask,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
+        ) {
+            Icon(Icons.Default.Add, contentDescription = "Add Maintenance Task")
         }
     }
 }

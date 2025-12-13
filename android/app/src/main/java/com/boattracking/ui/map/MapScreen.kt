@@ -107,22 +107,7 @@ fun MapScreen(
         viewModel.loadMarkedLocations()
     }
 
-    Scaffold(
-        modifier = modifier,
-        topBar = {
-            com.boattracking.ui.components.AppTopBar(
-                title = "Map",
-                onNotesClick = { /* TODO: Navigate to Notes */ },
-                onTodosClick = { /* TODO: Navigate to Todos */ },
-                onSettingsClick = { /* TODO: Navigate to Settings */ }
-            )
-        }
-    ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
+    Box(modifier = modifier.fillMaxSize()) {
         // Google Map
         GoogleMap(
             modifier = Modifier.fillMaxSize(),
@@ -282,7 +267,6 @@ fun MapScreen(
                 }
             }
         )
-        }
     }
 }
 

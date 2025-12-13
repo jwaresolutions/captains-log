@@ -29,6 +29,7 @@ import com.boattracking.connection.ConnectionManager
 import com.boattracking.security.SecurePreferences
 import com.boattracking.sync.ConflictLogger
 import com.boattracking.util.DebugPreferences
+import com.boattracking.ui.settings.SyncSettingsScreen
 import com.boattracking.util.LicenseTrackingPreferences
 import com.boattracking.viewmodel.TripTrackingViewModel
 import kotlinx.coroutines.launch
@@ -118,131 +119,117 @@ fun SettingsScreen(
             }
         )
     } else {
-        Scaffold(
-            topBar = {
-                com.boattracking.ui.components.AppTopBar(
-                    title = "Settings",
-                    onNotesClick = onNotesClick,
-                    onTodosClick = onTodosClick,
-                    onSettingsClick = { /* Already in settings */ }
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+        ) {
+            // Boat Management Section
+            SettingsSection(title = "Boats") {
+                SettingsItem(
+                    icon = Icons.Filled.List,
+                    title = "Manage Boats",
+                    subtitle = "Add, enable/disable, and set active boat",
+                    onClick = { showBoatManagement = true }
                 )
             }
-        ) { paddingValues ->
-            Column(
-                modifier = modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .verticalScroll(rememberScrollState())
-            ) {
-                // Boat Management Section
-                SettingsSection(title = "Boats") {
-                    SettingsItem(
-                        icon = Icons.Filled.List,
-                        title = "Manage Boats",
-                        subtitle = "Add, enable/disable, and set active boat",
-                        onClick = { showBoatManagement = true }
-                    )
-                }
 
-                Divider()
+            Divider()
 
-                // Navigation Section
-                SettingsSection(title = "Navigation Tabs") {
-                    NavigationTabToggleItem(
-                        icon = Icons.Filled.Info,
-                        title = "Sensors",
-                        subtitle = "Show sensors tab in bottom navigation",
-                        isEnabled = isSensorsEnabled,
-                        onToggle = { enabled ->
-                            isSensorsEnabled = enabled
-                            navPrefs.isSensorsEnabled = enabled
-                            onNavigationPrefsChanged()
-                        }
-                    )
-                    
-                    NavigationTabToggleItem(
-                        icon = Icons.Filled.Star,
-                        title = "License Progress",
-                        subtitle = "Show license tracking tab in bottom navigation",
-                        isEnabled = isLicenseEnabled,
-                        onToggle = { enabled ->
-                            isLicenseEnabled = enabled
-                            navPrefs.isLicenseEnabled = enabled
-                            onNavigationPrefsChanged()
-                        }
-                    )
-                }
+            // Navigation Section
+            SettingsSection(title = "Navigation Tabs") {
+                NavigationTabToggleItem(
+                    icon = Icons.Filled.Info,
+                    title = "Sensors",
+                    subtitle = "Show sensors tab in bottom navigation",
+                    isEnabled = isSensorsEnabled,
+                    onToggle = { enabled ->
+                        isSensorsEnabled = enabled
+                        navPrefs.isSensorsEnabled = enabled
+                        onNavigationPrefsChanged()
+                    }
+                )
+                
+                NavigationTabToggleItem(
+                    icon = Icons.Filled.Star,
+                    title = "License Progress",
+                    subtitle = "Show license tracking tab in bottom navigation",
+                    isEnabled = isLicenseEnabled,
+                    onToggle = { enabled ->
+                        isLicenseEnabled = enabled
+                        navPrefs.isLicenseEnabled = enabled
+                        onNavigationPrefsChanged()
+                    }
+                )
+            }
 
-                Divider()
+            Divider()
 
-                // Connection Settings Section
-                SettingsSection(title = "Connection") {
-                    SettingsItem(
-                        icon = Icons.Filled.Lock,
-                        title = "Server Configuration",
-                        subtitle = "Update server URL and certificate settings",
-                        onClick = { showServerSettings = true }
-                    )
-                }
+            // Connection Settings Section
+            SettingsSection(title = "Connection") {
+                SettingsItem(
+                    icon = Icons.Filled.Lock,
+                    title = "Server Configuration",
+                    subtitle = "Update server URL and certificate settings",
+                    onClick = { showServerSettings = true }
+                )
+            }
 
-                Divider()
+            Divider()
 
-                // Sync Settings Section
-                SettingsSection(title = "Sync") {
-                    SettingsItem(
-                        icon = Icons.Filled.Refresh,
-                        title = "Sync Settings",
-                        subtitle = "Manage trip synchronization and view conflict logs",
-                        onClick = { showSyncSettings = true }
-                    )
-                }
+            // Sync Settings Section
+            SettingsSection(title = "Sync") {
+                SettingsItem(
+                    icon = Icons.Filled.Refresh,
+                    title = "Sync Settings",
+                    subtitle = "Manage trip synchronization and view conflict logs",
+                    onClick = { showSyncSettings = true }
+                )
+            }
 
-                Divider()
+            Divider()
 
-                // Account Section
-                SettingsSection(title = "Account") {
-                    SettingsItem(
-                        icon = Icons.Default.ExitToApp,
-                        title = "Sign Out",
-                        subtitle = "Sign out of your account",
-                        onClick = {
-                            // Clear session and restart activity
-                            val securePrefs = SecurePreferences(context)
-                            securePrefs.jwtToken = null
-                            securePrefs.username = null
-                            
-                            // Restart the activity to show login screen
-                            (context as? android.app.Activity)?.recreate()
-                        }
-                    )
-                }
+            // Account Section
+            SettingsSection(title = "Account") {
+                SettingsItem(
+                    icon = Icons.Default.ExitToApp,
+                    title = "Sign Out",
+                    subtitle = "Sign out of your account",
+                    onClick = {
+                        // Clear session and restart activity
+                        val securePrefs = SecurePreferences(context)
+                        securePrefs.jwtToken = null
+                        securePrefs.username = null
+                        
+                        // Restart the activity to show login screen
+                        (context as? android.app.Activity)?.recreate()
+                    }
+                )
+            }
 
-                Divider()
+            Divider()
 
+            // Developer Section
+            SettingsSection(title = "Developer") {
+                DebugToggleItem(
+                    isEnabled = isDebugMode,
+                    onToggle = { enabled ->
+                        isDebugMode = enabled
+                        debugPrefs.isDebugModeEnabled = enabled
+                    }
+                )
+            }
 
+            Divider()
 
-                // Developer Section
-                SettingsSection(title = "Developer") {
-                    DebugToggleItem(
-                        isEnabled = isDebugMode,
-                        onToggle = { enabled ->
-                            isDebugMode = enabled
-                            debugPrefs.isDebugModeEnabled = enabled
-                        }
-                    )
-                }
-
-                Divider()
-
-                // About Section
-                SettingsSection(title = "About") {
-                    SettingsItem(
-                        icon = Icons.Default.Info,
-                        title = "App Version",
-                        subtitle = "Version ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
-                        onClick = null
-                    )
-                }
+            // About Section
+            SettingsSection(title = "About") {
+                SettingsItem(
+                    icon = Icons.Default.Info,
+                    title = "App Version",
+                    subtitle = "Version ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
+                    onClick = null
+                )
             }
         }
     }

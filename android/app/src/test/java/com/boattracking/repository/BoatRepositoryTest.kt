@@ -4,6 +4,7 @@ import com.boattracking.database.AppDatabase
 import com.boattracking.database.dao.BoatDao
 import com.boattracking.database.entities.BoatEntity
 import com.boattracking.network.ApiService
+import com.boattracking.network.models.ApiListResponse
 import com.boattracking.network.models.BoatResponse
 import com.boattracking.network.models.CreateBoatRequest
 import io.mockk.*
@@ -207,7 +208,12 @@ class BoatRepositoryTest {
             )
         )
         
-        coEvery { apiService.getBoats() } returns Response.success(apiBoats)
+        val wrappedResponse = ApiListResponse(
+            data = apiBoats,
+            count = apiBoats.size,
+            timestamp = "2024-01-01T00:00:00Z"
+        )
+        coEvery { apiService.getBoats() } returns Response.success(wrappedResponse)
         coEvery { boatDao.insertBoats(any()) } returns Unit
         
         val result = repository.syncBoatsFromApi()

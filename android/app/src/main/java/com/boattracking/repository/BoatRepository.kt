@@ -149,7 +149,7 @@ class BoatRepository(
         return try {
             val response = apiService.getBoats()
             if (response.isSuccessful && response.body() != null) {
-                val apiBoats = response.body()!!
+                val apiBoats = response.body()!!.data
                 val localBoats = apiBoats.map { apiBoat ->
                     BoatEntity(
                         id = apiBoat.id,
