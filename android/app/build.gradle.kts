@@ -8,11 +8,11 @@ plugins {
 }
 
 android {
-    namespace = "com.boattracking"
+    namespace = "com.captainslog"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.boattracking"
+        applicationId = "com.captainslog"
         minSdk = 26
         targetSdk = 35
         versionCode = 1
@@ -23,14 +23,7 @@ android {
             useSupportLibrary = true
         }
 
-        // Load MAPS_API_KEY from local.properties
-        val localProperties = Properties()
-        val localPropertiesFile = rootProject.file("local.properties")
-        if (localPropertiesFile.exists()) {
-            localPropertiesFile.inputStream().use { localProperties.load(it) }
-        }
-        val mapsApiKey = localProperties.getProperty("MAPS_API_KEY", "")
-        manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
+        // No API key needed for OpenStreetMap
     }
 
     buildTypes {
@@ -112,10 +105,11 @@ dependencies {
     // WorkManager
     implementation("androidx.work:work-runtime-ktx:2.9.0")
 
-    // Google Maps
-    implementation("com.google.android.gms:play-services-maps:18.2.0")
+    // OpenStreetMap with osmdroid
+    implementation("org.osmdroid:osmdroid-android:6.1.18")
+    
+    // Location services (still needed for GPS)
     implementation("com.google.android.gms:play-services-location:21.0.1")
-    implementation("com.google.maps.android:maps-compose:4.3.0")
 
     // Coil for image loading
     implementation("io.coil-kt:coil-compose:2.5.0")

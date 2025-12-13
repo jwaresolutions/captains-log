@@ -29,5 +29,5 @@
 -dontwarn androidx.room.paging.**
 
 # Keep data models
--keep class com.boattracking.database.entities.** { *; }
--keep class com.boattracking.network.models.** { *; }
+-keep class com.captainslog.database.entities.** { *; }
+-keep class com.captainslog.network.models.** { *; }
