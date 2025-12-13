@@ -276,6 +276,19 @@ class MaintenanceRepository(
         )
     }
 
+    // Additional methods for new maintenance system
+    suspend fun getCompletionsByTaskSync(taskId: String): List<MaintenanceCompletionEntity> {
+        return maintenanceCompletionDao.getCompletionsByTaskSync(taskId)
+    }
+
+    suspend fun getAllCompletedTasks(limit: Int = 50): Flow<List<MaintenanceCompletionEntity>> {
+        return maintenanceCompletionDao.getAllCompletions(limit)
+    }
+
+    suspend fun getCompletedTasksByBoat(boatId: String, limit: Int = 50): Flow<List<MaintenanceCompletionEntity>> {
+        return maintenanceCompletionDao.getCompletionsByBoat(boatId, limit)
+    }
+
     private fun parseDate(dateString: String): Date {
         return try {
             dateFormat.parse(dateString) ?: Date()

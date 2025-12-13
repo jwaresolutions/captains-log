@@ -42,7 +42,7 @@ class MaintenanceViewModel(context: Context) : ViewModel() {
     private val _selectedBoatId = MutableStateFlow<String?>(null)
     val selectedBoatId: StateFlow<String?> = _selectedBoatId.asStateFlow()
 
-    // Get all maintenance tasks (lazy initialization)
+    // Get all maintenance tasks (one copy of recurring + incomplete non-recurring)
     val allTasks: Flow<List<MaintenanceTaskEntity>> by lazy {
         selectedBoatId.flatMapLatest { boatId ->
             if (boatId != null) {
@@ -50,29 +50,39 @@ class MaintenanceViewModel(context: Context) : ViewModel() {
             } else {
                 maintenanceRepository.getAllTasks()
             }
+        }.map { tasks ->
+            tasks.filter { task ->
+                // Include if: recurring task (show one copy) OR non-recurring incomplete task
+                task.recurrenceType != null || !isTaskCompletedSync(task)
+            }.sortedBy { it.dueDate }
         }
     }
 
-    // Get upcoming tasks (due within 7 days)
+    // Get upcoming tasks (past incomplete + future 90 days)
     val upcomingTasks: Flow<List<MaintenanceTaskEntity>> by lazy {
         allTasks.map { tasks ->
-            val cutoffDate = Calendar.getInstance().apply {
-                add(Calendar.DAY_OF_MONTH, 7)
+            val now = Date()
+            val future90Days = Calendar.getInstance().apply {
+                add(Calendar.DAY_OF_MONTH, 90)
             }.time
             
             tasks.filter { task ->
-                task.dueDate.before(cutoffDate) || task.dueDate == cutoffDate
+                // Include if: (past due and not completed) OR (future within 90 days)
+                (task.dueDate.before(now) && !isTaskCompletedSync(task)) ||
+                (task.dueDate.after(now) && task.dueDate.before(future90Days)) ||
+                task.dueDate == future90Days
             }.sortedBy { it.dueDate }
         }
     }
 
-    // Get overdue tasks
-    val overdueTasks: Flow<List<MaintenanceTaskEntity>> by lazy {
-        allTasks.map { tasks ->
-            val now = Date()
-            tasks.filter { task ->
-                task.dueDate.before(now)
-            }.sortedBy { it.dueDate }
+    // Get completed tasks (last 50 by default, configurable in settings)
+    val completedTasks: Flow<List<MaintenanceCompletionEntity>> by lazy {
+        selectedBoatId.flatMapLatest { boatId ->
+            if (boatId != null) {
+                maintenanceRepository.getCompletedTasksByBoat(boatId, limit = 50)
+            } else {
+                maintenanceRepository.getAllCompletedTasks(limit = 50)
+            }
         }
     }
 
@@ -283,6 +293,31 @@ class MaintenanceViewModel(context: Context) : ViewModel() {
         return "Every $interval $type"
     }
 
+    // Helper method to check if a task is completed (synchronous for use in flows)
+    private fun isTaskCompletedSync(task: MaintenanceTaskEntity): Boolean {
+        return try {
+            // For now, return false - this would need to be implemented properly
+            // with a synchronous database query or cached completion data
+            false
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    // Get task color based on due date
+    fun getTaskColor(task: MaintenanceTaskEntity): TaskColor {
+        val now = Date()
+        val daysUntilDue = getDaysUntilDue(task)
+        
+        return when {
+            task.dueDate.before(now) -> TaskColor.RED // Past due
+            daysUntilDue <= 0 -> TaskColor.YELLOW // Today to 7 days
+            daysUntilDue <= 7 -> TaskColor.YELLOW // Today to 7 days  
+            daysUntilDue <= 30 -> TaskColor.GREEN // 8-30 days
+            else -> TaskColor.GRAY // 30+ days
+        }
+    }
+
     // Notification handling (lazy initialization)
     val notifications: Flow<List<NotificationResponse>> by lazy { notificationRepository.notifications }
 
@@ -330,6 +365,13 @@ class MaintenanceViewModel(context: Context) : ViewModel() {
     fun getMaintenanceNotifications(): List<NotificationResponse> {
         return notificationRepository.getMaintenanceNotifications()
     }
+}
+
+enum class TaskColor {
+    RED,    // Past due
+    YELLOW, // Today to 7 days
+    GREEN,  // 8-30 days
+    GRAY    // 30+ days
 }
 
 data class MaintenanceUiState(

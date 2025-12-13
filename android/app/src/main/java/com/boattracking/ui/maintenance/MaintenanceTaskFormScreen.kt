@@ -548,84 +548,98 @@ fun MaintenanceTaskFormScreen(
                 }
             }
 
-            // Submit button
-            Button(
-                onClick = {
-                    println("BUTTON CLICKED - MaintenanceForm")
-                    
-                    // Clear previous errors
-                    titleError = null
-                    boatError = null
-                    recurrenceError = null
-                    
-                    // Validate form
-                    var hasErrors = false
+            // Action buttons
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Cancel button
+                OutlinedButton(
+                    onClick = onNavigateBack,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Cancel")
+                }
+                
+                // Submit button
+                Button(
+                    onClick = {
+                        println("BUTTON CLICKED - MaintenanceForm")
+                        
+                        // Clear previous errors
+                        titleError = null
+                        boatError = null
+                        recurrenceError = null
+                        
+                        // Validate form
+                        var hasErrors = false
 
-                    if (title.isBlank()) {
-                        titleError = "Title is required"
-                        hasErrors = true
-                    }
-
-                    if (selectedBoat == null) {
-                        boatError = "Please select a boat"
-                        hasErrors = true
-                    }
-
-                    if (hasRecurrence) {
-                        val interval = recurrenceInterval.toIntOrNull()
-                        if (interval == null || interval <= 0) {
-                            recurrenceError = "Please enter a valid interval (positive number)"
+                        if (title.isBlank()) {
+                            titleError = "Title is required"
                             hasErrors = true
                         }
-                    }
 
-                    if (hasErrors) {
-                        return@Button
-                    }
+                        if (selectedBoat == null) {
+                            boatError = "Please select a boat"
+                            hasErrors = true
+                        }
 
-                    // Create recurrence schedule
-                    val recurrence = if (hasRecurrence) {
-                        val intervalValue = recurrenceInterval.toIntOrNull() ?: 1
-                        RecurrenceSchedule(
-                            type = recurrenceType,
-                            interval = intervalValue
-                        )
-                    } else null
+                        if (hasRecurrence) {
+                            val interval = recurrenceInterval.toIntOrNull()
+                            if (interval == null || interval <= 0) {
+                                recurrenceError = "Please enter a valid interval (positive number)"
+                                hasErrors = true
+                            }
+                        }
 
-                    // Submit form
-                    if (taskId == null) {
-                        // Create new task
-                        viewModel.createMaintenanceTask(
-                            boatId = selectedBoat!!.id,
-                            title = title.trim(),
-                            description = description.takeIf { it.isNotBlank() }?.trim(),
-                            component = component.takeIf { it.isNotBlank() }?.trim(),
-                            dueDate = dueDate,
-                            recurrence = recurrence
+                        if (hasErrors) {
+                            return@Button
+                        }
+
+                        // Create recurrence schedule
+                        val recurrence = if (hasRecurrence) {
+                            val intervalValue = recurrenceInterval.toIntOrNull() ?: 1
+                            RecurrenceSchedule(
+                                type = recurrenceType,
+                                interval = intervalValue
+                            )
+                        } else null
+
+                        // Submit form
+                        if (taskId == null) {
+                            // Create new task
+                            viewModel.createMaintenanceTask(
+                                boatId = selectedBoat!!.id,
+                                title = title.trim(),
+                                description = description.takeIf { it.isNotBlank() }?.trim(),
+                                component = component.takeIf { it.isNotBlank() }?.trim(),
+                                dueDate = dueDate,
+                                recurrence = recurrence
+                            )
+                        } else {
+                            // Update existing task
+                            viewModel.updateMaintenanceTask(
+                                id = taskId,
+                                title = title.trim(),
+                                description = description.takeIf { it.isNotBlank() }?.trim(),
+                                component = component.takeIf { it.isNotBlank() }?.trim(),
+                                dueDate = dueDate,
+                                recurrence = recurrence
+                            )
+                        }
+                    },
+                    enabled = !uiState.isLoading && boats.isNotEmpty(),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    if (uiState.isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp
                         )
-                    } else {
-                        // Update existing task
-                        viewModel.updateMaintenanceTask(
-                            id = taskId,
-                            title = title.trim(),
-                            description = description.takeIf { it.isNotBlank() }?.trim(),
-                            component = component.takeIf { it.isNotBlank() }?.trim(),
-                            dueDate = dueDate,
-                            recurrence = recurrence
-                        )
+                        Spacer(modifier = Modifier.width(8.dp))
                     }
-                },
-                enabled = !uiState.isLoading && boats.isNotEmpty(),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                if (uiState.isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(16.dp),
-                        strokeWidth = 2.dp
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(if (taskId == null) "Create Task" else "Update Task")
                 }
-                Text(if (taskId == null) "Create Task" else "Update Task")
             }
 
             // Success message

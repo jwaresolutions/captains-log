@@ -3,9 +3,12 @@ package com.boattracking.ui.maintenance
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,7 +18,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.boattracking.database.entities.MaintenanceTaskEntity
+import com.boattracking.database.entities.MaintenanceCompletionEntity
 import com.boattracking.viewmodel.MaintenanceViewModel
+import com.boattracking.viewmodel.TaskColor
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -31,7 +36,7 @@ fun MaintenanceListScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val allTasks by viewModel.allTasks.collectAsStateWithLifecycle(initialValue = emptyList())
     val upcomingTasks by viewModel.upcomingTasks.collectAsStateWithLifecycle(initialValue = emptyList())
-    val overdueTasks by viewModel.overdueTasks.collectAsStateWithLifecycle(initialValue = emptyList())
+    val completedTasks by viewModel.completedTasks.collectAsStateWithLifecycle(initialValue = emptyList())
     
     var selectedTab by remember { mutableStateOf(MaintenanceTab.All) }
 
@@ -65,17 +70,17 @@ fun MaintenanceListScreen(
                         ) {
                             Text(tab.title)
                             when (tab) {
-                                MaintenanceTab.Overdue -> {
-                                    if (overdueTasks.isNotEmpty()) {
-                                        Badge {
-                                            Text("${overdueTasks.size}")
-                                        }
-                                    }
-                                }
                                 MaintenanceTab.Upcoming -> {
                                     if (upcomingTasks.isNotEmpty()) {
                                         Badge {
                                             Text("${upcomingTasks.size}")
+                                        }
+                                    }
+                                }
+                                MaintenanceTab.Complete -> {
+                                    if (completedTasks.isNotEmpty()) {
+                                        Badge {
+                                            Text("${completedTasks.size}")
                                         }
                                     }
                                 }
@@ -98,34 +103,64 @@ fun MaintenanceListScreen(
                 else -> {
                     val tasksToShow = when (selectedTab) {
                         MaintenanceTab.All -> allTasks
-                        MaintenanceTab.Overdue -> overdueTasks
                         MaintenanceTab.Upcoming -> upcomingTasks
+                        MaintenanceTab.Complete -> emptyList() // Will show completed tasks differently
                     }
 
-                    if (tasksToShow.isEmpty()) {
-                        EmptyMaintenanceState(
-                            tab = selectedTab,
-                            onCreateTask = onNavigateToCreateTask,
-                            modifier = Modifier.align(Alignment.Center)
-                        )
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            items(tasksToShow) { task ->
-                                MaintenanceTaskCard(
-                                    task = task,
-                                    onClick = { 
-                                        println("Task clicked: ${task.id}")
-                                        onNavigateToTaskDetail(task.id) 
-                                    },
-                                    onEdit = { onNavigateToEdit(task.id) },
-                                    onDelete = { viewModel.deleteMaintenanceTask(task.id) },
-                                    onComplete = { viewModel.completeMaintenanceTask(task.id) },
-                                    viewModel = viewModel
+                    when (selectedTab) {
+                        MaintenanceTab.Complete -> {
+                            if (completedTasks.isEmpty()) {
+                                EmptyMaintenanceState(
+                                    tab = selectedTab,
+                                    onCreateTask = onNavigateToCreateTask,
+                                    modifier = Modifier.align(Alignment.Center)
                                 )
+                            } else {
+                                LazyColumn(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentPadding = PaddingValues(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    items(completedTasks) { completion ->
+                                        CompletedMaintenanceCard(
+                                            completion = completion,
+                                            onClick = { 
+                                                // Navigate to completion detail or task detail
+                                                onNavigateToTaskDetail(completion.maintenanceTaskId) 
+                                            },
+                                            viewModel = viewModel
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        else -> {
+                            if (tasksToShow.isEmpty()) {
+                                EmptyMaintenanceState(
+                                    tab = selectedTab,
+                                    onCreateTask = onNavigateToCreateTask,
+                                    modifier = Modifier.align(Alignment.Center)
+                                )
+                            } else {
+                                LazyColumn(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentPadding = PaddingValues(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    items(tasksToShow) { task ->
+                                        MaintenanceTaskCard(
+                                            task = task,
+                                            onClick = { 
+                                                println("Task clicked: ${task.id}")
+                                                onNavigateToTaskDetail(task.id) 
+                                            },
+                                            onEdit = { onNavigateToEdit(task.id) },
+                                            onDelete = { viewModel.deleteMaintenanceTask(task.id) },
+                                            onComplete = { viewModel.completeMaintenanceTask(task.id) },
+                                            viewModel = viewModel
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
@@ -190,8 +225,7 @@ private fun MaintenanceTaskCard(
     modifier: Modifier = Modifier
 ) {
     val dateFormat = remember { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) }
-    val isOverdue = viewModel.isTaskOverdue(task)
-    val isDueSoon = viewModel.isTaskDueSoon(task)
+    val taskColor = viewModel.getTaskColor(task)
     val daysUntilDue = viewModel.getDaysUntilDue(task)
     val recurrenceText = viewModel.formatRecurrence(task)
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -200,11 +234,7 @@ private fun MaintenanceTaskCard(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = when {
-                isOverdue -> MaterialTheme.colorScheme.errorContainer
-                isDueSoon -> MaterialTheme.colorScheme.warningContainer
-                else -> MaterialTheme.colorScheme.surfaceVariant
-            }
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
         Column(
@@ -240,11 +270,40 @@ private fun MaintenanceTaskCard(
                     }
                 }
 
-                if (isOverdue || isDueSoon) {
-                    Icon(
-                        Icons.Default.Warning,
-                        contentDescription = if (isOverdue) "Overdue" else "Due Soon",
-                        tint = if (isOverdue) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                // Days badge with colored oval background
+                val daysText = when {
+                    daysUntilDue < 0 -> "${-daysUntilDue}d"
+                    daysUntilDue == 0L -> "Today"
+                    else -> "${daysUntilDue}d"
+                }
+                
+                val badgeColor = when (taskColor) {
+                    TaskColor.RED -> Color(0xFFFFEBEE) // Light red
+                    TaskColor.YELLOW -> Color(0xFFFFF3CD) // Light yellow
+                    TaskColor.GREEN -> Color(0xFFD4EDDA) // Light green
+                    TaskColor.GRAY -> Color(0xFFE0E0E0) // Light gray
+                }
+                
+                val textColor = when (taskColor) {
+                    TaskColor.RED -> Color(0xFFD32F2F) // Dark red
+                    TaskColor.YELLOW -> Color(0xFFF57C00) // Dark orange
+                    TaskColor.GREEN -> Color(0xFF388E3C) // Dark green
+                    TaskColor.GRAY -> Color(0xFF616161) // Dark gray
+                }
+                
+                Box(
+                    modifier = Modifier
+                        .background(
+                            color = badgeColor,
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text = daysText,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = textColor,
+                        fontWeight = FontWeight.Medium
                     )
                 }
             }
@@ -260,16 +319,16 @@ private fun MaintenanceTaskCard(
                     Text(
                         text = "Due: ${dateFormat.format(task.dueDate)}",
                         style = MaterialTheme.typography.bodySmall,
-                        fontWeight = if (isOverdue || isDueSoon) FontWeight.Bold else FontWeight.Normal,
-                        color = when {
-                            isOverdue -> MaterialTheme.colorScheme.error
-                            isDueSoon -> MaterialTheme.colorScheme.primary
+                        fontWeight = if (taskColor == TaskColor.RED || taskColor == TaskColor.YELLOW) FontWeight.Bold else FontWeight.Normal,
+                        color = when (taskColor) {
+                            TaskColor.RED -> MaterialTheme.colorScheme.error
+                            TaskColor.YELLOW -> MaterialTheme.colorScheme.primary
                             else -> MaterialTheme.colorScheme.onSurfaceVariant
                         }
                     )
                     
                     val daysText = when {
-                        isOverdue -> "${-daysUntilDue} days overdue"
+                        daysUntilDue < 0 -> "${-daysUntilDue} days overdue"
                         daysUntilDue == 0L -> "Due today"
                         daysUntilDue == 1L -> "Due tomorrow"
                         else -> "Due in $daysUntilDue days"
@@ -278,9 +337,9 @@ private fun MaintenanceTaskCard(
                     Text(
                         text = daysText,
                         style = MaterialTheme.typography.bodySmall,
-                        color = when {
-                            isOverdue -> MaterialTheme.colorScheme.error
-                            isDueSoon -> MaterialTheme.colorScheme.primary
+                        color = when (taskColor) {
+                            TaskColor.RED -> MaterialTheme.colorScheme.error
+                            TaskColor.YELLOW -> MaterialTheme.colorScheme.primary
                             else -> MaterialTheme.colorScheme.onSurfaceVariant
                         }
                     )
@@ -360,6 +419,88 @@ private fun MaintenanceTaskCard(
 }
 
 @Composable
+private fun CompletedMaintenanceCard(
+    completion: MaintenanceCompletionEntity,
+    onClick: () -> Unit,
+    viewModel: MaintenanceViewModel,
+    modifier: Modifier = Modifier
+) {
+    val dateFormat = remember { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) }
+    val task by viewModel.getTaskById(completion.maintenanceTaskId).collectAsStateWithLifecycle(initialValue = null)
+
+    Card(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = task?.title ?: "Maintenance Task",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    
+                    task?.component?.let { component ->
+                        Text(
+                            text = "Component: $component",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    
+                    if (!completion.notes.isNullOrBlank()) {
+                        Text(
+                            text = completion.notes,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    
+                    completion.cost?.let { cost ->
+                        Text(
+                            text = "Cost: $${String.format("%.2f", cost)}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                Icon(
+                    Icons.Default.CheckCircle,
+                    contentDescription = "Completed",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            Divider()
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Completed: ${dateFormat.format(completion.completedAt)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun EmptyMaintenanceState(
     tab: MaintenanceTab,
     onCreateTask: () -> Unit,
@@ -373,8 +514,8 @@ private fun EmptyMaintenanceState(
         Text(
             text = when (tab) {
                 MaintenanceTab.All -> "No maintenance tasks"
-                MaintenanceTab.Overdue -> "No overdue tasks"
                 MaintenanceTab.Upcoming -> "No upcoming tasks"
+                MaintenanceTab.Complete -> "No completed tasks"
             },
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -383,8 +524,8 @@ private fun EmptyMaintenanceState(
         Text(
             text = when (tab) {
                 MaintenanceTab.All -> "Create your first maintenance task to keep track of boat maintenance schedules."
-                MaintenanceTab.Overdue -> "Great! You have no overdue maintenance tasks."
-                MaintenanceTab.Upcoming -> "No maintenance tasks are due in the next 7 days."
+                MaintenanceTab.Upcoming -> "No maintenance tasks are due in the next 90 days or overdue."
+                MaintenanceTab.Complete -> "No maintenance tasks have been completed yet."
             },
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -400,14 +541,7 @@ private fun EmptyMaintenanceState(
 
 enum class MaintenanceTab(val title: String) {
     All("All"),
-    Overdue("Overdue"),
-    Upcoming("Upcoming")
+    Upcoming("Upcoming"),
+    Complete("Complete")
 }
 
-// Extension property for warning container color (Material 3 doesn't have this by default)
-val ColorScheme.warningContainer: Color
-    get() = if (this == lightColorScheme()) {
-        Color(0xFFFFF4E6) // Light orange
-    } else {
-        Color(0xFF3E2723) // Dark brown
-    }

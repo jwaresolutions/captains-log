@@ -10,6 +10,9 @@ interface MaintenanceCompletionDao {
     @Query("SELECT * FROM maintenance_completions WHERE maintenanceTaskId = :taskId ORDER BY completedAt DESC")
     fun getCompletionsByTask(taskId: String): Flow<List<MaintenanceCompletionEntity>>
     
+    @Query("SELECT * FROM maintenance_completions WHERE maintenanceTaskId = :taskId ORDER BY completedAt DESC")
+    suspend fun getCompletionsByTaskSync(taskId: String): List<MaintenanceCompletionEntity>
+    
     @Query("SELECT * FROM maintenance_completions WHERE id = :id")
     suspend fun getCompletionById(id: String): MaintenanceCompletionEntity?
     
@@ -36,4 +39,16 @@ interface MaintenanceCompletionDao {
     
     @Query("DELETE FROM maintenance_completions")
     suspend fun deleteAll()
+    
+    @Query("SELECT * FROM maintenance_completions ORDER BY completedAt DESC LIMIT :limit")
+    fun getAllCompletions(limit: Int): Flow<List<MaintenanceCompletionEntity>>
+    
+    @Query("""
+        SELECT mc.* FROM maintenance_completions mc 
+        INNER JOIN maintenance_tasks mt ON mc.maintenanceTaskId = mt.id 
+        WHERE mt.boatId = :boatId 
+        ORDER BY mc.completedAt DESC 
+        LIMIT :limit
+    """)
+    fun getCompletionsByBoat(boatId: String, limit: Int): Flow<List<MaintenanceCompletionEntity>>
 }
