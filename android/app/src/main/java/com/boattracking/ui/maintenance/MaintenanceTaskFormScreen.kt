@@ -7,6 +7,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,6 +18,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.FileProvider
+import androidx.core.content.ContextCompat
+import android.Manifest
+import android.content.pm.PackageManager
+import java.io.File
+import coil.compose.AsyncImage
+import androidx.compose.foundation.layout.size
 import com.boattracking.database.entities.BoatEntity
 import com.boattracking.network.models.RecurrenceSchedule
 import com.boattracking.viewmodel.BoatViewModel
@@ -49,6 +62,68 @@ fun MaintenanceTaskFormScreen(
     var hasRecurrence by remember { mutableStateOf(false) }
     var recurrenceType by remember { mutableStateOf("days") }
     var recurrenceInterval by remember { mutableStateOf("30") }
+    var photos by remember { mutableStateOf<List<String>>(emptyList()) }
+    var showPhotoOptions by remember { mutableStateOf(false) }
+    
+    // Photo functionality
+    val context = LocalContext.current
+    var tempPhotoUri by remember { mutableStateOf<android.net.Uri?>(null) }
+    
+    // Gallery launcher
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            android.util.Log.d("MaintenanceForm", "Gallery photo selected: $it")
+            photos = photos + it.toString()
+        }
+    }
+    
+    // Camera launcher
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        android.util.Log.d("MaintenanceForm", "Camera result: $success")
+        if (success) {
+            tempPhotoUri?.let {
+                android.util.Log.d("MaintenanceForm", "Camera photo saved: $it")
+                photos = photos + it.toString()
+            }
+        }
+    }
+    
+    // Camera permission launcher
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        android.util.Log.d("MaintenanceForm", "Camera permission granted: $isGranted")
+        if (isGranted) {
+            // Permission granted, launch camera
+            try {
+                val tempPhotosDir = File(context.filesDir, "temp_photos")
+                if (!tempPhotosDir.exists()) {
+                    tempPhotosDir.mkdirs()
+                }
+                val photoFile = File(
+                    tempPhotosDir,
+                    "maintenance_photo_${System.currentTimeMillis()}.jpg"
+                )
+                tempPhotoUri = FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.fileprovider",
+                    photoFile
+                )
+                android.util.Log.d("MaintenanceForm", "Launching camera with URI: $tempPhotoUri")
+                tempPhotoUri?.let { uri ->
+                    cameraLauncher.launch(uri)
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("MaintenanceForm", "Error launching camera after permission", e)
+            }
+        } else {
+            android.util.Log.w("MaintenanceForm", "Camera permission denied")
+        }
+    }
     
     // Error states
     var titleError by remember { mutableStateOf<String?>(null) }
@@ -83,6 +158,11 @@ fun MaintenanceTaskFormScreen(
             android.util.Log.d("MaintenanceForm", "Received message: $message")
             if (message.contains("created") || message.contains("updated")) {
                 android.util.Log.d("MaintenanceForm", "Success message received, navigating back")
+                
+                // TODO: Upload photos to the created/updated task
+                // For now, photos are stored locally but not uploaded
+                // This would require the task ID from the creation response
+                
                 // Clear the message to prevent re-triggering
                 viewModel.clearMessage()
                 onNavigateBack()
@@ -300,6 +380,145 @@ fun MaintenanceTaskFormScreen(
                                 color = MaterialTheme.colorScheme.error,
                                 style = MaterialTheme.typography.bodySmall
                             )
+                        }
+                    }
+                }
+            }
+
+            // Photos section
+            Card(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text(
+                        text = "Photos",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    
+                    Text(
+                        text = "Add photos of the equipment or area requiring maintenance",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    
+                    // Add photo buttons
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = { 
+                                // Check camera permission first
+                                when (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)) {
+                                    PackageManager.PERMISSION_GRANTED -> {
+                                        // Permission already granted, launch camera directly
+                                        try {
+                                            val tempPhotosDir = File(context.filesDir, "temp_photos")
+                                            if (!tempPhotosDir.exists()) {
+                                                tempPhotosDir.mkdirs()
+                                            }
+                                            val photoFile = File(
+                                                tempPhotosDir,
+                                                "maintenance_photo_${System.currentTimeMillis()}.jpg"
+                                            )
+                                            tempPhotoUri = FileProvider.getUriForFile(
+                                                context,
+                                                "${context.packageName}.fileprovider",
+                                                photoFile
+                                            )
+                                            android.util.Log.d("MaintenanceForm", "Launching camera with URI: $tempPhotoUri")
+                                            tempPhotoUri?.let { uri ->
+                                                cameraLauncher.launch(uri)
+                                            }
+                                        } catch (e: Exception) {
+                                            android.util.Log.e("MaintenanceForm", "Error launching camera", e)
+                                        }
+                                    }
+                                    else -> {
+                                        // Request camera permission
+                                        android.util.Log.d("MaintenanceForm", "Requesting camera permission")
+                                        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                                    }
+                                }
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = "Take Photo")
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Camera")
+                        }
+                        
+                        OutlinedButton(
+                            onClick = { 
+                                try {
+                                    android.util.Log.d("MaintenanceForm", "Launching gallery picker")
+                                    galleryLauncher.launch("image/*")
+                                } catch (e: Exception) {
+                                    android.util.Log.e("MaintenanceForm", "Error launching gallery", e)
+                                }
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = "Choose Photo")
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Gallery")
+                        }
+                    }
+                    
+                    // Display selected photos
+                    if (photos.isNotEmpty()) {
+                        photos.forEachIndexed { index, photoUri ->
+                            Card(
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(8.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    // Photo thumbnail
+                                    AsyncImage(
+                                        model = photoUri,
+                                        contentDescription = "Photo ${index + 1}",
+                                        modifier = Modifier.size(60.dp)
+                                    )
+                                    
+                                    // Photo info
+                                    Column(
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text(
+                                            text = "Photo ${index + 1}",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = FontWeight.Medium
+                                        )
+                                        Text(
+                                            text = "Maintenance photo",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    
+                                    // Delete button
+                                    IconButton(
+                                        onClick = { 
+                                            photos = photos.filterIndexed { i, _ -> i != index }
+                                        }
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Delete, 
+                                            contentDescription = "Remove Photo",
+                                            tint = MaterialTheme.colorScheme.error
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 }

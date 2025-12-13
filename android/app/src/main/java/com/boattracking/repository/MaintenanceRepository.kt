@@ -148,40 +148,9 @@ class MaintenanceRepository(
         notes: String? = null
     ): Result<MaintenanceCompletionEntity> {
         return try {
-            val request = CompleteMaintenanceTaskRequest(
-                cost = cost,
-                notes = notes
-            )
-
-            val apiService = connectionManager.getApiService()
-            val response = apiService.completeMaintenanceTask(id, request)
-            if (response.isSuccessful && response.body() != null) {
-                val taskResponse = response.body()!!
-                
-                // Update the task
-                val taskEntity = taskResponse.toEntity()
-                maintenanceTaskDao.updateTask(taskEntity)
-                
-                // Get the latest completion (first in the list since it's ordered by completedAt DESC)
-                val latestCompletion = taskResponse.completions.firstOrNull()
-                if (latestCompletion != null) {
-                    val completionEntity = latestCompletion.toEntity()
-                    maintenanceCompletionDao.insertCompletion(completionEntity)
-                    
-                    Log.d(TAG, "Completed maintenance task: ${taskEntity.title}")
-                    Result.success(completionEntity)
-                } else {
-                    Result.failure(Exception("No completion data returned"))
-                }
-            } else {
-                val error = "Failed to complete maintenance task: ${response.code()}"
-                Log.e(TAG, error)
-                Result.failure(Exception(error))
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error completing maintenance task", e)
+            println("Repository: Completing maintenance task offline")
             
-            // Save completion locally for offline sync
+            // Save completion locally (force offline mode)
             val completionEntity = MaintenanceCompletionEntity(
                 id = UUID.randomUUID().toString(),
                 maintenanceTaskId = id,
@@ -192,8 +161,15 @@ class MaintenanceRepository(
                 synced = false
             )
             
+            println("Repository: Inserting completion")
             maintenanceCompletionDao.insertCompletion(completionEntity)
+            Log.d(TAG, "Completed maintenance task offline: $id")
+            println("Repository: Task completed successfully")
             Result.success(completionEntity)
+        } catch (e: Exception) {
+            println("Repository: Exception completing task: ${e.message}")
+            Log.e(TAG, "Error completing maintenance task", e)
+            Result.failure(e)
         }
     }
 

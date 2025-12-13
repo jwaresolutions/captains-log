@@ -123,7 +123,7 @@ fun MaintenanceListScreen(
                                     },
                                     onEdit = { onNavigateToEdit(task.id) },
                                     onDelete = { viewModel.deleteMaintenanceTask(task.id) },
-                                    onComplete = { /* TODO: Add complete functionality */ },
+                                    onComplete = { viewModel.completeMaintenanceTask(task.id) },
                                     viewModel = viewModel
                                 )
                             }
@@ -171,7 +171,7 @@ fun MaintenanceListScreen(
             onClick = onNavigateToCreateTask,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(16.dp)
+                .padding(bottom = 88.dp, end = 16.dp)
         ) {
             Icon(Icons.Default.Add, contentDescription = "Add Maintenance Task")
         }

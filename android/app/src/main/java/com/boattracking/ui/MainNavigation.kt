@@ -15,6 +15,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.activity.compose.BackHandler
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -116,6 +117,11 @@ fun MainNavigation() {
             }
         }
     ) { paddingValues ->
+        // Handle Android back button
+        BackHandler(enabled = currentScreen !is CurrentScreen.Tab) {
+            currentScreen = CurrentScreen.Tab(selectedTab)
+        }
+        
         when (val screen = currentScreen) {
             is CurrentScreen.Tab -> {
                 when (screen.tab) {

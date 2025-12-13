@@ -234,7 +234,7 @@ fun TripListScreen(
                 MaterialTheme.colorScheme.primary,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(16.dp)
+                .padding(bottom = 88.dp, end = 16.dp)
         ) {
             Icon(
                 imageVector = if (hasActiveTrip) Icons.Default.Refresh else Icons.Default.Add,
