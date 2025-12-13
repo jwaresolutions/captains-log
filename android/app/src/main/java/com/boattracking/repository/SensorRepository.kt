@@ -1,6 +1,7 @@
 package com.boattracking.repository
 
 import android.util.Log
+import com.boattracking.connection.ConnectionManager
 import com.boattracking.network.ApiService
 import com.boattracking.network.models.*
 import kotlinx.coroutines.Dispatchers
@@ -11,7 +12,7 @@ import java.util.Date
  * Repository for managing sensor types and sensor data
  */
 class SensorRepository(
-    private val apiService: ApiService
+    private val connectionManager: ConnectionManager
 ) {
     companion object {
         private const val TAG = "SensorRepository"
@@ -34,6 +35,7 @@ class SensorRepository(
                 description = description
             )
             
+            val apiService = connectionManager.getApiService()
             val response = apiService.createSensorType(request)
             
             if (response.isSuccessful && response.body() != null) {
@@ -56,6 +58,7 @@ class SensorRepository(
      */
     suspend fun getSensorTypes(): Result<List<SensorTypeResponse>> = withContext(Dispatchers.IO) {
         try {
+            val apiService = connectionManager.getApiService()
             val response = apiService.getSensorTypes()
             
             if (response.isSuccessful && response.body() != null) {
@@ -78,6 +81,7 @@ class SensorRepository(
      */
     suspend fun getSensorType(id: String): Result<SensorTypeResponse> = withContext(Dispatchers.IO) {
         try {
+            val apiService = connectionManager.getApiService()
             val response = apiService.getSensorType(id)
             
             if (response.isSuccessful && response.body() != null) {
@@ -113,6 +117,7 @@ class SensorRepository(
                 description = description
             )
             
+            val apiService = connectionManager.getApiService()
             val response = apiService.updateSensorType(id, request)
             
             if (response.isSuccessful && response.body() != null) {
@@ -147,6 +152,7 @@ class SensorRepository(
                 timestamp = timestamp
             )
             
+            val apiService = connectionManager.getApiService()
             val response = apiService.createSensorReading(request)
             
             if (response.isSuccessful && response.body() != null) {
@@ -172,6 +178,7 @@ class SensorRepository(
         sensorType: String? = null
     ): Result<List<SensorReadingResponse>> = withContext(Dispatchers.IO) {
         try {
+            val apiService = connectionManager.getApiService()
             val response = apiService.getSensorReadings(tripId, sensorType)
             
             if (response.isSuccessful && response.body() != null) {
@@ -197,6 +204,7 @@ class SensorRepository(
         sensorTypeId: String
     ): Result<List<SensorReadingResponse>> = withContext(Dispatchers.IO) {
         try {
+            val apiService = connectionManager.getApiService()
             val response = apiService.getSensorReadingsByTypeId(tripId, sensorTypeId)
             
             if (response.isSuccessful && response.body() != null) {

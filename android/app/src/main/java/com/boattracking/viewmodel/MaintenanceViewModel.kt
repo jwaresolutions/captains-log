@@ -13,30 +13,27 @@ import com.boattracking.repository.MaintenanceRepository
 import com.boattracking.repository.NotificationRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+
 import java.util.*
 
 class MaintenanceViewModel(context: Context) : ViewModel() {
     
     private val maintenanceRepository: MaintenanceRepository
     private val notificationRepository: NotificationRepository
+    private val connectionManager: ConnectionManager
 
     init {
         val database = AppDatabase.getDatabase(context)
-        val connectionManager = ConnectionManager.getInstance(context)
+        connectionManager = ConnectionManager.getInstance(context)
         connectionManager.initialize()
         
-        // Initialize repository - get API service synchronously in init
-        val apiService = runBlocking { connectionManager.getApiService() }
+        // Initialize repository with lazy API service initialization
         maintenanceRepository = MaintenanceRepository(
-            apiService = apiService,
+            connectionManager = connectionManager,
             maintenanceTaskDao = database.maintenanceTaskDao(),
             maintenanceCompletionDao = database.maintenanceCompletionDao()
         )
-        notificationRepository = NotificationRepository(apiService)
-        
-        // Fetch notifications on init
-        fetchNotifications()
+        notificationRepository = NotificationRepository(connectionManager)
     }
 
     private val _uiState = MutableStateFlow(MaintenanceUiState())
@@ -45,8 +42,8 @@ class MaintenanceViewModel(context: Context) : ViewModel() {
     private val _selectedBoatId = MutableStateFlow<String?>(null)
     val selectedBoatId: StateFlow<String?> = _selectedBoatId.asStateFlow()
 
-    // Get all maintenance tasks
-    val allTasks: Flow<List<MaintenanceTaskEntity>> = 
+    // Get all maintenance tasks (lazy initialization)
+    val allTasks: Flow<List<MaintenanceTaskEntity>> by lazy {
         selectedBoatId.flatMapLatest { boatId ->
             if (boatId != null) {
                 maintenanceRepository.getTasksByBoat(boatId)
@@ -54,9 +51,10 @@ class MaintenanceViewModel(context: Context) : ViewModel() {
                 maintenanceRepository.getAllTasks()
             }
         }
+    }
 
     // Get upcoming tasks (due within 7 days)
-    val upcomingTasks: Flow<List<MaintenanceTaskEntity>> = 
+    val upcomingTasks: Flow<List<MaintenanceTaskEntity>> by lazy {
         allTasks.map { tasks ->
             val cutoffDate = Calendar.getInstance().apply {
                 add(Calendar.DAY_OF_MONTH, 7)
@@ -66,18 +64,16 @@ class MaintenanceViewModel(context: Context) : ViewModel() {
                 task.dueDate.before(cutoffDate) || task.dueDate == cutoffDate
             }.sortedBy { it.dueDate }
         }
+    }
 
     // Get overdue tasks
-    val overdueTasks: Flow<List<MaintenanceTaskEntity>> = 
+    val overdueTasks: Flow<List<MaintenanceTaskEntity>> by lazy {
         allTasks.map { tasks ->
             val now = Date()
             tasks.filter { task ->
                 task.dueDate.before(now)
             }.sortedBy { it.dueDate }
         }
-
-    init {
-        syncMaintenanceTasks()
     }
 
     fun setSelectedBoat(boatId: String?) {
@@ -287,8 +283,8 @@ class MaintenanceViewModel(context: Context) : ViewModel() {
         return "Every $interval $type"
     }
 
-    // Notification handling
-    val notifications: Flow<List<NotificationResponse>> = notificationRepository.notifications
+    // Notification handling (lazy initialization)
+    val notifications: Flow<List<NotificationResponse>> by lazy { notificationRepository.notifications }
 
     fun fetchNotifications() {
         viewModelScope.launch {

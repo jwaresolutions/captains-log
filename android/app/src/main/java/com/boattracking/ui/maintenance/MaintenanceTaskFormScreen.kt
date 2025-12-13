@@ -1,7 +1,9 @@
 package com.boattracking.ui.maintenance
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
@@ -78,9 +80,20 @@ fun MaintenanceTaskFormScreen(
     // Handle form submission success
     LaunchedEffect(uiState.message) {
         uiState.message?.let { message ->
+            android.util.Log.d("MaintenanceForm", "Received message: $message")
             if (message.contains("created") || message.contains("updated")) {
+                android.util.Log.d("MaintenanceForm", "Success message received, navigating back")
+                // Clear the message to prevent re-triggering
+                viewModel.clearMessage()
                 onNavigateBack()
             }
+        }
+    }
+
+    // Handle form submission errors
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let { error ->
+            android.util.Log.e("MaintenanceForm", "Received error: $error")
         }
     }
 
@@ -100,6 +113,7 @@ fun MaintenanceTaskFormScreen(
             modifier = modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -291,9 +305,40 @@ fun MaintenanceTaskFormScreen(
                 }
             }
 
+            // Show helpful message when no boats are available
+            if (boats.isEmpty()) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "No Boats Available",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                        Text(
+                            text = "You need to create a boat before you can create maintenance tasks. Please go to the Home screen and create a boat first.",
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
+            }
+
             // Submit button
             Button(
                 onClick = {
+                    println("BUTTON CLICKED - MaintenanceForm")
+                    
+                    // Clear previous errors
+                    titleError = null
+                    boatError = null
+                    recurrenceError = null
+                    
                     // Validate form
                     var hasErrors = false
 
@@ -310,18 +355,21 @@ fun MaintenanceTaskFormScreen(
                     if (hasRecurrence) {
                         val interval = recurrenceInterval.toIntOrNull()
                         if (interval == null || interval <= 0) {
-                            recurrenceError = "Please enter a valid interval"
+                            recurrenceError = "Please enter a valid interval (positive number)"
                             hasErrors = true
                         }
                     }
 
-                    if (hasErrors) return@Button
+                    if (hasErrors) {
+                        return@Button
+                    }
 
                     // Create recurrence schedule
                     val recurrence = if (hasRecurrence) {
+                        val intervalValue = recurrenceInterval.toIntOrNull() ?: 1
                         RecurrenceSchedule(
                             type = recurrenceType,
-                            interval = recurrenceInterval.toInt()
+                            interval = intervalValue
                         )
                     } else null
 
@@ -348,7 +396,7 @@ fun MaintenanceTaskFormScreen(
                         )
                     }
                 },
-                enabled = !uiState.isLoading,
+                enabled = !uiState.isLoading && boats.isNotEmpty(),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 if (uiState.isLoading) {
@@ -361,17 +409,48 @@ fun MaintenanceTaskFormScreen(
                 Text(if (taskId == null) "Create Task" else "Update Task")
             }
 
+            // Success message
+            uiState.message?.let { message ->
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                ) {
+                    Text(
+                        text = message,
+                        modifier = Modifier.padding(16.dp),
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            }
+
             // Error message
             uiState.error?.let { error ->
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
                 ) {
-                    Text(
-                        text = error,
-                        modifier = Modifier.padding(16.dp),
-                        color = MaterialTheme.colorScheme.onErrorContainer
-                    )
+                    Column(
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Text(
+                            text = "Error",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                        Text(
+                            text = error,
+                            color = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Button(
+                            onClick = { viewModel.clearError() },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.error
+                            )
+                        ) {
+                            Text("Dismiss")
+                        }
+                    }
                 }
             }
         }

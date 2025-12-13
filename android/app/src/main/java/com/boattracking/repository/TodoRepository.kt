@@ -5,6 +5,7 @@ import com.boattracking.database.dao.TodoItemDao
 import com.boattracking.database.dao.TodoListDao
 import com.boattracking.database.entities.TodoItemEntity
 import com.boattracking.database.entities.TodoListEntity
+import com.boattracking.connection.ConnectionManager
 import com.boattracking.network.ApiService
 import com.boattracking.network.models.*
 import kotlinx.coroutines.flow.Flow
@@ -12,7 +13,7 @@ import kotlinx.coroutines.flow.map
 import java.text.SimpleDateFormat
 import java.util.*
 class TodoRepository constructor(
-    private val apiService: ApiService,
+    private val connectionManager: ConnectionManager,
     private val todoListDao: TodoListDao,
     private val todoItemDao: TodoItemDao
 ) {
@@ -54,6 +55,7 @@ class TodoRepository constructor(
 
             // Try to sync to server
             try {
+                val apiService = connectionManager.getApiService()
                 val request = CreateTodoListRequest(title = title, boatId = boatId)
                 val response = apiService.createTodoList(request)
                 
@@ -103,6 +105,7 @@ class TodoRepository constructor(
 
             // Try to sync to server
             try {
+                val apiService = connectionManager.getApiService()
                 val request = UpdateTodoListRequest(title = title, boatId = boatId)
                 val response = apiService.updateTodoList(id, request)
                 
@@ -138,6 +141,7 @@ class TodoRepository constructor(
 
             // Try to sync deletion to server
             try {
+                val apiService = connectionManager.getApiService()
                 val response = apiService.deleteTodoList(id)
                 if (response.isSuccessful) {
                     Log.d(TAG, "Synced todo list deletion to server: $id")
@@ -181,6 +185,7 @@ class TodoRepository constructor(
 
             // Try to sync to server
             try {
+                val apiService = connectionManager.getApiService()
                 val request = CreateTodoItemRequest(content = content)
                 val response = apiService.createTodoItem(listId, request)
                 
@@ -232,6 +237,7 @@ class TodoRepository constructor(
 
             // Try to sync to server
             try {
+                val apiService = connectionManager.getApiService()
                 val request = UpdateTodoItemRequest(content = content, completed = completed)
                 val response = apiService.updateTodoItem(id, request)
                 
@@ -280,6 +286,7 @@ class TodoRepository constructor(
 
             // Try to sync to server
             try {
+                val apiService = connectionManager.getApiService()
                 val response = apiService.toggleTodoItemCompletion(id)
                 
                 if (response.isSuccessful && response.body() != null) {
@@ -316,6 +323,7 @@ class TodoRepository constructor(
 
             // Try to sync deletion to server
             try {
+                val apiService = connectionManager.getApiService()
                 val response = apiService.deleteTodoItem(id)
                 if (response.isSuccessful) {
                     Log.d(TAG, "Synced todo item deletion to server: $id")
@@ -339,6 +347,7 @@ class TodoRepository constructor(
             Log.d(TAG, "Starting todo lists sync")
             
             // Fetch from server
+            val apiService = connectionManager.getApiService()
             val response = apiService.getTodoLists()
             if (response.isSuccessful && response.body() != null) {
                 val serverTodoLists = response.body()!!.data

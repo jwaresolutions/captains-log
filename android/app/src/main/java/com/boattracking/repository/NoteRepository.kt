@@ -2,6 +2,7 @@ package com.boattracking.repository
 
 import com.boattracking.database.AppDatabase
 import com.boattracking.database.entities.NoteEntity
+import com.boattracking.connection.ConnectionManager
 import com.boattracking.network.ApiService
 import com.boattracking.network.models.CreateNoteRequest
 import com.boattracking.network.models.UpdateNoteRequest
@@ -14,7 +15,7 @@ import java.util.Date
  */
 class NoteRepository(
     private val database: AppDatabase,
-    private val apiService: ApiService
+    private val connectionManager: ConnectionManager
 ) {
 
     /**
@@ -93,6 +94,7 @@ class NoteRepository(
                     tripId = tripId,
                     tags = tags
                 )
+                val apiService = connectionManager.getApiService()
                 val response = apiService.createNote(request)
                 if (response.isSuccessful && response.body() != null) {
                     val apiNote = response.body()!!
@@ -141,6 +143,7 @@ class NoteRepository(
                         content = content,
                         tags = tags
                     )
+                    val apiService = connectionManager.getApiService()
                     apiService.updateNote(noteId, request)
                     database.noteDao().markAsSynced(noteId)
                 } catch (e: Exception) {
@@ -163,6 +166,7 @@ class NoteRepository(
         return try {
             // Try to delete from API first
             try {
+                val apiService = connectionManager.getApiService()
                 apiService.deleteNote(noteId)
             } catch (e: Exception) {
                 // Network error, continue with local deletion
@@ -183,6 +187,7 @@ class NoteRepository(
         return try {
             // Try to get from API first
             try {
+                val apiService = connectionManager.getApiService()
                 val response = apiService.getAllTags()
                 if (response.isSuccessful && response.body() != null) {
                     Result.success(response.body()!!.data)
@@ -210,6 +215,7 @@ class NoteRepository(
      */
     suspend fun syncNotesFromApi(): Result<Unit> {
         return try {
+            val apiService = connectionManager.getApiService()
             val response = apiService.getNotes()
             if (response.isSuccessful && response.body() != null) {
                 val apiNotes = response.body()!!
@@ -241,6 +247,7 @@ class NoteRepository(
      */
     suspend fun syncNotesToApi(): Result<Unit> {
         return try {
+            val apiService = connectionManager.getApiService()
             val unsyncedNotes = database.noteDao().getUnsyncedNotes()
             for (note in unsyncedNotes) {
                 try {

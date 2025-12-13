@@ -1,6 +1,7 @@
 package com.boattracking.repository
 
 import android.util.Log
+import com.boattracking.connection.ConnectionManager
 import com.boattracking.network.ApiService
 import com.boattracking.network.models.MarkNotificationReadRequest
 import com.boattracking.network.models.NotificationResponse
@@ -9,7 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class NotificationRepository(
-    private val apiService: ApiService
+    private val connectionManager: ConnectionManager
 ) {
     companion object {
         private const val TAG = "NotificationRepository"
@@ -20,6 +21,13 @@ class NotificationRepository(
 
     suspend fun fetchNotifications(): Result<List<NotificationResponse>> {
         return try {
+            val apiService = try {
+                connectionManager.getApiService()
+            } catch (e: IllegalStateException) {
+                Log.w(TAG, "API service not initialized, cannot fetch notifications: ${e.message}")
+                return Result.failure(e)
+            }
+            
             val response = apiService.getNotifications()
             if (response.isSuccessful && response.body() != null) {
                 val notifications = response.body()!!
@@ -40,6 +48,7 @@ class NotificationRepository(
     suspend fun markNotificationAsRead(id: String): Result<NotificationResponse> {
         return try {
             val request = MarkNotificationReadRequest(read = true)
+            val apiService = connectionManager.getApiService()
             val response = apiService.markNotificationAsRead(id, request)
             if (response.isSuccessful && response.body() != null) {
                 val updatedNotification = response.body()!!

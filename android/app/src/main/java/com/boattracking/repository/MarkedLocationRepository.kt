@@ -3,6 +3,7 @@ package com.boattracking.repository
 import android.util.Log
 import com.boattracking.database.AppDatabase
 import com.boattracking.database.entities.MarkedLocationEntity
+import com.boattracking.connection.ConnectionManager
 import com.boattracking.network.ApiService
 import com.boattracking.network.models.*
 import kotlinx.coroutines.flow.Flow
@@ -13,7 +14,7 @@ import kotlin.math.*
 
 class MarkedLocationRepository(
     private val database: AppDatabase,
-    private val apiService: ApiService
+    private val connectionManager: ConnectionManager
 ) {
     companion object {
         private const val TAG = "MarkedLocationRepository"
@@ -111,6 +112,7 @@ class MarkedLocationRepository(
                     tags = tags
                 )
                 
+                val apiService = connectionManager.getApiService()
                 val response = apiService.createMarkedLocation(request)
                 if (response.isSuccessful && response.body() != null) {
                     val apiLocation = response.body()!!
@@ -177,6 +179,7 @@ class MarkedLocationRepository(
                     tags = tags
                 )
                 
+                val apiService = connectionManager.getApiService()
                 val response = apiService.updateMarkedLocation(id, request)
                 if (response.isSuccessful) {
                     database.markedLocationDao().markAsSynced(id)
@@ -202,6 +205,7 @@ class MarkedLocationRepository(
         return try {
             // Try to delete from API first
             try {
+                val apiService = connectionManager.getApiService()
                 val response = apiService.deleteMarkedLocation(id)
                 if (response.isSuccessful) {
                     Log.d(TAG, "Marked location deleted from API: $id")
@@ -228,6 +232,7 @@ class MarkedLocationRepository(
      */
     suspend fun syncMarkedLocationsFromApi(): Result<Unit> {
         return try {
+            val apiService = connectionManager.getApiService()
             val response = apiService.getMarkedLocations()
             if (response.isSuccessful && response.body() != null) {
                 val apiLocations = response.body()!!
@@ -278,6 +283,7 @@ class MarkedLocationRepository(
                         tags = if (location.tags.isEmpty()) emptyList() else location.tags.split(",")
                     )
                     
+                    val apiService = connectionManager.getApiService()
                     val response = apiService.createMarkedLocation(request)
                     if (response.isSuccessful && response.body() != null) {
                         val apiLocation = response.body()!!

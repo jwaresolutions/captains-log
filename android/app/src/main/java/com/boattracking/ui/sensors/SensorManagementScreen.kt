@@ -38,8 +38,7 @@ fun SensorManagementScreen(
     val connectionManager = remember { ConnectionManager.getInstance(context) }
     val sensorRepository = remember { 
         connectionManager.initialize()
-        val apiService = kotlinx.coroutines.runBlocking { connectionManager.getApiService() }
-        SensorRepository(apiService)
+        SensorRepository(connectionManager)
     }
     val viewModel: SensorViewModel = viewModel {
         SensorViewModel(context.applicationContext as android.app.Application, sensorRepository)

@@ -2,6 +2,7 @@ package com.boattracking.repository
 
 import com.boattracking.database.AppDatabase
 import com.boattracking.database.entities.BoatEntity
+import com.boattracking.connection.ConnectionManager
 import com.boattracking.network.ApiService
 import com.boattracking.network.models.CreateBoatRequest
 import kotlinx.coroutines.flow.Flow
@@ -13,7 +14,7 @@ import java.util.Date
  */
 class BoatRepository(
     private val database: AppDatabase,
-    private val apiService: ApiService
+    private val connectionManager: ConnectionManager
 ) {
 
     /**
@@ -56,6 +57,7 @@ class BoatRepository(
             
             // Try to sync to API
             try {
+                val apiService = connectionManager.getApiService()
                 val response = apiService.createBoat(CreateBoatRequest(name = name))
                 if (response.isSuccessful && response.body() != null) {
                     val apiBoat = response.body()!!
@@ -96,6 +98,7 @@ class BoatRepository(
                 
                 // Try to sync to API
                 try {
+                    val apiService = connectionManager.getApiService()
                     apiService.updateBoatStatus(boatId, mapOf("enabled" to enabled))
                     database.boatDao().markAsSynced(boatId)
                 } catch (e: Exception) {
@@ -130,6 +133,7 @@ class BoatRepository(
             
             // Try to sync to API
             try {
+                val apiService = connectionManager.getApiService()
                 apiService.setActiveBoat(boatId)
                 database.boatDao().markAsSynced(boatId)
             } catch (e: Exception) {
@@ -147,6 +151,7 @@ class BoatRepository(
      */
     suspend fun syncBoatsFromApi(): Result<Unit> {
         return try {
+            val apiService = connectionManager.getApiService()
             val response = apiService.getBoats()
             if (response.isSuccessful && response.body() != null) {
                 val apiBoats = response.body()!!.data
@@ -176,6 +181,7 @@ class BoatRepository(
      */
     suspend fun syncBoatsToApi(): Result<Unit> {
         return try {
+            val apiService = connectionManager.getApiService()
             val unsyncedBoats = database.boatDao().getUnsyncedBoats()
             for (boat in unsyncedBoats) {
                 try {

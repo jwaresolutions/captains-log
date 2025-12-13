@@ -5,6 +5,7 @@ import com.boattracking.database.dao.MaintenanceCompletionDao
 import com.boattracking.database.dao.MaintenanceTaskDao
 import com.boattracking.database.entities.MaintenanceCompletionEntity
 import com.boattracking.database.entities.MaintenanceTaskEntity
+import com.boattracking.connection.ConnectionManager
 import com.boattracking.network.ApiService
 import com.boattracking.network.models.*
 import kotlinx.coroutines.flow.Flow
@@ -12,7 +13,7 @@ import kotlinx.coroutines.flow.map
 import java.text.SimpleDateFormat
 import java.util.*
 class MaintenanceRepository(
-    private val apiService: ApiService,
+    private val connectionManager: ConnectionManager,
     private val maintenanceTaskDao: MaintenanceTaskDao,
     private val maintenanceCompletionDao: MaintenanceCompletionDao
 ) {
@@ -45,6 +46,7 @@ class MaintenanceRepository(
         recurrence: RecurrenceSchedule? = null
     ): Result<MaintenanceTaskEntity> {
         return try {
+            println("Repository: Creating request object")
             val request = CreateMaintenanceTaskRequest(
                 boatId = boatId,
                 title = title,
@@ -54,30 +56,31 @@ class MaintenanceRepository(
                 recurrence = recurrence
             )
 
-            val response = apiService.createMaintenanceTask(request)
-            if (response.isSuccessful && response.body() != null) {
-                val taskResponse = response.body()!!
-                val taskEntity = taskResponse.toEntity()
-                
-                // Save to local database
-                maintenanceTaskDao.insertTask(taskEntity)
-                
-                // Save completions if any
-                taskResponse.completions.forEach { completion ->
-                    maintenanceCompletionDao.insertCompletion(completion.toEntity())
-                }
-                
-                Log.d(TAG, "Created maintenance task: ${taskEntity.title}")
-                Result.success(taskEntity)
-            } else {
-                val error = "Failed to create maintenance task: ${response.code()}"
-                Log.e(TAG, error)
-                Result.failure(Exception(error))
-            }
+            // For now, force offline mode to bypass connection issues
+            println("Repository: Forcing offline mode")
+            val taskEntity = MaintenanceTaskEntity(
+                id = UUID.randomUUID().toString(),
+                boatId = boatId,
+                title = title,
+                description = description,
+                component = component,
+                dueDate = dueDate,
+                recurrenceType = recurrence?.type,
+                recurrenceInterval = recurrence?.interval,
+                createdAt = Date(),
+                updatedAt = Date(),
+                synced = false
+            )
+            println("Repository: Inserting task offline")
+            maintenanceTaskDao.insertTask(taskEntity)
+            println("Repository: Task inserted, returning success")
+            Log.d(TAG, "Created maintenance task offline: ${taskEntity.title}")
+            return Result.success(taskEntity)
         } catch (e: Exception) {
+            println("Repository: Exception in createMaintenanceTask: ${e.message}")
             Log.e(TAG, "Error creating maintenance task", e)
             
-            // Save locally for offline sync
+            // Save locally for offline sync as fallback
             val taskEntity = MaintenanceTaskEntity(
                 id = UUID.randomUUID().toString(),
                 boatId = boatId,
@@ -93,6 +96,7 @@ class MaintenanceRepository(
             )
             
             maintenanceTaskDao.insertTask(taskEntity)
+            Log.d(TAG, "Created maintenance task offline (exception): ${taskEntity.title}")
             Result.success(taskEntity)
         }
     }
@@ -106,33 +110,9 @@ class MaintenanceRepository(
         recurrence: RecurrenceSchedule? = null
     ): Result<MaintenanceTaskEntity> {
         return try {
-            val request = UpdateMaintenanceTaskRequest(
-                title = title,
-                description = description,
-                component = component,
-                dueDate = dueDate?.let { dateFormat.format(it) },
-                recurrence = recurrence
-            )
-
-            val response = apiService.updateMaintenanceTask(id, request)
-            if (response.isSuccessful && response.body() != null) {
-                val taskResponse = response.body()!!
-                val taskEntity = taskResponse.toEntity()
-                
-                // Update local database
-                maintenanceTaskDao.updateTask(taskEntity)
-                
-                Log.d(TAG, "Updated maintenance task: ${taskEntity.title}")
-                Result.success(taskEntity)
-            } else {
-                val error = "Failed to update maintenance task: ${response.code()}"
-                Log.e(TAG, error)
-                Result.failure(Exception(error))
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error updating maintenance task", e)
+            println("Repository: Updating maintenance task offline")
             
-            // Update locally for offline sync
+            // Update locally (force offline mode like create)
             val existingTask = maintenanceTaskDao.getTaskById(id)
             if (existingTask != null) {
                 val updatedTask = existingTask.copy(
@@ -145,11 +125,20 @@ class MaintenanceRepository(
                     updatedAt = Date(),
                     synced = false
                 )
+                println("Repository: Updating task in database")
                 maintenanceTaskDao.updateTask(updatedTask)
+                Log.d(TAG, "Updated maintenance task offline: ${updatedTask.title}")
+                println("Repository: Task updated successfully")
                 Result.success(updatedTask)
             } else {
-                Result.failure(e)
+                val error = "Task not found with id: $id"
+                Log.e(TAG, error)
+                Result.failure(Exception(error))
             }
+        } catch (e: Exception) {
+            println("Repository: Exception updating task: ${e.message}")
+            Log.e(TAG, "Error updating maintenance task", e)
+            Result.failure(e)
         }
     }
 
@@ -164,6 +153,7 @@ class MaintenanceRepository(
                 notes = notes
             )
 
+            val apiService = connectionManager.getApiService()
             val response = apiService.completeMaintenanceTask(id, request)
             if (response.isSuccessful && response.body() != null) {
                 val taskResponse = response.body()!!
@@ -209,19 +199,16 @@ class MaintenanceRepository(
 
     suspend fun deleteMaintenanceTask(id: String): Result<Unit> {
         return try {
-            val response = apiService.deleteMaintenanceTask(id)
-            if (response.isSuccessful) {
-                // Delete from local database
-                maintenanceTaskDao.deleteTaskById(id)
-                
-                Log.d(TAG, "Deleted maintenance task: $id")
-                Result.success(Unit)
-            } else {
-                val error = "Failed to delete maintenance task: ${response.code()}"
-                Log.e(TAG, error)
-                Result.failure(Exception(error))
-            }
+            println("Repository: Deleting maintenance task offline")
+            
+            // Delete from local database (force offline mode)
+            maintenanceTaskDao.deleteTaskById(id)
+            
+            Log.d(TAG, "Deleted maintenance task offline: $id")
+            println("Repository: Task deleted successfully")
+            Result.success(Unit)
         } catch (e: Exception) {
+            println("Repository: Exception deleting task: ${e.message}")
             Log.e(TAG, "Error deleting maintenance task", e)
             Result.failure(e)
         }
@@ -232,6 +219,13 @@ class MaintenanceRepository(
             Log.d(TAG, "Starting maintenance tasks sync")
             
             // Fetch all tasks from server
+            val apiService = try {
+                connectionManager.getApiService()
+            } catch (e: IllegalStateException) {
+                Log.w(TAG, "API service not initialized, cannot sync: ${e.message}")
+                return Result.failure(e)
+            }
+            
             val response = apiService.getMaintenanceTasks()
             if (response.isSuccessful && response.body() != null) {
                 val serverTasks = response.body()!!

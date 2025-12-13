@@ -10,7 +10,7 @@ import com.boattracking.database.entities.TodoListEntity
 import com.boattracking.repository.TodoRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+
 
 class TodoViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -24,9 +24,8 @@ class TodoViewModel(application: Application) : AndroidViewModel(application) {
         val connectionManager = ConnectionManager.getInstance(application)
         connectionManager.initialize()
         
-        // Initialize repository - get API service synchronously in init
-        val apiService = runBlocking { connectionManager.getApiService() }
-        todoRepository = TodoRepository(apiService, database.todoListDao(), database.todoItemDao())
+        // Initialize repository with ConnectionManager
+        todoRepository = TodoRepository(connectionManager, database.todoListDao(), database.todoItemDao())
     }
 
     private val _selectedListId = MutableStateFlow<String?>(null)

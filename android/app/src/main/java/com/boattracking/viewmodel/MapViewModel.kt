@@ -14,7 +14,7 @@ import com.boattracking.repository.MarkedLocationWithDistance
 import com.boattracking.repository.TripRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+
 
 /**
  * ViewModel for the map screen
@@ -34,10 +34,9 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
         connectionManager = ConnectionManager.getInstance(application)
         connectionManager.initialize()
         
-        // Initialize repositories - get API service synchronously in init
-        val apiService = runBlocking { connectionManager.getApiService() }
+        // Initialize repositories with ConnectionManager
         tripRepository = TripRepository(database)
-        markedLocationRepository = MarkedLocationRepository(database, apiService)
+        markedLocationRepository = MarkedLocationRepository(database, connectionManager)
         
         // Load initial data
         loadTrips()

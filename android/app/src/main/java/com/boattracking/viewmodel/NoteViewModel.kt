@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+
 
 /**
  * ViewModel for managing note data and operations.
@@ -45,9 +45,8 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
         connectionManager = ConnectionManager.getInstance(application)
         connectionManager.initialize()
         
-        // Initialize repository - get API service synchronously in init
-        val apiService = runBlocking { connectionManager.getApiService() }
-        repository = NoteRepository(database, apiService)
+        // Initialize repository with ConnectionManager
+        repository = NoteRepository(database, connectionManager)
         
         // Initial sync from API
         syncNotesFromApi()

@@ -3,6 +3,7 @@ package com.boattracking.repository
 import com.boattracking.database.AppDatabase
 import com.boattracking.database.dao.BoatDao
 import com.boattracking.database.entities.BoatEntity
+import com.boattracking.connection.ConnectionManager
 import com.boattracking.network.ApiService
 import com.boattracking.network.models.ApiListResponse
 import com.boattracking.network.models.BoatResponse
@@ -25,6 +26,7 @@ class BoatRepositoryTest {
     private lateinit var database: AppDatabase
     private lateinit var boatDao: BoatDao
     private lateinit var apiService: ApiService
+    private lateinit var connectionManager: ConnectionManager
     private lateinit var repository: BoatRepository
 
     @BeforeEach
@@ -32,10 +34,12 @@ class BoatRepositoryTest {
         database = mockk()
         boatDao = mockk()
         apiService = mockk()
+        connectionManager = mockk()
         
         every { database.boatDao() } returns boatDao
+        coEvery { connectionManager.getApiService() } returns apiService
         
-        repository = BoatRepository(database, apiService)
+        repository = BoatRepository(database, connectionManager)
     }
 
     @AfterEach
