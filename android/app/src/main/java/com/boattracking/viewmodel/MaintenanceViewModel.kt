@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 import java.util.*
+import java.util.Calendar
 
 class MaintenanceViewModel(context: Context) : ViewModel() {
     
@@ -58,20 +59,16 @@ class MaintenanceViewModel(context: Context) : ViewModel() {
         }
     }
 
-    // Get upcoming tasks (past incomplete + future 90 days)
+    // Get upcoming events (generates multiple events for recurring tasks)
     val upcomingTasks: Flow<List<MaintenanceTaskEntity>> by lazy {
-        allTasks.map { tasks ->
-            val now = Date()
-            val future90Days = Calendar.getInstance().apply {
-                add(Calendar.DAY_OF_MONTH, 90)
-            }.time
-            
-            tasks.filter { task ->
-                // Include if: (past due and not completed) OR (future within 90 days)
-                (task.dueDate.before(now) && !isTaskCompletedSync(task)) ||
-                (task.dueDate.after(now) && task.dueDate.before(future90Days)) ||
-                task.dueDate == future90Days
-            }.sortedBy { it.dueDate }
+        selectedBoatId.flatMapLatest { boatId ->
+            if (boatId != null) {
+                maintenanceRepository.getTasksByBoat(boatId)
+            } else {
+                maintenanceRepository.getAllTasks()
+            }
+        }.map { tasks ->
+            generateUpcomingEvents(tasks)
         }
     }
 
@@ -315,6 +312,78 @@ class MaintenanceViewModel(context: Context) : ViewModel() {
             daysUntilDue <= 7 -> TaskColor.YELLOW // Today to 7 days  
             daysUntilDue <= 30 -> TaskColor.GREEN // 8-30 days
             else -> TaskColor.GRAY // 30+ days
+        }
+    }
+
+    // Generate upcoming events for the next 90 days
+    private fun generateUpcomingEvents(tasks: List<MaintenanceTaskEntity>): List<MaintenanceTaskEntity> {
+        val events = mutableListOf<MaintenanceTaskEntity>()
+        val now = Date()
+        val future90Days = Calendar.getInstance().apply {
+            add(Calendar.DAY_OF_MONTH, 90)
+        }.time
+        
+        tasks.forEach { task ->
+            if (task.recurrenceType != null && task.recurrenceInterval != null) {
+                // Generate multiple events for recurring tasks
+                val occurrences = generateRecurringOccurrences(task, now, future90Days)
+                events.addAll(occurrences)
+            } else {
+                // Non-recurring task - include if within range and not completed
+                if ((task.dueDate.before(now) && !isTaskCompletedSync(task)) ||
+                    (task.dueDate.after(now) && task.dueDate.before(future90Days)) ||
+                    task.dueDate == future90Days) {
+                    events.add(task)
+                }
+            }
+        }
+        
+        return events.sortedBy { it.dueDate }
+    }
+    
+    // Generate recurring occurrences within the date range
+    private fun generateRecurringOccurrences(
+        task: MaintenanceTaskEntity, 
+        startDate: Date, 
+        endDate: Date
+    ): List<MaintenanceTaskEntity> {
+        val occurrences = mutableListOf<MaintenanceTaskEntity>()
+        val calendar = Calendar.getInstance()
+        calendar.time = task.dueDate
+        
+        // Find the first occurrence after or equal to startDate
+        while (calendar.time.before(startDate)) {
+            addRecurrenceInterval(calendar, task.recurrenceType!!, task.recurrenceInterval!!)
+        }
+        
+        // Generate occurrences until endDate
+        var occurrenceCount = 0
+        while (calendar.time.before(endDate) || calendar.time == endDate) {
+            // Create a copy of the task with the new due date
+            val occurrence = task.copy(
+                id = "${task.id}_occurrence_${occurrenceCount}",
+                dueDate = Date(calendar.timeInMillis)
+            )
+            occurrences.add(occurrence)
+            occurrenceCount++
+            
+            // Move to next occurrence
+            addRecurrenceInterval(calendar, task.recurrenceType!!, task.recurrenceInterval!!)
+            
+            // Safety limit to prevent infinite loops
+            if (occurrenceCount > 10) break
+        }
+        
+        return occurrences
+    }
+    
+    // Add recurrence interval to calendar
+    private fun addRecurrenceInterval(calendar: Calendar, type: String, interval: Int) {
+        when (type) {
+            "days" -> calendar.add(Calendar.DAY_OF_MONTH, interval)
+            "weeks" -> calendar.add(Calendar.WEEK_OF_YEAR, interval)
+            "months" -> calendar.add(Calendar.MONTH, interval)
+            "years" -> calendar.add(Calendar.YEAR, interval)
         }
     }
 
