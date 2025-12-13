@@ -1,16 +1,19 @@
 package com.captainslog.ui.home
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.captainslog.R
 import com.captainslog.ui.components.AppTopBar
 
 /**
@@ -31,26 +34,13 @@ fun HomeScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // ASCII Art Logo
-            Text(
-                text = """
- ____            _        _       _     
-/ ___|__ _ _ __ | |_ __ _(_)_ __ ( )___ 
-| |   / _` | '_ \| __/ _` | | '_ \|// __|
-| |__| (_| | |_) | || (_| | | | | | \__ \
-\____\__,_| .__/ \__\__,_|_|_| |_| |___/
-          |_|                          
- _                 
-| |    ___   __ _ 
-| |   / _ \ / _` |
-| |__| (_) | (_| |
-|_____\___/ \__, |
-            |___/ 
-                """.trimIndent(),
-                fontFamily = FontFamily.Monospace,
-                fontSize = 12.sp,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.primary
+            // Captain's Log Logo
+            Image(
+                painter = painterResource(id = R.drawable.captains_log_logo),
+                contentDescription = "Captain's Log",
+                modifier = Modifier
+                    .height(200.dp)
+                    .padding(bottom = 16.dp)
             )
             
             Spacer(modifier = Modifier.height(32.dp))

@@ -141,18 +141,8 @@ fun MapScreen(
                         addLocationOverlay(this, ctx)
                     }
                     
-                    // Handle long press for adding locations
-                    setOnTouchListener { _, event ->
-                        if (event.action == android.view.MotionEvent.ACTION_DOWN) {
-                            val projection = projection
-                            val geoPoint = projection.fromPixels(event.x.toInt(), event.y.toInt()) as GeoPoint
-                            
-                            // Check for long press (simplified - you might want to use GestureDetector)
-                            selectedLocation = geoPoint
-                            showLocationDialog = true
-                        }
-                        false
-                    }
+                    // Touch handling is managed by osmdroid for pan/zoom
+                    // Location adding is handled by the + button only
                 }
             },
             update = { mapViewInstance ->

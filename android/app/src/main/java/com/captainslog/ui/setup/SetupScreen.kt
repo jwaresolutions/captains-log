@@ -1,5 +1,6 @@
 package com.captainslog.ui.setup
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -7,9 +8,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.captainslog.R
 
 @Composable
 fun SetupScreen(
@@ -26,8 +29,17 @@ fun SetupScreen(
             .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // Captain's Log Logo
+        Image(
+            painter = painterResource(id = R.drawable.captains_log_logo),
+            contentDescription = "Captain's Log",
+            modifier = Modifier
+                .height(100.dp)
+                .padding(bottom = 16.dp)
+        )
+        
         Text(
-            text = "Boat Tracking Setup",
+            text = "Setup",
             style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier.padding(bottom = 24.dp)
         )
