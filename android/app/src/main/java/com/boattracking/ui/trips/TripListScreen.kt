@@ -50,20 +50,11 @@ fun TripListScreen(
     
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Trips") },
-                actions = {
-                    IconButton(onClick = onSyncTrips) {
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = "Sync Trips"
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+            com.boattracking.ui.components.AppTopBar(
+                title = "Trips",
+                onNotesClick = { /* TODO: Navigate to Notes */ },
+                onTodosClick = { /* TODO: Navigate to Todos */ },
+                onSettingsClick = { /* TODO: Navigate to Settings */ }
             )
         },
         floatingActionButton = {
@@ -89,6 +80,38 @@ fun TripListScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
+            // Sync button
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Sync trips with server",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Button(
+                        onClick = onSyncTrips,
+                        modifier = Modifier.wrapContentWidth()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Sync")
+                    }
+                }
+            }
+
             // Debug card (only visible when debug mode is enabled)
             if (isDebugMode) {
                 Card(

@@ -47,7 +47,29 @@ fun MaintenanceListScreen(
         }
     }
 
-    Column(modifier = modifier.fillMaxSize()) {
+    Scaffold(
+        modifier = modifier,
+        topBar = {
+            com.boattracking.ui.components.AppTopBar(
+                title = "Maintenance",
+                onNotesClick = { /* TODO: Navigate to Notes */ },
+                onTodosClick = { /* TODO: Navigate to Todos */ },
+                onSettingsClick = { /* TODO: Navigate to Settings */ }
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onNavigateToCreateTask
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add Maintenance Task")
+            }
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
         // Tab row
         TabRow(selectedTabIndex = selectedTab.ordinal) {
             MaintenanceTab.values().forEach { tab ->
@@ -122,45 +144,37 @@ fun MaintenanceListScreen(
                 }
             }
 
-            // Floating Action Button
-            FloatingActionButton(
-                onClick = onNavigateToCreateTask,
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(16.dp)
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Maintenance Task")
             }
-        }
 
-        // Error/Success messages
-        uiState.error?.let { error ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
-            ) {
-                Text(
-                    text = error,
-                    modifier = Modifier.padding(16.dp),
-                    color = MaterialTheme.colorScheme.onErrorContainer
-                )
+            // Error/Success messages
+            uiState.error?.let { error ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
+                ) {
+                    Text(
+                        text = error,
+                        modifier = Modifier.padding(16.dp),
+                        color = MaterialTheme.colorScheme.onErrorContainer
+                    )
+                }
             }
-        }
 
-        uiState.message?.let { message ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-            ) {
-                Text(
-                    text = message,
-                    modifier = Modifier.padding(16.dp),
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+            uiState.message?.let { message ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                ) {
+                    Text(
+                        text = message,
+                        modifier = Modifier.padding(16.dp),
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
             }
         }
     }

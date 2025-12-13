@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -40,19 +41,25 @@ import kotlinx.coroutines.launch
 fun SettingsScreen(
     modifier: Modifier = Modifier,
     viewModel: TripTrackingViewModel = viewModel(),
-    onLicenseTrackingChanged: ((Boolean) -> Unit)? = null
+    onNotesClick: () -> Unit = {},
+    onTodosClick: () -> Unit = {},
+    onNavigationPrefsChanged: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     
     var showSyncSettings by remember { mutableStateOf(false) }
     var showServerSettings by remember { mutableStateOf(false) }
+    var showBoatManagement by remember { mutableStateOf(false) }
     var isSyncing by remember { mutableStateOf(false) }
     var conflictLogs by remember { mutableStateOf("No conflicts logged") }
     
     val conflictLogger = remember { ConflictLogger(context) }
     val debugPrefs = remember { DebugPreferences(context) }
+    val navPrefs = remember { com.boattracking.util.NavigationPreferences(context) }
     var isDebugMode by remember { mutableStateOf(debugPrefs.isDebugModeEnabled) }
+    var isSensorsEnabled by remember { mutableStateOf(navPrefs.isSensorsEnabled) }
+    var isLicenseEnabled by remember { mutableStateOf(navPrefs.isLicenseEnabled) }
     
     // Load conflict logs
     LaunchedEffect(Unit) {
@@ -63,6 +70,24 @@ fun SettingsScreen(
         ServerSettingsScreen(
             onBack = { showServerSettings = false }
         )
+    } else if (showBoatManagement) {
+        com.boattracking.ui.boats.BoatListScreen(
+            modifier = Modifier.fillMaxSize()
+        )
+        // Add back button overlay
+        Box(modifier = Modifier.fillMaxSize()) {
+            IconButton(
+                onClick = { showBoatManagement = false },
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "Back"
+                )
+            }
+        }
     } else if (showSyncSettings) {
         SyncSettingsScreen(
             conflictLogs = conflictLogs,
@@ -95,8 +120,11 @@ fun SettingsScreen(
     } else {
         Scaffold(
             topBar = {
-                TopAppBar(
-                    title = { Text("Settings") }
+                com.boattracking.ui.components.AppTopBar(
+                    title = "Settings",
+                    onNotesClick = onNotesClick,
+                    onTodosClick = onTodosClick,
+                    onSettingsClick = { /* Already in settings */ }
                 )
             }
         ) { paddingValues ->
@@ -106,6 +134,47 @@ fun SettingsScreen(
                     .padding(paddingValues)
                     .verticalScroll(rememberScrollState())
             ) {
+                // Boat Management Section
+                SettingsSection(title = "Boats") {
+                    SettingsItem(
+                        icon = Icons.Filled.List,
+                        title = "Manage Boats",
+                        subtitle = "Add, enable/disable, and set active boat",
+                        onClick = { showBoatManagement = true }
+                    )
+                }
+
+                Divider()
+
+                // Navigation Section
+                SettingsSection(title = "Navigation Tabs") {
+                    NavigationTabToggleItem(
+                        icon = Icons.Filled.Info,
+                        title = "Sensors",
+                        subtitle = "Show sensors tab in bottom navigation",
+                        isEnabled = isSensorsEnabled,
+                        onToggle = { enabled ->
+                            isSensorsEnabled = enabled
+                            navPrefs.isSensorsEnabled = enabled
+                            onNavigationPrefsChanged()
+                        }
+                    )
+                    
+                    NavigationTabToggleItem(
+                        icon = Icons.Filled.Star,
+                        title = "License Progress",
+                        subtitle = "Show license tracking tab in bottom navigation",
+                        isEnabled = isLicenseEnabled,
+                        onToggle = { enabled ->
+                            isLicenseEnabled = enabled
+                            navPrefs.isLicenseEnabled = enabled
+                            onNavigationPrefsChanged()
+                        }
+                    )
+                }
+
+                Divider()
+
                 // Connection Settings Section
                 SettingsSection(title = "Connection") {
                     SettingsItem(
@@ -150,14 +219,7 @@ fun SettingsScreen(
 
                 Divider()
 
-                // Features Section
-                SettingsSection(title = "Features") {
-                    LicenseTrackingToggleItem(
-                        onToggle = onLicenseTrackingChanged
-                    )
-                }
 
-                Divider()
 
                 // Developer Section
                 SettingsSection(title = "Developer") {
@@ -520,13 +582,13 @@ fun DebugToggleItem(
 }
 
 @Composable
-fun LicenseTrackingToggleItem(
-    onToggle: ((Boolean) -> Unit)? = null
+fun NavigationTabToggleItem(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    subtitle: String,
+    isEnabled: Boolean,
+    onToggle: (Boolean) -> Unit
 ) {
-    val context = LocalContext.current
-    val licensePrefs = remember { LicenseTrackingPreferences(context) }
-    var isEnabled by remember { mutableStateOf(licensePrefs.isLicenseTrackingEnabled) }
-    
     Surface(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -537,7 +599,7 @@ fun LicenseTrackingToggleItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = Icons.Default.Star,
+                imageVector = icon,
                 contentDescription = null,
                 tint = if (isEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(24.dp)
@@ -549,11 +611,11 @@ fun LicenseTrackingToggleItem(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = "Captain's License Tracking",
+                    text = title,
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Text(
-                    text = if (isEnabled) "Track sea time progress toward 6-pack OUPV license" else "License progress tracking is disabled",
+                    text = subtitle,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -561,11 +623,7 @@ fun LicenseTrackingToggleItem(
             
             Switch(
                 checked = isEnabled,
-                onCheckedChange = { enabled ->
-                    isEnabled = enabled
-                    licensePrefs.isLicenseTrackingEnabled = enabled
-                    onToggle?.invoke(enabled)
-                }
+                onCheckedChange = onToggle
             )
         }
     }

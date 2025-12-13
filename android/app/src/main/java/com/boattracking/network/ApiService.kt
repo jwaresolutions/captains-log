@@ -276,4 +276,41 @@ interface ApiService {
     suspend fun deletePhoto(
         @Path("id") id: String
     ): Response<Unit>
+
+    // Sensor endpoints
+    @POST("api/v1/sensors/types")
+    suspend fun createSensorType(
+        @Body request: CreateSensorTypeRequest
+    ): Response<SingleSensorTypeResponse>
+
+    @GET("api/v1/sensors/types")
+    suspend fun getSensorTypes(): Response<SensorTypeListResponse>
+
+    @GET("api/v1/sensors/types/{id}")
+    suspend fun getSensorType(
+        @Path("id") id: String
+    ): Response<SingleSensorTypeResponse>
+
+    @PUT("api/v1/sensors/types/{id}")
+    suspend fun updateSensorType(
+        @Path("id") id: String,
+        @Body request: UpdateSensorTypeRequest
+    ): Response<SingleSensorTypeResponse>
+
+    @POST("api/v1/sensors/readings")
+    suspend fun createSensorReading(
+        @Body request: CreateSensorReadingRequest
+    ): Response<SingleSensorReadingResponse>
+
+    @GET("api/v1/sensors/readings")
+    suspend fun getSensorReadings(
+        @Query("tripId") tripId: String,
+        @Query("sensorType") sensorType: String? = null
+    ): Response<SensorReadingListResponse>
+
+    @GET("api/v1/sensors/readings/{tripId}/{sensorTypeId}")
+    suspend fun getSensorReadingsByTypeId(
+        @Path("tripId") tripId: String,
+        @Path("sensorTypeId") sensorTypeId: String
+    ): Response<SensorReadingListResponse>
 }

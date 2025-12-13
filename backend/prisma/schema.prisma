@@ -39,9 +39,10 @@ model Trip {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  boat      Boat       @relation(fields: [boatId], references: [id], onDelete: Cascade)
-  gpsPoints GPSPoint[]
-  notes     Note[]
+  boat           Boat            @relation(fields: [boatId], references: [id], onDelete: Cascade)
+  gpsPoints      GPSPoint[]
+  notes          Note[]
+  sensorReadings SensorReading[]
 
   // Statistics (computed and stored)
   durationSeconds  Int?
@@ -236,4 +237,37 @@ model Photo {
 
   @@index([entityType, entityId])
   @@index([createdAt])
+}
+
+model SensorType {
+  id               String   @id @default(uuid())
+  name             String   @unique // e.g., 'fuel_level', 'battery_voltage', 'bilge_pump_status'
+  unit             String   // e.g., 'liters', 'volts', 'boolean'
+  loggingFrequency String   // 'continuous' or 'snapshot'
+  description      String?  // Optional description of the sensor
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  sensorReadings SensorReading[]
+
+  @@index([name])
+  @@index([loggingFrequency])
+}
+
+model SensorReading {
+  id           String   @id @default(uuid())
+  tripId       String
+  sensorTypeId String
+  value        Float    // Numeric value of the sensor reading
+  unit         String   // Unit of measurement (copied from SensorType for convenience)
+  timestamp    DateTime
+  createdAt    DateTime @default(now())
+
+  trip       Trip       @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  sensorType SensorType @relation(fields: [sensorTypeId], references: [id], onDelete: Cascade)
+
+  @@index([tripId])
+  @@index([sensorTypeId])
+  @@index([timestamp])
+  @@index([tripId, sensorTypeId, timestamp])
 }

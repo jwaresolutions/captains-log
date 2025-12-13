@@ -13,9 +13,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.boattracking.bluetooth.BluetoothConnectionState
+import com.boattracking.bluetooth.SensorData
 import com.boattracking.database.entities.GpsPointEntity
 import com.boattracking.database.entities.TripEntity
 import com.boattracking.repository.TripStatistics
+import com.boattracking.ui.sensors.CompactSensorDataDisplay
 import com.boattracking.util.DebugPreferences
 import java.text.SimpleDateFormat
 import java.util.*
@@ -34,6 +37,9 @@ fun TripDetailScreen(
     onNavigateBack: () -> Unit,
     onStopTrip: () -> Unit = {},
     onUpdateManualData: (TripEntity) -> Unit = {},
+    // Optional sensor data parameters
+    sensorConnectionState: BluetoothConnectionState = BluetoothConnectionState.DISCONNECTED,
+    sensorData: List<SensorData> = emptyList(),
     modifier: Modifier = Modifier
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -181,6 +187,14 @@ fun TripDetailScreen(
                         }
                     }
                 }
+            }
+            
+            // Sensor data display (only for active trips)
+            if (trip.endTime == null) {
+                CompactSensorDataDisplay(
+                    connectionState = sensorConnectionState,
+                    sensorData = sensorData
+                )
             }
             
             // Statistics card

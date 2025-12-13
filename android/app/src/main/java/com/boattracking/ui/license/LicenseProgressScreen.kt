@@ -39,12 +39,11 @@ fun LicenseProgressScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Captain's License Progress") },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+            com.boattracking.ui.components.AppTopBar(
+                title = "License Progress",
+                onNotesClick = { /* TODO: Navigate to Notes */ },
+                onTodosClick = { /* TODO: Navigate to Todos */ },
+                onSettingsClick = { /* TODO: Navigate to Settings */ }
             )
         }
     ) { paddingValues ->

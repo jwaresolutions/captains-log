@@ -638,7 +638,7 @@ This implementation plan follows a phased approach, allowing verification of eac
 
 ## Phase 6: Maintenance Tasks
 
-- [ ] 6. Implement maintenance task management
+- [x] 6. Implement maintenance task management
 - [x] 6.1 Create MaintenanceTask schema and service
   - Add MaintenanceTask and MaintenanceCompletion entities to Prisma schema
   - Create Maintenance service with CRUD operations
@@ -719,7 +719,7 @@ This implementation plan follows a phased approach, allowing verification of eac
 
 ## Phase 7: Map Visualization and Marked Locations
 
-- [-] 7. Implement map features
+- [x] 7. Implement map features
 - [x] 7.1 Create MarkedLocation schema and service
   - Add MarkedLocation entity to Prisma schema
   - Create Location service with CRUD operations
@@ -782,7 +782,7 @@ This implementation plan follows a phased approach, allowing verification of eac
 
 ## Phase 8: Photo Attachments
 
-- [-] 8. Implement photo management
+- [x] 8. Implement photo managementdocker
 - [x] 8.1 Create Photo schema and service
   - Add Photo entity to Prisma schema
   - Create Photo service with upload and optimization
@@ -856,8 +856,8 @@ This implementation plan follows a phased approach, allowing verification of eac
 
 ## Phase 9: Database Backup
 
-- [ ] 9. Implement database backup functionality
-- [ ] 9.1 Create Backup service
+- [x] 9. Implement database backup functionality
+- [x] 9.1 Create Backup service
   - Implement manual backup creation using pg_dump
   - Include photo files in backup archive
   - Implement automatic backup scheduling
@@ -865,21 +865,21 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Implement backup listing
   - _Requirements: 12.1, 12.2, 12.3_
 
-- [ ] 9.2 Write property test for backup completeness
+- [x] 9.2 Write property test for backup completeness
   - **Property 40: Database and Photo Backup Completeness**
   - **Validates: Requirements 12.3**
 
-- [ ] 9.3 Create API endpoints for backups
+- [x] 9.3 Create API endpoints for backups
   - Implement POST /api/v1/backups (create manual backup)
   - Implement GET /api/v1/backups (list backups)
   - Implement GET /api/v1/backups/:id/download (download backup)
   - _Requirements: 12.1, 12.4_
 
-- [ ] 9.4 Run all property tests and verify they pass
+- [x] 9.4 Run all property tests and verify they pass
   - Run property tests with minimum 100 iterations
   - Ensure all tests pass, ask the user if questions arise
 
-- [ ] 9.5 Manual validation: Database backup
+- [x] 9.5 Manual validation: Database backup
   - **User Action**: Trigger a manual backup via web interface
   - **User Action**: Verify backup file is created with timestamp
   - **User Action**: Verify backup includes both database and photos
@@ -891,23 +891,23 @@ This implementation plan follows a phased approach, allowing verification of eac
 ## Phase 10: Arduino/Sensor Integration
 
 - [ ] 10. Implement sensor integration framework
-- [ ] 10.1 Create SensorReading and SensorType schemas
+- [x] 10.1 Create SensorReading and SensorType schemas
   - Add SensorReading and SensorType entities to Prisma schema
   - Create Sensor service with data ingestion
   - Implement flexible sensor type registration
   - _Requirements: 13.2, 13.3, 13.4, 13.5_
 
-- [ ] 10.2 Create API endpoints for sensor data
+- [x] 10.2 Create API endpoints for sensor data
   - Implement POST /api/v1/sensors/types (register sensor type)
   - Implement POST /api/v1/sensors/readings (record sensor data)
   - Implement GET /api/v1/sensors/readings (get sensor data by trip)
   - _Requirements: 13.2, 13.3, 13.4_
 
-- [ ] 10.3 Write property test for sensor data relay
+- [x] 10.3 Write property test for sensor data relay
   - **Property 41: Sensor Data Relay**
   - **Validates: Requirements 13.2**
 
-- [ ] 10.4 Implement Android Bluetooth service
+- [x] 10.4 Implement Android Bluetooth service
   - Add Bluetooth permissions
   - Implement device discovery and pairing
   - Create Bluetooth service for Arduino communication
@@ -915,18 +915,18 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Buffer sensor data and relay to backend
   - _Requirements: 13.1, 13.2_
 
-- [ ] 10.5 Create Android sensor management UI
+- [x] 10.5 Create Android sensor management UI
   - Create sensor configuration screen
   - Display connected Bluetooth devices
   - Show real-time sensor readings during trips
   - Implement sensor type registration UI
   - _Requirements: 13.1, 13.2, 13.3, 13.4_
 
-- [ ] 10.6 Run all property tests and verify they pass
+- [x] 10.6 Run all property tests and verify they pass
   - Run property tests with minimum 100 iterations
   - Ensure all tests pass, ask the user if questions arise
 
-- [ ] 10.7 Manual validation: Sensor integration
+- [x] 10.7 Manual validation: Sensor integration
   - **User Action**: Pair Arduino device via Bluetooth on Android
     - **Android Studio**: Physical device required for Bluetooth testing (emulator has limited BT support)
     - **Android Studio**: Monitor Logcat for Bluetooth pairing and connection logs
