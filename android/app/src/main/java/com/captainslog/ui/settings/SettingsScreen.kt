@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Star
+
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,12 +29,16 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import android.util.Log
 import com.captainslog.BuildConfig
 import com.captainslog.connection.ConnectionManager
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.windowInsetsPadding
 import com.captainslog.security.SecurePreferences
 import com.captainslog.sync.ConflictLogger
 import com.captainslog.util.DebugPreferences
 import com.captainslog.ui.settings.SyncSettingsScreen
 import com.captainslog.util.LicenseTrackingPreferences
 import com.captainslog.viewmodel.TripTrackingViewModel
+import com.captainslog.network.models.ChangePasswordRequest
 import kotlinx.coroutines.launch
 
 /**
@@ -54,6 +59,7 @@ fun SettingsScreen(
     var showSyncSettings by remember { mutableStateOf(false) }
     var showServerSettings by remember { mutableStateOf(false) }
     var showBoatManagement by remember { mutableStateOf(false) }
+    var showChangePassword by remember { mutableStateOf(false) }
     var isSyncing by remember { mutableStateOf(false) }
     var conflictLogs by remember { mutableStateOf("No conflicts logged") }
     
@@ -77,23 +83,10 @@ fun SettingsScreen(
             onBack = { showServerSettings = false }
         )
     } else if (showBoatManagement) {
+        // Simply use the original BoatListScreen - it works fine, just needs proper space
         com.captainslog.ui.boats.BoatListScreen(
-            modifier = Modifier.fillMaxSize()
+            modifier = modifier
         )
-        // Add back button overlay
-        Box(modifier = Modifier.fillMaxSize()) {
-            IconButton(
-                onClick = { showBoatManagement = false },
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(16.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Back"
-                )
-            }
-        }
     } else if (showSyncSettings) {
         SyncSettingsScreen(
             conflictLogs = conflictLogs,
@@ -122,6 +115,10 @@ fun SettingsScreen(
                 conflictLogger.clearLogs()
                 conflictLogs = "No conflicts logged"
             }
+        )
+    } else if (showChangePassword) {
+        ChangePasswordScreen(
+            onBack = { showChangePassword = false }
         )
     } else {
         Column(
@@ -210,17 +207,25 @@ fun SettingsScreen(
             // Account Section
             SettingsSection(title = "Account") {
                 SettingsItem(
+                    icon = Icons.Default.Lock,
+                    title = "Change Password",
+                    subtitle = "Update your account password",
+                    onClick = { showChangePassword = true }
+                )
+                
+                SettingsItem(
                     icon = Icons.Default.ExitToApp,
                     title = "Sign Out",
                     subtitle = "Sign out of your account",
                     onClick = {
-                        // Clear session and restart activity
-                        val securePrefs = SecurePreferences(context)
-                        securePrefs.jwtToken = null
-                        securePrefs.username = null
-                        
-                        // Restart the activity to show login screen
-                        (context as? android.app.Activity)?.recreate()
+                        scope.launch {
+                            // Use LoginViewModel to properly logout
+                            val loginViewModel = com.captainslog.ui.auth.LoginViewModel(context.applicationContext as android.app.Application)
+                            loginViewModel.logout()
+                            
+                            // Restart the activity to show login screen
+                            (context as? android.app.Activity)?.recreate()
+                        }
                     }
                 )
             }
@@ -630,6 +635,249 @@ fun NavigationTabToggleItem(
                 checked = isEnabled,
                 onCheckedChange = onToggle
             )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ChangePasswordScreen(
+    onBack: () -> Unit
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val connectionManager = remember { ConnectionManager.getInstance(context) }
+    
+    var currentPassword by remember { mutableStateOf("") }
+    var newPassword by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var successMessage by remember { mutableStateOf<String?>(null) }
+    
+    var currentPasswordVisible by remember { mutableStateOf(false) }
+    var newPasswordVisible by remember { mutableStateOf(false) }
+    var confirmPasswordVisible by remember { mutableStateOf(false) }
+    
+    val snackbarHostState = remember { SnackbarHostState() }
+    
+    val canSubmit = currentPassword.isNotBlank() && 
+                   newPassword.isNotBlank() && 
+                   confirmPassword.isNotBlank() &&
+                   newPassword == confirmPassword &&
+                   newPassword.length >= 8 &&
+                   !isLoading
+    
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Change Password") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Back"
+                        )
+                    }
+                }
+            )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.ime)
+                .padding(paddingValues)
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = "Enter your current password and choose a new password. Your new password must be at least 8 characters long.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            
+            // Current password field
+            OutlinedTextField(
+                value = currentPassword,
+                onValueChange = { 
+                    currentPassword = it
+                    errorMessage = null
+                },
+                label = { Text("Current Password") },
+                visualTransformation = if (currentPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                enabled = !isLoading,
+                trailingIcon = {
+                    IconButton(onClick = { currentPasswordVisible = !currentPasswordVisible }) {
+                        Icon(
+                            imageVector = Icons.Filled.Info,
+                            contentDescription = if (currentPasswordVisible) "Hide password" else "Show password"
+                        )
+                    }
+                },
+                isError = errorMessage != null
+            )
+            
+            // New password field
+            OutlinedTextField(
+                value = newPassword,
+                onValueChange = { 
+                    newPassword = it
+                    errorMessage = null
+                },
+                label = { Text("New Password") },
+                visualTransformation = if (newPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                enabled = !isLoading,
+                trailingIcon = {
+                    IconButton(onClick = { newPasswordVisible = !newPasswordVisible }) {
+                        Icon(
+                            imageVector = Icons.Filled.Info,
+                            contentDescription = if (newPasswordVisible) "Hide password" else "Show password"
+                        )
+                    }
+                },
+                supportingText = {
+                    Text("Must be at least 8 characters long")
+                },
+                isError = newPassword.isNotBlank() && newPassword.length < 8
+            )
+            
+            // Confirm password field
+            OutlinedTextField(
+                value = confirmPassword,
+                onValueChange = { 
+                    confirmPassword = it
+                    errorMessage = null
+                },
+                label = { Text("Confirm New Password") },
+                visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                enabled = !isLoading,
+                trailingIcon = {
+                    IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+                        Icon(
+                            imageVector = Icons.Filled.Info,
+                            contentDescription = if (confirmPasswordVisible) "Hide password" else "Show password"
+                        )
+                    }
+                },
+                isError = confirmPassword.isNotBlank() && newPassword != confirmPassword,
+                supportingText = {
+                    if (confirmPassword.isNotBlank() && newPassword != confirmPassword) {
+                        Text(
+                            text = "Passwords do not match",
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+            )
+            
+            // Error message
+            if (errorMessage != null) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    )
+                ) {
+                    Text(
+                        text = errorMessage!!,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+            }
+            
+            // Success message
+            if (successMessage != null) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    )
+                ) {
+                    Text(
+                        text = successMessage!!,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            // Change password button
+            Button(
+                onClick = {
+                    scope.launch {
+                        isLoading = true
+                        errorMessage = null
+                        successMessage = null
+                        
+                        try {
+                            val apiService = connectionManager.getApiService()
+                            val response = apiService.changePassword(
+                                ChangePasswordRequest(
+                                    currentPassword = currentPassword,
+                                    newPassword = newPassword
+                                )
+                            )
+                            
+                            if (response.isSuccessful) {
+                                successMessage = "Password changed successfully. You will be signed out."
+                                
+                                // Clear stored session after successful password change
+                                kotlinx.coroutines.delay(2000)
+                                val securePrefs = SecurePreferences(context)
+                                securePrefs.jwtToken = null
+                                securePrefs.username = null
+                                
+                                // Restart activity to show login screen
+                                (context as? android.app.Activity)?.recreate()
+                            } else {
+                                errorMessage = when (response.code()) {
+                                    401 -> "Current password is incorrect"
+                                    400 -> "Invalid password format"
+                                    500 -> "Server error. Please try again later"
+                                    else -> "Failed to change password: ${response.code()}"
+                                }
+                            }
+                        } catch (e: Exception) {
+                            Log.e("ChangePassword", "Password change error", e)
+                            errorMessage = when {
+                                e.message?.contains("Unable to resolve host") == true -> 
+                                    "Cannot connect to server. Check your internet connection"
+                                e.message?.contains("timeout") == true -> 
+                                    "Connection timeout. Please try again"
+                                else -> 
+                                    "Failed to change password: ${e.message ?: "Unknown error"}"
+                            }
+                        } finally {
+                            isLoading = false
+                        }
+                    }
+                },
+                enabled = canSubmit,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+                Text(if (isLoading) "Changing Password..." else "Change Password")
+            }
         }
     }
 }

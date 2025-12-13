@@ -99,7 +99,8 @@ fun TripNavigation(
                 onNuclearStop = {
                     android.util.Log.d("TripNavigation", "NUCLEAR STOP requested")
                     viewModel.forceStopEverything(context)
-                }
+                },
+                modifier = modifier
             )
         }
         

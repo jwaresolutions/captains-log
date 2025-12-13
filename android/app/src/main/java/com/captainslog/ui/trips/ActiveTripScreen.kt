@@ -362,10 +362,13 @@ fun StartTripDialog(
     boats: List<BoatEntity> = emptyList(),
     activeBoat: BoatEntity? = null
 ) {
-    // Initialize with active boat if available, otherwise first boat, otherwise empty
+    // Filter to only enabled boats
+    val enabledBoats = boats.filter { it.enabled }
+    
+    // Initialize with active boat if available and enabled, otherwise first enabled boat, otherwise empty
     var selectedBoat by remember { 
         mutableStateOf(
-            activeBoat ?: boats.firstOrNull()
+            if (activeBoat?.enabled == true) activeBoat else enabledBoats.firstOrNull()
         ) 
     }
     var waterType by remember { mutableStateOf("inland") }
@@ -413,7 +416,7 @@ fun StartTripDialog(
                             expanded = expandedBoat,
                             onDismissRequest = { expandedBoat = false }
                         ) {
-                            boats.forEach { boat ->
+                            enabledBoats.forEach { boat ->
                                 DropdownMenuItem(
                                     text = { 
                                         Row(
@@ -511,7 +514,7 @@ fun StartTripDialog(
                         onConfirm(boat.id, waterType, role)
                     }
                 },
-                enabled = selectedBoat != null && boats.isNotEmpty()
+                enabled = selectedBoat != null && enabledBoats.isNotEmpty()
             ) {
                 Text("Start")
             }

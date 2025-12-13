@@ -67,7 +67,7 @@ class BoatRepository(
                         isActive = apiBoat.isActive,
                         synced = true
                     )
-                    database.boatDao().insertBoat(syncedBoat)
+                    database.boatDao().updateBoat(syncedBoat)
                     Result.success(syncedBoat)
                 } else {
                     // API call failed, but boat is saved locally
@@ -89,11 +89,21 @@ class BoatRepository(
         return try {
             val boat = database.boatDao().getBoatById(boatId)
             if (boat != null) {
-                val updatedBoat = boat.copy(
-                    enabled = enabled,
-                    synced = false,
-                    lastModified = Date()
-                )
+                // If disabling an active boat, clear its active status
+                val updatedBoat = if (!enabled && boat.isActive) {
+                    boat.copy(
+                        enabled = enabled,
+                        isActive = false,
+                        synced = false,
+                        lastModified = Date()
+                    )
+                } else {
+                    boat.copy(
+                        enabled = enabled,
+                        synced = false,
+                        lastModified = Date()
+                    )
+                }
                 database.boatDao().updateBoat(updatedBoat)
                 
                 // Try to sync to API

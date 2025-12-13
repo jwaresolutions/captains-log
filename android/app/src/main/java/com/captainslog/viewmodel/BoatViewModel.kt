@@ -76,8 +76,7 @@ class BoatViewModel(application: Application) : AndroidViewModel(application) {
             
             if (result.isSuccess) {
                 _successMessage.value = "Boat created successfully"
-                // Sync to ensure we have latest data
-                syncBoatsFromApi()
+                // No need to sync again - repository already handles it
             } else {
                 _error.value = result.exceptionOrNull()?.message ?: "Failed to create boat"
             }

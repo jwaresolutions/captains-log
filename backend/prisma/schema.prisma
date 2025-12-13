@@ -23,6 +23,7 @@ model Boat {
   notes           Note[]
   todoLists       TodoList[]
   maintenanceTasks MaintenanceTask[]
+  markedLocations MarkedLocation[]
 
   @@index([enabled])
   @@index([isActive])
@@ -55,6 +56,7 @@ model Trip {
   fuelConsumed      Float?
   weatherConditions String?
   numberOfPassengers Int?
+  numberOfCrew      Int?
   destination       String?
 
   @@index([boatId])
@@ -216,27 +218,47 @@ model MarkedLocation {
   category  String   // 'fishing', 'marina', 'anchorage', 'hazard', 'other'
   notes     String?
   tags      String[] // Array of tags for organization
+  tripId    String?  // Optional - trip where location was discovered
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  trip Trip? @relation(fields: [tripId], references: [id], onDelete: SetNull)
+
   @@index([category])
   @@index([latitude, longitude])
+  @@index([tripId])
   @@index([createdAt])
 }
 
 model Photo {
   id                String   @id @default(uuid())
-  entityType        String   // 'trip', 'maintenance', 'note'
-  entityId          String   // ID of the entity this photo is attached to
   originalPath      String   // Path to original high-resolution image
   webOptimizedPath  String   // Path to web-optimized version (1920px width)
   mimeType          String   // Image MIME type (image/jpeg, image/png, etc.)
   sizeBytes         Int      // File size in bytes
+  category          String   @default("general") // 'reference', 'completion', 'general'
+  title             String?  // Optional photo title/description
   metadata          Json?    // Optional metadata (width, height, takenAt, etc.)
   createdAt         DateTime @default(now())
 
-  @@index([entityType, entityId])
+  entityPhotos EntityPhoto[]
+
+  @@index([category])
   @@index([createdAt])
+}
+
+model EntityPhoto {
+  id         String   @id @default(uuid())
+  photoId    String
+  entityType String   // 'trip', 'maintenance_task', 'maintenance_completion', 'todo_item', 'note'
+  entityId   String   // ID of the entity this photo is attached to
+  createdAt  DateTime @default(now())
+
+  photo Photo @relation(fields: [photoId], references: [id], onDelete: Cascade)
+
+  @@unique([photoId, entityType, entityId])
+  @@index([photoId])
+  @@index([entityType, entityId])
 }
 
 model SensorType {

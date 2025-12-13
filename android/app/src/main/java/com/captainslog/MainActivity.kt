@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.captainslog.connection.ConnectionManager
 import com.captainslog.security.SecurePreferences
 import com.captainslog.ui.auth.LoginScreen
-import com.captainslog.ui.setup.SetupScreen
+
 import com.captainslog.ui.theme.BoatTrackingTheme
 import com.captainslog.ui.MainNavigation
 import com.captainslog.util.PermissionManager
@@ -60,12 +60,7 @@ class MainActivity : ComponentActivity() {
                 ) {
                     if (permissionsGranted) {
                         MainContent(
-                            isSetupComplete = securePreferences.isSetupComplete,
                             isLoggedIn = securePreferences.jwtToken != null,
-                            onSetupComplete = {
-                                // Recreate activity to reload with new setup
-                                recreate()
-                            },
                             onLoginSuccess = {
                                 // Recreate activity to reload with new login
                                 recreate()
@@ -138,18 +133,12 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MainContent(
-    isSetupComplete: Boolean,
     isLoggedIn: Boolean,
-    onSetupComplete: () -> Unit,
     onLoginSuccess: () -> Unit
 ) {
     when {
-        !isSetupComplete -> {
-            // First time setup - configure server
-            SetupScreen(onSetupComplete = onSetupComplete)
-        }
         !isLoggedIn -> {
-            // Setup complete but not logged in - show login screen
+            // Not logged in - show login screen
             LoginScreen(onLoginSuccess = onLoginSuccess)
         }
         else -> {

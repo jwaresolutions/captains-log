@@ -206,7 +206,7 @@ fun MaintenanceListScreen(
             onClick = onNavigateToCreateTask,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(bottom = 88.dp, end = 16.dp)
+                .padding(16.dp)
         ) {
             Icon(Icons.Default.Add, contentDescription = "Add Maintenance Task")
         }

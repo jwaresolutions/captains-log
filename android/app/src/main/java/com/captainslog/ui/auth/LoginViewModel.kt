@@ -16,15 +16,25 @@ import kotlinx.coroutines.launch
 data class LoginUiState(
     val username: String = "",
     val password: String = "",
+    val serverUrl: String = "",
     val isLoading: Boolean = false,
-    val error: String? = null
-)
+    val error: String? = null,
+    val hasStoredToken: Boolean = false
+) {
+    val canLogin: Boolean
+        get() = username.isNotBlank() && password.isNotBlank() && serverUrl.isNotBlank()
+}
 
 class LoginViewModel(application: Application) : AndroidViewModel(application) {
     private val securePreferences = SecurePreferences(application)
     private val connectionManager = ConnectionManager.getInstance(application)
 
-    private val _uiState = MutableStateFlow(LoginUiState())
+    private val _uiState = MutableStateFlow(
+        LoginUiState(
+            serverUrl = securePreferences.remoteUrl ?: "",
+            hasStoredToken = securePreferences.jwtToken != null
+        )
+    )
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
     fun updateUsername(username: String) {
@@ -35,11 +45,21 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         _uiState.update { it.copy(password = password, error = null) }
     }
 
+    fun updateServerUrl(serverUrl: String) {
+        _uiState.update { it.copy(serverUrl = serverUrl, error = null) }
+    }
+
     fun login(onSuccess: () -> Unit) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
 
             try {
+                // Update server URL if changed
+                if (_uiState.value.serverUrl != securePreferences.remoteUrl) {
+                    securePreferences.remoteUrl = _uiState.value.serverUrl
+                    connectionManager.initialize()
+                }
+
                 // Get API service (without auth for login endpoint)
                 val apiService = connectionManager.getApiService()
 
@@ -90,6 +110,42 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                         "Login failed: ${e.message ?: "Unknown error"}"
                 }
                 _uiState.update { it.copy(isLoading = false, error = errorMessage) }
+            }
+        }
+    }
+
+    fun loginOffline(onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, error = null) }
+
+            try {
+                // Check if we have a stored token
+                val storedToken = securePreferences.jwtToken
+                if (storedToken != null) {
+                    // Reinitialize connection manager with stored token
+                    connectionManager.initialize()
+                    
+                    Log.d("LoginViewModel", "Offline login successful with stored token")
+                    
+                    _uiState.update { it.copy(isLoading = false, error = null) }
+                    onSuccess()
+                } else {
+                    _uiState.update { 
+                        it.copy(
+                            isLoading = false, 
+                            error = "No stored session found. Please sign in online.",
+                            hasStoredToken = false
+                        ) 
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("LoginViewModel", "Offline login error", e)
+                _uiState.update { 
+                    it.copy(
+                        isLoading = false, 
+                        error = "Offline login failed: ${e.message ?: "Unknown error"}"
+                    ) 
+                }
             }
         }
     }

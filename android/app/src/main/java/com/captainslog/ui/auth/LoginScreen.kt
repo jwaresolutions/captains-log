@@ -8,6 +8,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,6 +23,9 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.captainslog.R
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.windowInsetsPadding
 
 @Composable
 fun LoginScreen(
@@ -31,15 +35,19 @@ fun LoginScreen(
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
     val focusManager = LocalFocusManager.current
+    var passwordVisible by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .windowInsetsPadding(WindowInsets.ime)
             .padding(16.dp)
             .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        // Add flexible space at the top to push content up when keyboard appears
+        Spacer(modifier = Modifier.weight(1f))
         // Captain's Log Logo
         Image(
             painter = painterResource(id = R.drawable.captains_log_logo),
@@ -54,6 +62,27 @@ fun LoginScreen(
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = 32.dp)
+        )
+
+        // Server URL field
+        OutlinedTextField(
+            value = uiState.serverUrl,
+            onValueChange = { viewModel.updateServerUrl(it) },
+            label = { Text("Server URL") },
+            placeholder = { Text("https://captainslog.jware.dev") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            singleLine = true,
+            enabled = !uiState.isLoading,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Uri,
+                imeAction = ImeAction.Next
+            ),
+            keyboardActions = KeyboardActions(
+                onNext = { focusManager.moveFocus(FocusDirection.Down) }
+            ),
+            isError = uiState.error != null
         )
 
         // Username field
@@ -81,7 +110,7 @@ fun LoginScreen(
             value = uiState.password,
             onValueChange = { viewModel.updatePassword(it) },
             label = { Text("Password") },
-            visualTransformation = PasswordVisualTransformation(),
+            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 8.dp),
@@ -94,11 +123,19 @@ fun LoginScreen(
             keyboardActions = KeyboardActions(
                 onDone = {
                     focusManager.clearFocus()
-                    if (uiState.username.isNotBlank() && uiState.password.isNotBlank()) {
+                    if (uiState.canLogin) {
                         viewModel.login(onLoginSuccess)
                     }
                 }
             ),
+            trailingIcon = {
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    Icon(
+                        imageVector = Icons.Filled.Info,
+                        contentDescription = if (passwordVisible) "Hide password" else "Show password"
+                    )
+                }
+            },
             isError = uiState.error != null
         )
 
@@ -117,7 +154,7 @@ fun LoginScreen(
         // Login button
         Button(
             onClick = { viewModel.login(onLoginSuccess) },
-            enabled = !uiState.isLoading && uiState.username.isNotBlank() && uiState.password.isNotBlank(),
+            enabled = !uiState.isLoading && uiState.canLogin,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 8.dp)
@@ -132,6 +169,18 @@ fun LoginScreen(
             Text(if (uiState.isLoading) "Signing in..." else "Sign In")
         }
 
+        // Offline login button (only show if we have a stored token)
+        if (uiState.hasStoredToken && !uiState.isLoading) {
+            OutlinedButton(
+                onClick = { viewModel.loginOffline(onLoginSuccess) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+            ) {
+                Text("Continue Offline")
+            }
+        }
+
         // Info text
         Text(
             text = "Contact your administrator if you need an account",
@@ -139,5 +188,8 @@ fun LoginScreen(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 24.dp)
         )
+        
+        // Add flexible space at the bottom to allow keyboard to push content up
+        Spacer(modifier = Modifier.weight(1f))
     }
 }
