@@ -154,6 +154,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - **Validates: Requirements 15.4, 15.6**
 
 - [x] 1.18 Run all property tests and verify they pass
+  - **MANDATORY**: Use universal property test runner: `./run-property-tests.sh`
   - Run property tests with minimum 100 iterations
   - Ensure all tests pass, ask the user if questions arise
 
@@ -210,6 +211,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - _Requirements: 4.1, 4.2_
 
 - [x] 1.25 Run all property tests and verify they pass
+  - **MANDATORY**: Use universal property test runner: `./run-property-tests.sh`
   - Run property tests with minimum 100 iterations
   - Ensure all tests pass, ask the user if questions arise
 
@@ -367,6 +369,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - _Requirements: All_
 
 - [x] 1.43 Run all authentication property tests
+  - **MANDATORY**: Use universal property test runner: `./run-property-tests.sh`
   - Run property tests with minimum 100 iterations
   - Ensure all tests pass, ask the user if questions arise
   - Verify old API key tests are removed/updated
@@ -458,6 +461,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - _Requirements: 5.3_
 
 - [x] 2.7 Run all property tests and verify they pass
+  - **MANDATORY**: Use universal property test runner: `./run-property-tests.sh`
   - Run property tests with minimum 100 iterations
   - Ensure all tests pass, ask the user if questions arise
 
@@ -522,6 +526,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - _Requirements: 6.6, 6.7, 6.8, 6.9_
 
 - [x] 3.8 Run all property tests and verify they pass
+  - **MANDATORY**: Use universal property test runner: `./run-property-tests.sh`
   - Run property tests with minimum 100 iterations
   - Ensure all tests pass, ask the user if questions arise
 
@@ -573,6 +578,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6_
 
 - [x] 4.5 Run all property tests and verify they pass
+  - **MANDATORY**: Use universal property test runner: `./run-property-tests.sh`
   - Run property tests with minimum 100 iterations
   - Ensure all tests pass, ask the user if questions arise
 
@@ -622,6 +628,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5_
 
 - [x] 5.5 Run all property tests and verify they pass
+  - **MANDATORY**: Use universal property test runner: `./run-property-tests.sh`
   - Run property tests with minimum 100 iterations
   - Ensure all tests pass, ask the user if questions arise
 
@@ -701,6 +708,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.8_
 
 - [x] 6.9 Run all property tests and verify they pass
+  - **MANDATORY**: Use universal property test runner: `./run-property-tests.sh`
   - Run property tests with minimum 100 iterations
   - Ensure all tests pass, ask the user if questions arise
 
@@ -716,7 +724,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - **User Action**: Disable a boat and verify its maintenance notifications are suppressed
   - **User Action**: View maintenance history for a task
 
-- [ ] 6.11 Create new database schema for template-event structure
+- [x] 6.11 Create new database schema for template-event structure
   - Create MaintenanceTemplate table with boat association, title, description, component, recurrence, estimated cost, estimated time, and isActive fields
   - Create MaintenanceEvent table with template reference, due date, completion fields, actual cost, actual time, and completion notes
   - Drop existing MaintenanceTask and MaintenanceCompletion tables
@@ -725,7 +733,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Add indexes for performance (boatId, templateId, dueDate, completedAt, isActive)
   - _Requirements: 1.1, 1.2, 1.6, 2.1, 2.3, 2.4, 2.5, 9.1_
 
-- [ ] 6.12 Implement MaintenanceTemplate service
+- [x] 6.12 Implement MaintenanceTemplate service
   - Create TemplateManager service with CRUD operations for maintenance templates
   - Implement template validation (required fields: boat, title, description, component, recurrence, estimated cost, estimated time)
   - Add template photo attachment functionality using existing EntityPhoto junction table
@@ -733,7 +741,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Add template enable/disable functionality
   - _Requirements: 1.1, 1.2, 1.5, 1.6_
 
-- [ ] 6.13 Write property tests for template management
+- [x] 6.13 Write property tests for template management
   - **Property 1: Template creation validation**
   - **Validates: Requirements 1.1**
   - **Property 2: Template photo attachment**
@@ -743,7 +751,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - **Property 6: Template cascade deletion**
   - **Validates: Requirements 1.6**
 
-- [ ] 6.14 Implement EventGenerator service
+- [x] 6.14 Implement EventGenerator service
   - Create EventGenerator service for generating maintenance events from templates
   - Implement recurrence calculation algorithms (days, weeks, months, years, engine hours)
   - Add one-year horizon event generation logic
@@ -752,7 +760,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Ensure proper template-event relationship linking
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
-- [ ] 6.15 Write property tests for event generation
+- [x] 6.15 Write property tests for event generation
   - **Property 7: Event generation from template**
   - **Validates: Requirements 2.1**
   - **Property 9: Template data copying to events**
@@ -762,7 +770,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - **Property 11: Event-template relationship integrity**
   - **Validates: Requirements 2.5**
 
-- [ ] 6.16 Implement MaintenanceEvent service
+- [x] 6.16 Implement MaintenanceEvent service
   - Create EventManager service for maintenance event lifecycle management
   - Implement event filtering for upcoming and completed events
   - Add event completion functionality with cost, notes, and photo recording
@@ -770,7 +778,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Add completion photo attachment using EntityPhoto junction table
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6_
 
-- [ ] 6.17 Write property tests for event management
+- [x] 6.17 Write property tests for event management
   - **Property 12: Upcoming events filtering**
   - **Validates: Requirements 3.1**
   - **Property 13: Completed events filtering**
@@ -782,7 +790,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - **Property 17: Completed event photo display**
   - **Validates: Requirements 3.6**
 
-- [ ] 6.18 Implement daily maintenance task automation
+- [x] 6.18 Implement daily maintenance task automation
   - Create daily scheduled job that runs at midnight UTC
   - Implement logic to check all active templates for missing events within one-year horizon
   - Add event generation for templates missing future events
@@ -791,7 +799,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Exclude disabled templates from event generation while preserving existing events
   - _Requirements: 2.6, 10.1, 10.2, 10.3, 10.4, 10.5_
 
-- [ ] 6.19 Write property tests for daily automation
+- [x] 6.19 Write property tests for daily automation
   - **Property 8: Daily task event maintenance**
   - **Validates: Requirements 2.2**
   - **Property 27: Daily task event detection**
@@ -801,7 +809,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - **Property 29: Template disable behavior**
   - **Validates: Requirements 10.5**
 
-- [ ] 6.20 Create API endpoints for maintenance templates
+- [x] 6.20 Create API endpoints for maintenance templates
   - Implement POST /api/v1/maintenance/templates (create template)
   - Implement GET /api/v1/maintenance/templates (list templates by boat)
   - Implement GET /api/v1/maintenance/templates/:id (get template details)
@@ -811,7 +819,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Implement DELETE /api/v1/maintenance/templates/:id/photos/:photoId (remove template photo)
   - _Requirements: 1.1, 1.2, 1.4, 1.5, 1.6_
 
-- [ ] 6.21 Create API endpoints for maintenance events
+- [x] 6.21 Create API endpoints for maintenance events
   - Implement GET /api/v1/maintenance/events/upcoming (get upcoming events)
   - Implement GET /api/v1/maintenance/events/completed (get completed events)
   - Implement GET /api/v1/maintenance/events/:id (get event details with template info)
@@ -820,7 +828,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Implement DELETE /api/v1/maintenance/events/:id/photos/:photoId (remove completion photo)
   - _Requirements: 3.1, 3.2, 3.3, 3.5, 3.6_
 
-- [ ] 6.22 Implement schedule change preview and confirmation
+- [x] 6.22 Implement schedule change preview and confirmation
   - Add preview functionality for template schedule changes showing affected future events
   - Implement confirmation workflow for schedule changes
   - Add bulk update logic for future events when schedule changes are confirmed
@@ -828,13 +836,13 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Add online/offline handling for schedule changes with sync when connectivity returns
   - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
 
-- [ ] 6.23 Write property tests for schedule changes
+- [x] 6.23 Write property tests for schedule changes
   - **Property 20: Schedule change preview accuracy**
   - **Validates: Requirements 5.1**
   - **Property 21: Schedule change application**
   - **Validates: Requirements 5.2, 5.3**
 
-- [ ] 6.24 Implement template information propagation
+- [x] 6.24 Implement template information propagation
   - Add preview functionality for template information changes showing affected future events
   - Implement confirmation workflow for template changes (title, description, component, costs)
   - Add bulk update logic for future events when template information changes
@@ -843,13 +851,13 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Add online/offline handling for template changes with sync support
   - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6_
 
-- [ ] 6.25 Write property tests for template propagation
+- [x] 6.25 Write property tests for template propagation
   - **Property 22: Template information propagation**
   - **Validates: Requirements 6.1, 6.2, 6.3**
   - **Property 23: Template photo propagation**
   - **Validates: Requirements 6.4**
 
-- [ ] 6.26 Update photo management for template-event structure
+- [x] 6.26 Update photo management for template-event structure
   - Update PhotoManager to handle template photo categorization
   - Implement completion photo isolation to specific events
   - Add photo display logic for events showing both template and completion photos
@@ -857,13 +865,13 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Ensure template photo changes are visible on all related events
   - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6_
 
-- [ ] 6.27 Write property tests for photo management
+- [x] 6.27 Write property tests for photo management
   - **Property 24: Photo categorization accuracy**
   - **Validates: Requirements 7.1, 7.3**
   - **Property 25: Completion photo isolation**
   - **Validates: Requirements 7.6**
 
-- [ ] 6.28 Update Android maintenance UI for template-event structure
+- [x] 6.28 Update Android maintenance UI for template-event structure
   - Remove All tab and implement three-tab structure: Schedule, Upcoming, Complete
   - Create Schedule tab showing only maintenance templates with recurrence information
   - Update Upcoming tab to show only incomplete maintenance events
@@ -872,7 +880,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Implement template creation and editing forms with all required fields
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 8.1, 8.2, 8.3, 8.5_
 
-- [ ] 6.29 Write property tests for UI navigation
+- [x] 6.29 Write property tests for UI navigation
   - **Property 18: Tab content filtering consistency**
   - **Validates: Requirements 4.3, 4.4, 4.5**
   - **Property 19: Event-template navigation links**
@@ -880,7 +888,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - **Property 26: Navigation context preservation**
   - **Validates: Requirements 8.2, 8.3, 8.5**
 
-- [ ] 6.30 Implement offline support for template changes
+- [x] 6.30 Implement offline support for template changes
   - Add offline change queuing for template modifications
   - Implement sync logic for queued template changes when connectivity returns
   - Add conflict resolution using newest timestamp with user notification
@@ -888,11 +896,11 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Handle daily task failures with retry logic and error logging
   - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5_
 
-- [ ] 6.31 Write property tests for offline functionality
+- [x] 6.31 Write property tests for offline functionality
   - **Property 30: Offline change queuing and sync**
   - **Validates: Requirements 11.1, 11.2, 11.3**
 
-- [ ] 6.32 Update notification system for maintenance events
+- [x] 6.32 Update notification system for maintenance events
   - Update notification generation to work with maintenance events instead of tasks
   - Ensure notifications include event title, due date, boat name, and event link
   - Maintain notification suppression for disabled boats
@@ -900,13 +908,13 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Handle notification schedule updates when template changes affect timing
   - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5_
 
-- [ ] 6.33 Write property tests for notification system
+- [x] 6.33 Write property tests for notification system
   - **Property 31: Maintenance notification generation**
   - **Validates: Requirements 12.1, 12.2**
   - **Property 32: Notification management**
   - **Validates: Requirements 12.3, 12.4**
 
-- [ ] 6.34 Implement data migration and cleanup
+- [x] 6.34 Implement data migration and cleanup
   - Create migration script to clear existing MaintenanceTask and MaintenanceCompletion data
   - Preserve database schema structure for new template and event tables
   - Add notification to administrators about recreating maintenance templates
@@ -914,14 +922,15 @@ This implementation plan follows a phased approach, allowing verification of eac
   - Test migration completeness and system functionality
   - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5_
 
-- [ ] 6.35 Run all maintenance restructure property tests
+- [x] 6.35 Run all maintenance restructure property tests
+  - **MANDATORY**: Use universal property test runner: `./run-property-tests.sh`
   - Run all 32 property tests with minimum 100 iterations each
   - Ensure all tests pass consecutively in a single run
-  - Create test runner script in temp/task-6-35.sh for unified execution
+  - Use JSON configuration for efficient execution of large test suite
   - Verify no regressions in existing functionality
   - Test template-event relationship integrity across all operations
 
-- [ ] 6.36 Manual validation: Maintenance system restructure
+- [x] 6.36 Manual validation: Maintenance system restructure
   - **User Action**: Verify old maintenance data has been cleared from database
   - **User Action**: Create a new maintenance template with all required fields
     - **Android Studio**: Monitor Logcat for template creation API calls
@@ -994,6 +1003,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5_
 
 - [x] 7.7 Run all property tests and verify they pass
+  - **MANDATORY**: Use universal property test runner: `./run-property-tests.sh`
   - Run property tests with minimum 100 iterations
   - Ensure all tests pass, ask the user if questions arise
 
@@ -1062,6 +1072,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - _Requirements: 5.5, 9.5, 11.4_
 
 - [x] 8.7 Run all property tests and verify they pass
+  - **MANDATORY**: Use universal property test runner: `./run-property-tests.sh`
   - Run property tests with minimum 100 iterations
   - Ensure all tests pass, ask the user if questions arise
 
@@ -1106,6 +1117,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - _Requirements: 12.1, 12.4_
 
 - [x] 9.4 Run all property tests and verify they pass
+  - **MANDATORY**: Use universal property test runner: `./run-property-tests.sh`
   - Run property tests with minimum 100 iterations
   - Ensure all tests pass, ask the user if questions arise
 
@@ -1153,6 +1165,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - _Requirements: 13.1, 13.2, 13.3, 13.4_
 
 - [x] 10.6 Run all property tests and verify they pass
+  - **MANDATORY**: Use universal property test runner: `./run-property-tests.sh`
   - Run property tests with minimum 100 iterations
   - Ensure all tests pass, ask the user if questions arise
 
@@ -1307,6 +1320,7 @@ This implementation plan follows a phased approach, allowing verification of eac
   - _Requirements: 14.3_
 
 - [ ] 11.19 Run all property tests and verify they pass
+  - **MANDATORY**: Use universal property test runner: `./run-property-tests.sh`
   - Run property tests with minimum 100 iterations
   - Ensure all tests pass, ask the user if questions arise
 
@@ -1433,6 +1447,7 @@ This implementation plan follows a phased approach, allowing verification of eac
     - **Android Studio**: Use Logcat to monitor Bluetooth connection status
 
 - [ ] 12.14 Run all property tests and verify they pass
+  - **MANDATORY**: Use universal property test runner: `./run-property-tests.sh`
   - Run all property tests with minimum 100 iterations
   - Ensure all tests pass, ask the user if questions arise
 
@@ -1494,8 +1509,10 @@ This implementation plan follows a phased approach, allowing verification of eac
 
 ## Notes
 
+- **MANDATORY**: All property-based tests MUST use the universal property test runner: `./run-property-tests.sh`
 - All property-based tests should run a minimum of 100 iterations
 - Each property test must include the comment tag: `**Feature: boat-tracking-system, Property {number}: {property_text}**`
+- Use JSON configuration for large test suites (35+ tests): `./run-property-tests.sh --config temp/property-tests-config.json`
 - Optional tasks marked with `*` can be skipped if time is limited, but are recommended for comprehensive testing
 - Each checkpoint ensures the system is in a working state before proceeding
 - The phased approach allows for incremental verification and feedback

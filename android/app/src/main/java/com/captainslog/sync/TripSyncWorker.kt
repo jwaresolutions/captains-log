@@ -135,8 +135,7 @@ class TripSyncWorker(
                                 )
 
                                 // Notify user about conflict
-                                SyncNotificationHelper.showConflictNotification(
-                                    context = applicationContext,
+                                SyncNotificationHelper(applicationContext).showConflictNotification(
                                     tripId = trip.id,
                                     conflictMessage = "Trip data conflict resolved using server version (newer)"
                                 )
@@ -175,8 +174,7 @@ class TripSyncWorker(
                                             resolution = "Server data kept (newer timestamp)"
                                         )
 
-                                        SyncNotificationHelper.showConflictNotification(
-                                            context = applicationContext,
+                                        SyncNotificationHelper(applicationContext).showConflictNotification(
                                             tripId = trip.id,
                                             conflictMessage = "Trip conflict resolved using server version (newer)"
                                         )
@@ -194,8 +192,7 @@ class TripSyncWorker(
                                             resolution = "Local data kept (newer timestamp)"
                                         )
 
-                                        SyncNotificationHelper.showConflictNotification(
-                                            context = applicationContext,
+                                        SyncNotificationHelper(applicationContext).showConflictNotification(
                                             tripId = trip.id,
                                             conflictMessage = "Trip conflict resolved using local version (newer)"
                                         )

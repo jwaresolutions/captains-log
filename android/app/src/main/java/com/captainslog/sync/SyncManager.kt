@@ -16,11 +16,15 @@ class SyncManager(private val context: Context) {
         const val ONE_TIME_SYNC_WORK_NAME = "one_time_trip_sync"
         const val PERIODIC_PHOTO_SYNC_WORK_NAME = "periodic_photo_sync"
         const val ONE_TIME_PHOTO_SYNC_WORK_NAME = "one_time_photo_sync"
+        const val PERIODIC_TEMPLATE_SYNC_WORK_NAME = "periodic_template_sync"
+        const val ONE_TIME_TEMPLATE_SYNC_WORK_NAME = "one_time_template_sync"
         
         // Sync every 15 minutes when online
         private const val SYNC_INTERVAL_MINUTES = 15L
         // Photo sync every 30 minutes (less frequent due to WiFi requirement)
         private const val PHOTO_SYNC_INTERVAL_MINUTES = 30L
+        // Template sync every 10 minutes (more frequent for offline changes)
+        private const val TEMPLATE_SYNC_INTERVAL_MINUTES = 10L
 
         @Volatile
         private var INSTANCE: SyncManager? = null
@@ -85,8 +89,32 @@ class SyncManager(private val context: Context) {
             photoSyncRequest
         )
 
+        // Schedule template sync (any network connection)
+        val templateConstraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val templateSyncRequest = PeriodicWorkRequestBuilder<TemplateSyncWorker>(
+            TEMPLATE_SYNC_INTERVAL_MINUTES,
+            TimeUnit.MINUTES
+        )
+            .setConstraints(templateConstraints)
+            .setBackoffCriteria(
+                BackoffPolicy.EXPONENTIAL,
+                WorkRequest.MIN_BACKOFF_MILLIS,
+                TimeUnit.MILLISECONDS
+            )
+            .build()
+
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+            PERIODIC_TEMPLATE_SYNC_WORK_NAME,
+            ExistingPeriodicWorkPolicy.KEEP,
+            templateSyncRequest
+        )
+
         Log.d(TAG, "Scheduled periodic trip sync every $SYNC_INTERVAL_MINUTES minutes")
         Log.d(TAG, "Scheduled periodic photo sync every $PHOTO_SYNC_INTERVAL_MINUTES minutes (WiFi only)")
+        Log.d(TAG, "Scheduled periodic template sync every $TEMPLATE_SYNC_INTERVAL_MINUTES minutes")
     }
 
     /**
@@ -144,6 +172,33 @@ class SyncManager(private val context: Context) {
     }
 
     /**
+     * Trigger an immediate template sync
+     * Works on any network connection
+     */
+    fun triggerImmediateTemplateSync() {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val templateSyncRequest = OneTimeWorkRequestBuilder<TemplateSyncWorker>()
+            .setConstraints(constraints)
+            .setBackoffCriteria(
+                BackoffPolicy.EXPONENTIAL,
+                WorkRequest.MIN_BACKOFF_MILLIS,
+                TimeUnit.MILLISECONDS
+            )
+            .build()
+
+        WorkManager.getInstance(context).enqueueUniqueWork(
+            ONE_TIME_TEMPLATE_SYNC_WORK_NAME,
+            ExistingWorkPolicy.REPLACE,
+            templateSyncRequest
+        )
+
+        Log.d(TAG, "Triggered immediate template sync")
+    }
+
+    /**
      * Cancel all sync work
      */
     fun cancelAllSync() {
@@ -151,6 +206,8 @@ class SyncManager(private val context: Context) {
         WorkManager.getInstance(context).cancelUniqueWork(ONE_TIME_SYNC_WORK_NAME)
         WorkManager.getInstance(context).cancelUniqueWork(PERIODIC_PHOTO_SYNC_WORK_NAME)
         WorkManager.getInstance(context).cancelUniqueWork(ONE_TIME_PHOTO_SYNC_WORK_NAME)
+        WorkManager.getInstance(context).cancelUniqueWork(PERIODIC_TEMPLATE_SYNC_WORK_NAME)
+        WorkManager.getInstance(context).cancelUniqueWork(ONE_TIME_TEMPLATE_SYNC_WORK_NAME)
         Log.d(TAG, "Cancelled all sync work")
     }
 

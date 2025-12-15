@@ -203,9 +203,10 @@ Convert the maintenance system restructure design into a series of prompts for a
   - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5_
 
 - [ ] 6.35 Run all maintenance restructure property tests
+  - **MANDATORY**: Use universal property test runner: `./run-property-tests.sh`
   - Run all 32 property tests with minimum 100 iterations each
   - Ensure all tests pass consecutively in a single run
-  - Create test runner script in temp/task-6-35.sh for unified execution
+  - Use JSON configuration for efficient execution of large test suite
   - Verify no regressions in existing functionality
   - Test template-event relationship integrity across all operations
 

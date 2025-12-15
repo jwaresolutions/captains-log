@@ -313,4 +313,94 @@ interface ApiService {
         @Path("tripId") tripId: String,
         @Path("sensorTypeId") sensorTypeId: String
     ): Response<SensorReadingListResponse>
+
+    // Maintenance Template endpoints (new template-event structure)
+    @POST("api/v1/maintenance/templates")
+    suspend fun createMaintenanceTemplate(
+        @Body request: CreateMaintenanceTemplateRequest
+    ): Response<ApiSuccessResponse<MaintenanceTemplateResponse>>
+
+    @GET("api/v1/maintenance/templates")
+    suspend fun getMaintenanceTemplates(
+        @Query("boatId") boatId: String? = null,
+        @Query("activeOnly") activeOnly: Boolean? = null
+    ): Response<ApiSuccessResponse<List<MaintenanceTemplateResponse>>>
+
+    @GET("api/v1/maintenance/templates/{id}")
+    suspend fun getMaintenanceTemplate(
+        @Path("id") id: String
+    ): Response<ApiSuccessResponse<MaintenanceTemplateResponse>>
+
+    @PUT("api/v1/maintenance/templates/{id}")
+    suspend fun updateMaintenanceTemplate(
+        @Path("id") id: String,
+        @Body request: UpdateMaintenanceTemplateRequest
+    ): Response<ApiSuccessResponse<MaintenanceTemplateResponse>>
+
+    @DELETE("api/v1/maintenance/templates/{id}")
+    suspend fun deleteMaintenanceTemplate(
+        @Path("id") id: String
+    ): Response<ApiSuccessResponse<Unit>>
+
+    @POST("api/v1/maintenance/templates/{id}/schedule-change/preview")
+    suspend fun previewScheduleChange(
+        @Path("id") id: String,
+        @Body request: ScheduleChangePreviewRequest
+    ): Response<ApiSuccessResponse<ScheduleChangePreviewResponse>>
+
+    @POST("api/v1/maintenance/templates/{id}/schedule-change/apply")
+    suspend fun applyScheduleChange(
+        @Path("id") id: String,
+        @Body request: ScheduleChangeApplyRequest
+    ): Response<ApiSuccessResponse<ScheduleChangeApplyResponse>>
+
+    @POST("api/v1/maintenance/templates/{id}/information-change/preview")
+    suspend fun previewInformationChange(
+        @Path("id") id: String,
+        @Body request: TemplateInformationChangeRequest
+    ): Response<ApiSuccessResponse<TemplateInformationChangeResponse>>
+
+    @POST("api/v1/maintenance/templates/{id}/information-change/apply")
+    suspend fun applyInformationChange(
+        @Path("id") id: String,
+        @Body request: TemplateInformationChangeRequest
+    ): Response<ApiSuccessResponse<TemplateInformationChangeResponse>>
+
+    // Maintenance Event endpoints
+    @GET("api/v1/maintenance/events/upcoming")
+    suspend fun getUpcomingMaintenanceEvents(
+        @Query("boatId") boatId: String? = null,
+        @Query("templateId") templateId: String? = null,
+        @Query("limit") limit: Int? = null,
+        @Query("offset") offset: Int? = null
+    ): Response<ApiSuccessResponse<List<MaintenanceEventResponse>>>
+
+    @GET("api/v1/maintenance/events/completed")
+    suspend fun getCompletedMaintenanceEvents(
+        @Query("boatId") boatId: String? = null,
+        @Query("templateId") templateId: String? = null,
+        @Query("limit") limit: Int? = null,
+        @Query("offset") offset: Int? = null
+    ): Response<ApiSuccessResponse<List<MaintenanceEventResponse>>>
+
+    @GET("api/v1/maintenance/events/{id}")
+    suspend fun getMaintenanceEvent(
+        @Path("id") id: String
+    ): Response<ApiSuccessResponse<MaintenanceEventResponse>>
+
+    @POST("api/v1/maintenance/events/{id}/complete")
+    suspend fun completeMaintenanceEvent(
+        @Path("id") id: String,
+        @Body request: CompleteMaintenanceEventRequest
+    ): Response<ApiSuccessResponse<MaintenanceEventResponse>>
+
+    // Offline sync endpoints
+    @GET("api/v1/offline-sync/status")
+    suspend fun getSyncStatus(): Response<ApiSuccessResponse<SyncStatusResponse>>
+
+    @GET("api/v1/offline-sync/pending")
+    suspend fun getPendingChanges(): Response<ApiSuccessResponse<List<OfflineChangeResponse>>>
+
+    @POST("api/v1/offline-sync/sync")
+    suspend fun syncOfflineChanges(): Response<ApiSuccessResponse<SyncResultResponse>>
 }

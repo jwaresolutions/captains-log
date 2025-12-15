@@ -30,7 +30,7 @@ class BoatTrackingApplication : Application() {
         syncManager = SyncManager.getInstance(this)
         
         // Create notification channel for sync notifications
-        SyncNotificationHelper.createNotificationChannel(this)
+        SyncNotificationHelper(this).createNotificationChannel()
         
         // Schedule periodic sync
         syncManager.schedulePeriodicSync()

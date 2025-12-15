@@ -5,53 +5,54 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.captainslog.viewmodel.BoatViewModel
-import com.captainslog.viewmodel.MaintenanceViewModel
+import com.captainslog.viewmodel.MaintenanceTemplateViewModel
 
 @Composable
 fun MaintenanceNavigation(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val maintenanceViewModel: MaintenanceViewModel = viewModel { MaintenanceViewModel(context) }
+    val maintenanceViewModel: MaintenanceTemplateViewModel = viewModel { MaintenanceTemplateViewModel(context) }
     val boatViewModel: BoatViewModel = viewModel { BoatViewModel(context.applicationContext as android.app.Application) }
     
     var currentScreen by remember { mutableStateOf(MaintenanceScreen.List) }
-    var selectedTaskId by remember { mutableStateOf<String?>(null) }
+    var selectedTemplateId by remember { mutableStateOf<String?>(null) }
+    var selectedEventId by remember { mutableStateOf<String?>(null) }
 
     when (currentScreen) {
         MaintenanceScreen.List -> {
             MaintenanceListScreen(
-                onNavigateToTaskDetail = { taskId ->
-                    selectedTaskId = taskId
-                    currentScreen = MaintenanceScreen.Detail
+                onNavigateToTemplateDetail = { templateId ->
+                    selectedTemplateId = templateId
+                    currentScreen = MaintenanceScreen.TemplateDetail
                 },
-                onNavigateToCreateTask = {
-                    currentScreen = MaintenanceScreen.Create
+                onNavigateToEventDetail = { eventId ->
+                    selectedEventId = eventId
+                    currentScreen = MaintenanceScreen.EventDetail
                 },
-                onNavigateToEdit = { taskId ->
-                    selectedTaskId = taskId
-                    currentScreen = MaintenanceScreen.Edit
+                onNavigateToCreateTemplate = {
+                    currentScreen = MaintenanceScreen.CreateTemplate
+                },
+                onNavigateToEditTemplate = { templateId ->
+                    selectedTemplateId = templateId
+                    currentScreen = MaintenanceScreen.EditTemplate
                 },
                 modifier = modifier,
                 viewModel = maintenanceViewModel
             )
         }
         
-        MaintenanceScreen.Detail -> {
-            selectedTaskId?.let { taskId ->
-                MaintenanceTaskDetailScreen(
-                    taskId = taskId,
+        MaintenanceScreen.TemplateDetail -> {
+            selectedTemplateId?.let { templateId ->
+                MaintenanceTemplateDetailScreen(
+                    templateId = templateId,
                     onNavigateBack = {
                         currentScreen = MaintenanceScreen.List
-                        selectedTaskId = null
+                        selectedTemplateId = null
                     },
-                    onNavigateToEdit = { editTaskId ->
-                        selectedTaskId = editTaskId
-                        currentScreen = MaintenanceScreen.Edit
-                    },
-                    onNavigateToComplete = { completeTaskId ->
-                        selectedTaskId = completeTaskId
-                        currentScreen = MaintenanceScreen.Complete
+                    onNavigateToEdit = { editTemplateId ->
+                        selectedTemplateId = editTemplateId
+                        currentScreen = MaintenanceScreen.EditTemplate
                     },
                     modifier = modifier,
                     viewModel = maintenanceViewModel
@@ -59,9 +60,31 @@ fun MaintenanceNavigation(
             }
         }
         
-        MaintenanceScreen.Create -> {
-            MaintenanceTaskFormScreen(
-                taskId = null,
+        MaintenanceScreen.EventDetail -> {
+            selectedEventId?.let { eventId ->
+                MaintenanceEventDetailScreen(
+                    eventId = eventId,
+                    onNavigateBack = {
+                        currentScreen = MaintenanceScreen.List
+                        selectedEventId = null
+                    },
+                    onNavigateToTemplate = { templateId ->
+                        selectedTemplateId = templateId
+                        currentScreen = MaintenanceScreen.TemplateDetail
+                    },
+                    onNavigateToComplete = { completeEventId ->
+                        selectedEventId = completeEventId
+                        currentScreen = MaintenanceScreen.CompleteEvent
+                    },
+                    modifier = modifier,
+                    viewModel = maintenanceViewModel
+                )
+            }
+        }
+        
+        MaintenanceScreen.CreateTemplate -> {
+            MaintenanceTemplateFormScreen(
+                templateId = null,
                 onNavigateBack = {
                     currentScreen = MaintenanceScreen.List
                 },
@@ -71,12 +94,12 @@ fun MaintenanceNavigation(
             )
         }
         
-        MaintenanceScreen.Edit -> {
-            selectedTaskId?.let { taskId ->
-                MaintenanceTaskFormScreen(
-                    taskId = taskId,
+        MaintenanceScreen.EditTemplate -> {
+            selectedTemplateId?.let { templateId ->
+                MaintenanceTemplateFormScreen(
+                    templateId = templateId,
                     onNavigateBack = {
-                        currentScreen = MaintenanceScreen.Detail
+                        currentScreen = MaintenanceScreen.TemplateDetail
                     },
                     modifier = modifier,
                     viewModel = maintenanceViewModel,
@@ -85,12 +108,12 @@ fun MaintenanceNavigation(
             }
         }
         
-        MaintenanceScreen.Complete -> {
-            selectedTaskId?.let { taskId ->
-                MaintenanceTaskCompletionScreen(
-                    taskId = taskId,
+        MaintenanceScreen.CompleteEvent -> {
+            selectedEventId?.let { eventId ->
+                MaintenanceEventCompletionScreen(
+                    eventId = eventId,
                     onNavigateBack = {
-                        currentScreen = MaintenanceScreen.Detail
+                        currentScreen = MaintenanceScreen.EventDetail
                     },
                     modifier = modifier,
                     viewModel = maintenanceViewModel
@@ -102,8 +125,9 @@ fun MaintenanceNavigation(
 
 enum class MaintenanceScreen {
     List,
-    Detail,
-    Create,
-    Edit,
-    Complete
+    TemplateDetail,
+    EventDetail,
+    CreateTemplate,
+    EditTemplate,
+    CompleteEvent
 }

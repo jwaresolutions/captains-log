@@ -42,6 +42,149 @@ Mark task complete ← CORRECT!
 
 ### Implementation Guidelines
 
+## CRITICAL: Mandatory Property Test Tool Usage
+
+**ABSOLUTE REQUIREMENT**: ALL property-based testing tasks MUST use the universal property test runner (`./run-property-tests.sh`). 
+
+**DO NOT use these deprecated commands for property test tasks**:
+- ❌ `npm run test:property` - Can hang, produces massive logs, no isolation
+- ❌ `npm test -- *.property.test.ts` - No timeout protection, poor reporting
+- ❌ Direct Jest commands for property tests - No cross-platform support
+
+**ALWAYS use the universal runner**:
+- ✅ `./run-property-tests.sh` - Proper isolation, timeout protection, detailed reporting
+- ✅ `./run-property-tests.sh --config file.json` - For large test suites
+- ✅ `./run-property-tests.sh --tests pattern` - For targeted testing
+
+**Why This Tool is Mandatory**:
+1. **Prevents Hanging**: Individual timeout per test prevents infinite loops
+2. **Isolates Output**: Each test's output goes to separate log files
+3. **Manages Resources**: Automatic log size limits prevent disk space issues
+4. **Provides Context**: Detailed reporting shows exactly what failed and where
+5. **Ensures Completion**: All tests run even if some fail or timeout
+6. **Supports Scale**: JSON configuration handles large test suites efficiently
+
+#### Universal Property Test Runner (MANDATORY)
+
+**REQUIRED**: ALL property-based testing tasks MUST use the universal property test runner:
+
+```bash
+# Run all property tests across all platforms
+./run-property-tests.sh
+
+# Run only backend property tests
+./run-property-tests.sh --backend-only
+
+# Run only Android property tests
+./run-property-tests.sh --android-only
+
+# Run specific tests (e.g., auth-related)
+./run-property-tests.sh --tests auth
+
+# Run with JSON configuration for large test suites
+./run-property-tests.sh --config temp/property-tests-config.json
+
+# Run with custom timeout per test
+./run-property-tests.sh --timeout 120
+
+# Run with custom iteration count
+./run-property-tests.sh --iterations 200
+
+# Show help and all options
+./run-property-tests.sh --help
+```
+
+**Key Features for AI Assistance**:
+- **Individual Test Execution**: Each test runs separately with its own timeout and output file
+- **Progress Indicators**: Shows current test progress without cluttering console output
+- **Isolated Output Capture**: Each test's output saved to `temp/test-results/{platform}-{testname}.log`
+- **Comprehensive Reporting**: Detailed final report showing status, duration, and output file for each test
+- **Timeout Protection**: Prevents hanging on problematic tests (default 2 minutes per test)
+- **Log Size Management**: Automatically truncates large log files to prevent disk space issues
+- **Cross-Platform**: Runs property tests on both backend (Jest + fast-check) and Android (Kotest)
+- **JSON Configuration**: Supports complex test configurations for large test suites
+- **Failure Isolation**: Failed tests don't prevent other tests from running
+
+**Prerequisites for Property Test Runner**:
+- Backend tests: Docker services running (`docker-compose up -d`)
+- Android tests: Android SDK and build tools installed
+- Dependencies: `cd backend && npm install`
+- JSON parsing: `brew install jq` (for JSON configuration support)
+
+**MANDATORY Usage in Testing Workflow**:
+When working on property-based testing tasks, you MUST ALWAYS use the universal runner:
+
+```bash
+# After making changes, validate all property tests
+./run-property-tests.sh
+
+# For large test suites, use JSON configuration
+./run-property-tests.sh --config temp/property-tests-config.json
+
+# If any tests fail, check individual log files for details
+ls temp/test-results/
+cat temp/test-results/backend-auth.log  # Example: check auth test failure
+
+# Fix failures and re-run ALL tests
+./run-property-tests.sh
+
+# Only mark task complete when this shows "ALL PROPERTY TESTS PASSED"
+```
+
+**JSON Configuration Format**:
+For tasks with many property tests, create a JSON configuration file:
+
+```json
+{
+  "backend": {
+    "enabled": true,
+    "tests": ["auth", "boat", "trip", "sync", "rateLimiter", "user", "maintenance"],
+    "iterations": 100
+  },
+  "android": {
+    "enabled": true,
+    "tests": ["connection", "repository", "database", "sync", "auth"],
+    "iterations": 100
+  },
+  "global": {
+    "verbose": false,
+    "timeout": 120
+  }
+}
+```
+
+**Output Structure**:
+The runner creates organized output files for debugging:
+
+```
+temp/test-results/
+├── backend-auth.log          # Auth test output
+├── backend-boat.log          # Boat test output
+├── backend-trip.log          # Trip test output
+├── android-connection.log    # Connection test output
+└── android-repository.log    # Repository test output
+```
+
+**Report Format**:
+The final report shows exactly what passed/failed and where to find details:
+
+```
+Test Results:
+  ✓ PASS [BACKEND] auth (45s) → backend-auth.log
+  ✗ FAIL [BACKEND] trip (120s) → backend-trip.log
+  ✓ PASS [ANDROID] connection (30s) → android-connection.log
+
+Platform Summary:
+  Backend:  ✗ FAILED (1 passed, 1 failed)
+  Android:  ✓ PASSED (1/1 tests)
+
+Overall Summary:
+  Total tests: 3
+  Passed: 2
+  Failed: 1
+  Output files: temp/test-results/
+```
+
 #### Test Runner Scripts (REQUIRED for Multi-Test Tasks)
 
 **CRITICAL**: For any task with multiple tests, you MUST create a test runner script that:
@@ -82,7 +225,7 @@ echo "----------------------------------------"
 echo "1. Running Backend Property Tests"
 echo "----------------------------------------"
 cd "$PROJECT_ROOT/backend"
-if npm run test:property; then
+if ./run-property-tests.sh --backend-only; then
   echo "✓ Backend property tests PASSED"
   BACKEND_PASSED=1
 else
@@ -146,25 +289,35 @@ chmod +x temp/task-1-25.sh
 #### For Tasks with Multiple Test Files
 ```bash
 # Run ALL tests together
-npm test                           # Backend: all tests
+npm test                           # Backend: all unit tests
 ./gradlew test                     # Android: all unit tests
-npm run test:property              # Backend: all property tests
+./run-property-tests.sh            # Backend & Android: all property tests (MANDATORY)
 
 # If any fail, fix and re-run ALL tests
 # Do NOT run individual test files unless debugging
 ```
 
-#### For Tasks with Property Tests
+#### For Tasks with Property Tests (MANDATORY TOOL USAGE)
 ```bash
 # Property tests must run minimum 100 iterations
 # All property tests for the task must pass consecutively
+# MUST use the universal property test runner - DO NOT use npm run test:property directly
+
+# CORRECT: Use universal runner for all property tests
+./run-property-tests.sh            # Runs all property tests with proper isolation
+./run-property-tests.sh --tests auth  # Run specific property tests
+
+# WRONG: Do not use these commands for property test tasks
+# npm run test:property            # ❌ Don't use - no isolation, can hang, poor reporting
+# npm test -- auth.property.test.ts  # ❌ Don't use - only for debugging individual tests
 
 # Example: Task 1.25 has multiple property test files
-npm run test:property              # Runs all property tests
-# If auth.property.test.ts fails:
-# 1. Fix the auth test
-# 2. Re-run ALL property tests (not just auth)
-# 3. Verify boat, trip, sync, rateLimiter tests still pass
+./run-property-tests.sh            # Runs all property tests with individual isolation
+# If auth test fails:
+# 1. Check temp/test-results/backend-auth.log for failure details
+# 2. Fix the auth test
+# 3. Re-run ALL property tests: ./run-property-tests.sh
+# 4. Verify all tests pass in the final report
 ```
 
 #### For Android Tests
@@ -185,14 +338,23 @@ npm run test:property              # Runs all property tests
 # All unit tests
 npm test
 
-# All property tests (minimum 100 iterations each)
-npm run test:property
+# All property tests (minimum 100 iterations each) - MANDATORY TOOL
+./run-property-tests.sh --backend-only
+
+# All property tests with JSON configuration (for large test suites)
+./run-property-tests.sh --config temp/property-tests-config.json
+
+# Specific property tests (for targeted testing)
+./run-property-tests.sh --tests "auth|boat|trip"
 
 # Specific test file (for debugging only, not for completion verification)
 npm test -- auth.test.ts
 
 # All tests with coverage
 npm test -- --coverage
+
+# DEPRECATED: Do not use these for property test tasks
+# npm run test:property  # ❌ Use ./run-property-tests.sh instead
 ```
 
 #### Android Tests
@@ -218,8 +380,8 @@ npm test
 # All E2E tests
 npm run test:e2e
 
-# All property tests
-npm run test:property
+# All property tests (MANDATORY: use universal runner)
+./run-property-tests.sh --web-only
 ```
 
 ### Checkpoint Tasks
@@ -239,13 +401,18 @@ The checkpoint script should follow the same pattern as task scripts (see above)
 
 **Debugging**: You may run individual test files to understand failures
 ```bash
-npm test -- auth.property.test.ts  # Debug specific test
+npm test -- auth.property.test.ts  # Debug specific test (unit tests only)
+./run-property-tests.sh --tests auth  # Debug specific property test with proper isolation
+cat temp/test-results/backend-auth.log  # Review detailed output from property test
 ```
 
-**Completion Verification**: You MUST run all tests together
+**Completion Verification**: You MUST run all tests together using proper tools
 ```bash
-npm run test:property              # Verify all property tests pass
+./run-property-tests.sh            # Verify all property tests pass (MANDATORY)
 npm test                           # Verify all unit tests pass
+
+# DEPRECATED: Do not use for completion verification
+# npm run test:property            # ❌ Use ./run-property-tests.sh instead
 ```
 
 ### When to Ask for Help
@@ -269,10 +436,11 @@ Property tests are particularly sensitive to changes because they:
 - Can fail intermittently if not properly designed
 
 When property tests fail:
-1. Understand the failing case (the library will show the counterexample)
-2. Fix the implementation or the property definition
-3. Re-run ALL property tests to ensure the fix doesn't break other properties
-4. Verify the test passes consistently (run it multiple times if needed)
+1. Check the individual test output file in `temp/test-results/` for detailed failure information
+2. Understand the failing case (the library will show the counterexample in the log file)
+3. Fix the implementation or the property definition
+4. Re-run ALL property tests using `./run-property-tests.sh` to ensure the fix doesn't break other properties
+5. Verify all tests pass in the final report (don't rely on individual test runs)
 
 ### Test Organization
 

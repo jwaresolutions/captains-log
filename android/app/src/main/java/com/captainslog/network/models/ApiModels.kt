@@ -347,6 +347,129 @@ data class UpdateMarkedLocationRequest(
     val tags: List<String>? = null
 )
 
+// Maintenance Template models (new template-event structure)
+data class MaintenanceTemplateResponse(
+    val id: String,
+    val boatId: String,
+    val title: String,
+    val description: String,
+    val component: String,
+    val estimatedCost: Double,
+    val estimatedTime: Int, // in minutes
+    val isActive: Boolean,
+    val recurrence: RecurrenceSchedule,
+    val createdAt: String,
+    val updatedAt: String,
+    val boat: BoatResponse?
+)
+
+data class MaintenanceEventResponse(
+    val id: String,
+    val templateId: String,
+    val dueDate: String,
+    val completedAt: String?,
+    val actualCost: Double?,
+    val actualTime: Int?, // in minutes
+    val notes: String?,
+    val createdAt: String,
+    val updatedAt: String,
+    val template: MaintenanceTemplateResponse?
+)
+
+data class CreateMaintenanceTemplateRequest(
+    val boatId: String,
+    val title: String,
+    val description: String,
+    val component: String,
+    val recurrence: RecurrenceSchedule,
+    val estimatedCost: Double,
+    val estimatedTime: Int
+)
+
+data class UpdateMaintenanceTemplateRequest(
+    val title: String? = null,
+    val description: String? = null,
+    val component: String? = null,
+    val recurrence: RecurrenceSchedule? = null,
+    val estimatedCost: Double? = null,
+    val estimatedTime: Int? = null,
+    val isActive: Boolean? = null
+)
+
+data class CompleteMaintenanceEventRequest(
+    val actualCost: Double? = null,
+    val actualTime: Int? = null,
+    val notes: String? = null
+)
+
+data class ScheduleChangePreviewRequest(
+    val recurrence: RecurrenceSchedule
+)
+
+data class ScheduleChangeApplyRequest(
+    val recurrence: RecurrenceSchedule,
+    val offline: Boolean = false
+)
+
+data class TemplateInformationChangeRequest(
+    val title: String? = null,
+    val description: String? = null,
+    val component: String? = null,
+    val estimatedCost: Double? = null,
+    val estimatedTime: Int? = null
+)
+
+data class ScheduleChangePreviewResponse(
+    val templateId: String,
+    val currentRecurrence: RecurrenceSchedule,
+    val newRecurrence: RecurrenceSchedule,
+    val eventsAffected: Int,
+    val nextDueDate: String?,
+    val affectedEvents: List<MaintenanceEventResponse>
+)
+
+data class ScheduleChangeApplyResponse(
+    val success: Boolean,
+    val templateId: String,
+    val eventsUpdated: Int,
+    val eventsCreated: Int,
+    val eventsDeleted: Int,
+    val errors: List<String>
+)
+
+data class TemplateInformationChangeResponse(
+    val templateId: String,
+    val eventsUpdated: Int,
+    val completedEventsPreserved: Int,
+    val errors: List<String>
+)
+
+// Offline sync models
+data class OfflineChangeResponse(
+    val id: String,
+    val entityType: String,
+    val entityId: String,
+    val changeType: String,
+    val changeData: Map<String, Any>,
+    val timestamp: String,
+    val synced: Boolean,
+    val syncAttempts: Int,
+    val lastSyncAttempt: String?,
+    val syncError: String?
+)
+
+data class SyncStatusResponse(
+    val pendingChanges: Int,
+    val failedChanges: Int,
+    val lastSyncAttempt: String?
+)
+
+data class SyncResultResponse(
+    val success: Boolean,
+    val changesSynced: Int,
+    val errors: List<String>
+)
+
 // Generic response wrapper
 data class ApiResponse<T>(
     val data: T?,

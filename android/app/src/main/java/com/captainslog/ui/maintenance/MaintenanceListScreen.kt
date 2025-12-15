@@ -7,8 +7,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,9 +18,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.captainslog.database.entities.MaintenanceTaskEntity
-import com.captainslog.database.entities.MaintenanceCompletionEntity
-import com.captainslog.viewmodel.MaintenanceViewModel
+import com.captainslog.database.entities.MaintenanceTemplateEntity
+import com.captainslog.database.entities.MaintenanceEventEntity
+import com.captainslog.viewmodel.MaintenanceTemplateViewModel
 import com.captainslog.viewmodel.TaskColor
 import java.text.SimpleDateFormat
 import java.util.*
@@ -27,18 +28,19 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MaintenanceListScreen(
-    onNavigateToTaskDetail: (String) -> Unit,
-    onNavigateToCreateTask: () -> Unit,
-    onNavigateToEdit: (String) -> Unit = { },
+    onNavigateToTemplateDetail: (String) -> Unit,
+    onNavigateToEventDetail: (String) -> Unit,
+    onNavigateToCreateTemplate: () -> Unit,
+    onNavigateToEditTemplate: (String) -> Unit = { },
     modifier: Modifier = Modifier,
-    viewModel: MaintenanceViewModel
+    viewModel: MaintenanceTemplateViewModel
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val allTasks by viewModel.allTasks.collectAsStateWithLifecycle(initialValue = emptyList())
-    val upcomingTasks by viewModel.upcomingTasks.collectAsStateWithLifecycle(initialValue = emptyList())
-    val completedTasks by viewModel.completedTasks.collectAsStateWithLifecycle(initialValue = emptyList())
+    val allTemplates by viewModel.allTemplates.collectAsStateWithLifecycle(initialValue = emptyList())
+    val upcomingEvents by viewModel.upcomingEvents.collectAsStateWithLifecycle(initialValue = emptyList())
+    val completedEvents by viewModel.completedEvents.collectAsStateWithLifecycle(initialValue = emptyList())
     
-    var selectedTab by remember { mutableStateOf(MaintenanceTab.All) }
+    var selectedTab by remember { mutableStateOf(MaintenanceTab.Schedule) }
 
     // Show error or success messages
     LaunchedEffect(uiState.error) {
@@ -70,21 +72,27 @@ fun MaintenanceListScreen(
                         ) {
                             Text(tab.title)
                             when (tab) {
-                                MaintenanceTab.Upcoming -> {
-                                    if (upcomingTasks.isNotEmpty()) {
+                                MaintenanceTab.Schedule -> {
+                                    if (allTemplates.isNotEmpty()) {
                                         Badge {
-                                            Text("${upcomingTasks.size}")
+                                            Text("${allTemplates.size}")
+                                        }
+                                    }
+                                }
+                                MaintenanceTab.Upcoming -> {
+                                    if (upcomingEvents.isNotEmpty()) {
+                                        Badge {
+                                            Text("${upcomingEvents.size}")
                                         }
                                     }
                                 }
                                 MaintenanceTab.Complete -> {
-                                    if (completedTasks.isNotEmpty()) {
+                                    if (completedEvents.isNotEmpty()) {
                                         Badge {
-                                            Text("${completedTasks.size}")
+                                            Text("${completedEvents.size}")
                                         }
                                     }
                                 }
-                                else -> {}
                             }
                         }
                     }
@@ -101,18 +109,12 @@ fun MaintenanceListScreen(
                     )
                 }
                 else -> {
-                    val tasksToShow = when (selectedTab) {
-                        MaintenanceTab.All -> allTasks
-                        MaintenanceTab.Upcoming -> upcomingTasks
-                        MaintenanceTab.Complete -> emptyList() // Will show completed tasks differently
-                    }
-
                     when (selectedTab) {
-                        MaintenanceTab.Complete -> {
-                            if (completedTasks.isEmpty()) {
+                        MaintenanceTab.Schedule -> {
+                            if (allTemplates.isEmpty()) {
                                 EmptyMaintenanceState(
                                     tab = selectedTab,
-                                    onCreateTask = onNavigateToCreateTask,
+                                    onCreateTemplate = onNavigateToCreateTemplate,
                                     modifier = Modifier.align(Alignment.Center)
                                 )
                             } else {
@@ -121,12 +123,44 @@ fun MaintenanceListScreen(
                                     contentPadding = PaddingValues(16.dp),
                                     verticalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    items(completedTasks) { completion ->
-                                        CompletedMaintenanceCard(
-                                            completion = completion,
+                                    items(allTemplates) { template ->
+                                        MaintenanceTemplateCard(
+                                            template = template,
                                             onClick = { 
-                                                // Navigate to completion detail or task detail
-                                                onNavigateToTaskDetail(completion.maintenanceTaskId) 
+                                                onNavigateToTemplateDetail(template.id) 
+                                            },
+                                            onEdit = { onNavigateToEditTemplate(template.id) },
+                                            onDelete = { viewModel.deleteTemplate(template.id) },
+                                            viewModel = viewModel
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        MaintenanceTab.Upcoming -> {
+                            if (upcomingEvents.isEmpty()) {
+                                EmptyMaintenanceState(
+                                    tab = selectedTab,
+                                    onCreateTemplate = onNavigateToCreateTemplate,
+                                    modifier = Modifier.align(Alignment.Center)
+                                )
+                            } else {
+                                LazyColumn(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentPadding = PaddingValues(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    items(upcomingEvents) { event ->
+                                        MaintenanceEventCard(
+                                            event = event,
+                                            onClick = { 
+                                                onNavigateToEventDetail(event.id) 
+                                            },
+                                            onComplete = { 
+                                                viewModel.completeEvent(event.id, null, null, null) 
+                                            },
+                                            onNavigateToTemplate = { 
+                                                onNavigateToTemplateDetail(event.templateId) 
                                             },
                                             viewModel = viewModel
                                         )
@@ -134,11 +168,11 @@ fun MaintenanceListScreen(
                                 }
                             }
                         }
-                        else -> {
-                            if (tasksToShow.isEmpty()) {
+                        MaintenanceTab.Complete -> {
+                            if (completedEvents.isEmpty()) {
                                 EmptyMaintenanceState(
                                     tab = selectedTab,
-                                    onCreateTask = onNavigateToCreateTask,
+                                    onCreateTemplate = onNavigateToCreateTemplate,
                                     modifier = Modifier.align(Alignment.Center)
                                 )
                             } else {
@@ -147,16 +181,15 @@ fun MaintenanceListScreen(
                                     contentPadding = PaddingValues(16.dp),
                                     verticalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    items(tasksToShow) { task ->
-                                        MaintenanceTaskCard(
-                                            task = task,
+                                    items(completedEvents) { event ->
+                                        CompletedMaintenanceEventCard(
+                                            event = event,
                                             onClick = { 
-                                                println("Task clicked: ${task.id}")
-                                                onNavigateToTaskDetail(task.id) 
+                                                onNavigateToEventDetail(event.id) 
                                             },
-                                            onEdit = { onNavigateToEdit(task.id) },
-                                            onDelete = { viewModel.deleteMaintenanceTask(task.id) },
-                                            onComplete = { viewModel.completeMaintenanceTask(task.id) },
+                                            onNavigateToTemplate = { 
+                                                onNavigateToTemplateDetail(event.templateId) 
+                                            },
                                             viewModel = viewModel
                                         )
                                     }
@@ -201,33 +234,31 @@ fun MaintenanceListScreen(
             }
         }
         
-        // Floating Action Button
-        FloatingActionButton(
-            onClick = onNavigateToCreateTask,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(16.dp)
-        ) {
-            Icon(Icons.Default.Add, contentDescription = "Add Maintenance Task")
+        // Floating Action Button - only show on Schedule tab
+        if (selectedTab == MaintenanceTab.Schedule) {
+            FloatingActionButton(
+                onClick = onNavigateToCreateTemplate,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp)
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add Maintenance Template")
+            }
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun MaintenanceTaskCard(
-    task: MaintenanceTaskEntity,
+private fun MaintenanceTemplateCard(
+    template: MaintenanceTemplateEntity,
     onClick: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
-    onComplete: () -> Unit,
-    viewModel: MaintenanceViewModel,
+    viewModel: MaintenanceTemplateViewModel,
     modifier: Modifier = Modifier
 ) {
-    val dateFormat = remember { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) }
-    val taskColor = viewModel.getTaskColor(task)
-    val daysUntilDue = viewModel.getDaysUntilDue(task)
-    val recurrenceText = viewModel.formatRecurrence(task)
+    val recurrenceText = viewModel.formatRecurrence(template)
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     Card(
@@ -248,22 +279,168 @@ private fun MaintenanceTaskCard(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = task.title,
+                        text = template.title,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
                     
-                    if (!task.description.isNullOrBlank()) {
+                    Text(
+                        text = template.description,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    
+                    Text(
+                        text = "Component: ${template.component}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Icon(
+                    Icons.Default.Settings,
+                    contentDescription = "Template",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            Divider()
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        text = "Schedule: $recurrenceText",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    
+                    template.estimatedCost?.let { cost ->
                         Text(
-                            text = task.description,
+                            text = "Estimated Cost: $${String.format("%.2f", cost)}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    
+                    template.estimatedTime?.let { time ->
+                        Text(
+                            text = "Estimated Time: ${time}min",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+            
+            // Action buttons
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Button(
+                    onClick = onEdit,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondary
+                    )
+                ) {
+                    Text("Edit")
+                }
+                Button(
+                    onClick = { showDeleteDialog = true },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Delete")
+                }
+            }
+        }
+    }
+    
+    // Delete confirmation dialog
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Delete Maintenance Template") },
+            text = { Text("Are you sure you want to delete \"${template.title}\"? This will also delete all future events for this template.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteDialog = false
+                        onDelete()
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun MaintenanceEventCard(
+    event: MaintenanceEventEntity,
+    onClick: () -> Unit,
+    onComplete: () -> Unit,
+    onNavigateToTemplate: () -> Unit,
+    viewModel: MaintenanceTemplateViewModel,
+    modifier: Modifier = Modifier
+) {
+    val dateFormat = remember { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) }
+    val eventColor = viewModel.getEventColor(event)
+    val daysUntilDue = viewModel.getDaysUntilDue(event)
+    val template by viewModel.getTemplateById(event.templateId).collectAsStateWithLifecycle(initialValue = null)
+
+    Card(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = template?.title ?: "Maintenance Event",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    
+                    template?.description?.let { description ->
+                        Text(
+                            text = description,
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     
-                    if (!task.component.isNullOrBlank()) {
+                    template?.component?.let { component ->
                         Text(
-                            text = "Component: ${task.component}",
+                            text = "Component: $component",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -277,14 +454,14 @@ private fun MaintenanceTaskCard(
                     else -> "${daysUntilDue}d"
                 }
                 
-                val badgeColor = when (taskColor) {
+                val badgeColor = when (eventColor) {
                     TaskColor.RED -> Color(0xFFFFEBEE) // Light red
                     TaskColor.YELLOW -> Color(0xFFFFF3CD) // Light yellow
                     TaskColor.GREEN -> Color(0xFFD4EDDA) // Light green
                     TaskColor.GRAY -> Color(0xFFE0E0E0) // Light gray
                 }
                 
-                val textColor = when (taskColor) {
+                val textColor = when (eventColor) {
                     TaskColor.RED -> Color(0xFFD32F2F) // Dark red
                     TaskColor.YELLOW -> Color(0xFFF57C00) // Dark orange
                     TaskColor.GREEN -> Color(0xFF388E3C) // Dark green
@@ -317,10 +494,10 @@ private fun MaintenanceTaskCard(
             ) {
                 Column {
                     Text(
-                        text = "Due: ${dateFormat.format(task.dueDate)}",
+                        text = "Due: ${dateFormat.format(event.dueDate)}",
                         style = MaterialTheme.typography.bodySmall,
-                        fontWeight = if (taskColor == TaskColor.RED || taskColor == TaskColor.YELLOW) FontWeight.Bold else FontWeight.Normal,
-                        color = when (taskColor) {
+                        fontWeight = if (eventColor == TaskColor.RED || eventColor == TaskColor.YELLOW) FontWeight.Bold else FontWeight.Normal,
+                        color = when (eventColor) {
                             TaskColor.RED -> MaterialTheme.colorScheme.error
                             TaskColor.YELLOW -> MaterialTheme.colorScheme.primary
                             else -> MaterialTheme.colorScheme.onSurfaceVariant
@@ -337,7 +514,7 @@ private fun MaintenanceTaskCard(
                     Text(
                         text = daysText,
                         style = MaterialTheme.typography.bodySmall,
-                        color = when (taskColor) {
+                        color = when (eventColor) {
                             TaskColor.RED -> MaterialTheme.colorScheme.error
                             TaskColor.YELLOW -> MaterialTheme.colorScheme.primary
                             else -> MaterialTheme.colorScheme.onSurfaceVariant
@@ -345,16 +522,23 @@ private fun MaintenanceTaskCard(
                     )
                 }
 
-                if (recurrenceText != null) {
-                    Text(
-                        text = recurrenceText,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                // Link to template
+                TextButton(
+                    onClick = onNavigateToTemplate,
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Text("View Template")
+                    Icon(
+                        Icons.Default.ArrowForward,
+                        contentDescription = "Go to template",
+                        modifier = Modifier.size(16.dp)
                     )
                 }
             }
             
-            // Action buttons with debug background
+            // Action buttons
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -370,63 +554,22 @@ private fun MaintenanceTaskCard(
                 ) {
                     Text("Complete")
                 }
-                Button(
-                    onClick = onEdit,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.secondary
-                    )
-                ) {
-                    Text("Edit")
-                }
-                Button(
-                    onClick = { showDeleteDialog = true },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
-                    )
-                ) {
-                    Text("Delete")
-                }
             }
         }
     }
-    
-    // Delete confirmation dialog
-    if (showDeleteDialog) {
-        AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Delete Maintenance Task") },
-            text = { Text("Are you sure you want to delete \"${task.title}\"? This action cannot be undone.") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showDeleteDialog = false
-                        onDelete()
-                    },
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
-                    )
-                ) {
-                    Text("Delete")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancel")
-                }
-            }
-        )
-    }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CompletedMaintenanceCard(
-    completion: MaintenanceCompletionEntity,
+private fun CompletedMaintenanceEventCard(
+    event: MaintenanceEventEntity,
     onClick: () -> Unit,
-    viewModel: MaintenanceViewModel,
+    onNavigateToTemplate: () -> Unit,
+    viewModel: MaintenanceTemplateViewModel,
     modifier: Modifier = Modifier
 ) {
     val dateFormat = remember { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) }
-    val task by viewModel.getTaskById(completion.maintenanceTaskId).collectAsStateWithLifecycle(initialValue = null)
+    val template by viewModel.getTemplateById(event.templateId).collectAsStateWithLifecycle(initialValue = null)
 
     Card(
         onClick = onClick,
@@ -446,12 +589,12 @@ private fun CompletedMaintenanceCard(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = task?.title ?: "Maintenance Task",
+                        text = template?.title ?: "Maintenance Event",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
                     
-                    task?.component?.let { component ->
+                    template?.component?.let { component ->
                         Text(
                             text = "Component: $component",
                             style = MaterialTheme.typography.bodySmall,
@@ -459,17 +602,25 @@ private fun CompletedMaintenanceCard(
                         )
                     }
                     
-                    if (!completion.notes.isNullOrBlank()) {
+                    if (!event.notes.isNullOrBlank()) {
                         Text(
-                            text = completion.notes,
+                            text = event.notes!!,
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     
-                    completion.cost?.let { cost ->
+                    event.actualCost?.let { cost ->
                         Text(
                             text = "Cost: $${String.format("%.2f", cost)}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    
+                    event.actualTime?.let { time ->
+                        Text(
+                            text = "Time: ${time}min",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -491,10 +642,25 @@ private fun CompletedMaintenanceCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Completed: ${dateFormat.format(completion.completedAt)}",
+                    text = "Completed: ${dateFormat.format(event.completedAt!!)}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+
+                // Link to template
+                TextButton(
+                    onClick = onNavigateToTemplate,
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Text("View Template")
+                    Icon(
+                        Icons.Default.ArrowForward,
+                        contentDescription = "Go to template",
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
             }
         }
     }
@@ -503,7 +669,7 @@ private fun CompletedMaintenanceCard(
 @Composable
 private fun EmptyMaintenanceState(
     tab: MaintenanceTab,
-    onCreateTask: () -> Unit,
+    onCreateTemplate: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -513,9 +679,9 @@ private fun EmptyMaintenanceState(
     ) {
         Text(
             text = when (tab) {
-                MaintenanceTab.All -> "No maintenance tasks"
-                MaintenanceTab.Upcoming -> "No upcoming tasks"
-                MaintenanceTab.Complete -> "No completed tasks"
+                MaintenanceTab.Schedule -> "No maintenance templates"
+                MaintenanceTab.Upcoming -> "No upcoming events"
+                MaintenanceTab.Complete -> "No completed events"
             },
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -523,25 +689,24 @@ private fun EmptyMaintenanceState(
         
         Text(
             text = when (tab) {
-                MaintenanceTab.All -> "Create your first maintenance task to keep track of boat maintenance schedules."
-                MaintenanceTab.Upcoming -> "No maintenance tasks are due in the next 90 days or overdue."
-                MaintenanceTab.Complete -> "No maintenance tasks have been completed yet."
+                MaintenanceTab.Schedule -> "Create your first maintenance template to schedule recurring maintenance tasks."
+                MaintenanceTab.Upcoming -> "No maintenance events are due in the next 90 days or overdue."
+                MaintenanceTab.Complete -> "No maintenance events have been completed yet."
             },
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        if (tab == MaintenanceTab.All) {
-            Button(onClick = onCreateTask) {
-                Text("Create Maintenance Task")
+        if (tab == MaintenanceTab.Schedule) {
+            Button(onClick = onCreateTemplate) {
+                Text("Create Maintenance Template")
             }
         }
     }
 }
 
 enum class MaintenanceTab(val title: String) {
-    All("All"),
+    Schedule("Schedule"),
     Upcoming("Upcoming"),
     Complete("Complete")
 }
-

@@ -1,4 +1,4 @@
-import { PrismaClient, Notification, MaintenanceTask, Boat } from '@prisma/client';
+import { PrismaClient, Notification, MaintenanceTemplate, MaintenanceEvent, Boat } from '@prisma/client';
 import { logger } from '../utils/logger';
 
 const prisma = new PrismaClient();
@@ -165,68 +165,77 @@ export class NotificationService {
   }
 
   /**
-   * Check for maintenance tasks due within the specified number of days
+   * Check for maintenance events due within the specified number of days
    * and create notifications for them (respecting boat enabled status)
    */
   async checkMaintenanceDue(daysAhead: number = 7): Promise<Notification[]> {
     const now = new Date();
     const futureDate = new Date();
     futureDate.setDate(now.getDate() + daysAhead);
+    futureDate.setHours(23, 59, 59, 999); // Include the entire last day
 
-    // Find maintenance tasks due within the specified timeframe
-    // Include overdue tasks (they should show as "due today")
-    // Only include tasks for enabled boats
-    const dueTasks = await prisma.maintenanceTask.findMany({
+    // Find maintenance events due within the specified timeframe
+    // Include overdue events (they should show as "due today")
+    // Only include events for enabled boats and active templates
+    const dueEvents = await prisma.maintenanceEvent.findMany({
       where: {
         dueDate: {
           lte: futureDate
         },
-        boat: {
-          enabled: true // Only create notifications for enabled boats
+        completedAt: null, // Only incomplete events
+        template: {
+          isActive: true,
+          boat: {
+            enabled: true // Only create notifications for enabled boats
+          }
         }
       },
       include: {
-        boat: true
+        template: {
+          include: {
+            boat: true
+          }
+        }
       }
     });
 
     const notifications: Notification[] = [];
 
-    for (const task of dueTasks) {
-      // Check if we already have a notification for this task
+    for (const event of dueEvents) {
+      // Check if we already have a notification for this event
       const existingNotification = await prisma.notification.findFirst({
         where: {
           type: 'maintenance_due',
-          entityType: 'maintenance_task',
-          entityId: task.id,
+          entityType: 'maintenance_event',
+          entityId: event.id,
           read: false
         }
       });
 
       // Only create notification if one doesn't already exist
       if (!existingNotification) {
-        const daysUntilDue = Math.ceil((task.dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        const daysUntilDue = Math.ceil((event.dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
         
         let title: string;
         let message: string;
 
-        if (daysUntilDue === 0) {
+        if (daysUntilDue <= 0) {
           title = 'Maintenance Due Today';
-          message = `${task.title} is due today for ${task.boat.name}`;
+          message = `${event.template.title.trim()} is due today for ${event.template.boat.name.trim()}`;
         } else if (daysUntilDue === 1) {
           title = 'Maintenance Due Tomorrow';
-          message = `${task.title} is due tomorrow for ${task.boat.name}`;
+          message = `${event.template.title.trim()} is due tomorrow for ${event.template.boat.name.trim()}`;
         } else {
           title = 'Maintenance Due Soon';
-          message = `${task.title} is due in ${daysUntilDue} days for ${task.boat.name}`;
+          message = `${event.template.title.trim()} is due in ${daysUntilDue} days for ${event.template.boat.name.trim()}`;
         }
 
         const notification = await this.createNotification({
           type: 'maintenance_due',
           title,
           message,
-          entityType: 'maintenance_task',
-          entityId: task.id
+          entityType: 'maintenance_event',
+          entityId: event.id
         });
 
         notifications.push(notification);
@@ -235,7 +244,7 @@ export class NotificationService {
 
     logger.info('Maintenance due check completed', {
       daysAhead,
-      tasksFound: dueTasks.length,
+      eventsFound: dueEvents.length,
       notificationsCreated: notifications.length
     });
 
@@ -243,26 +252,34 @@ export class NotificationService {
   }
 
   /**
-   * Get maintenance tasks that are due within the specified number of days
+   * Get maintenance events that are due within the specified number of days
    * (for enabled boats only)
    */
-  async getUpcomingMaintenanceTasks(daysAhead: number = 7): Promise<(MaintenanceTask & { boat: Boat })[]> {
+  async getUpcomingMaintenanceEvents(daysAhead: number = 7): Promise<(MaintenanceEvent & { template: MaintenanceTemplate & { boat: Boat } })[]> {
     const now = new Date();
     const futureDate = new Date();
     futureDate.setDate(now.getDate() + daysAhead);
 
-    return await prisma.maintenanceTask.findMany({
+    return await prisma.maintenanceEvent.findMany({
       where: {
         dueDate: {
           gte: now,
           lte: futureDate
         },
-        boat: {
-          enabled: true // Only return tasks for enabled boats
+        completedAt: null, // Only incomplete events
+        template: {
+          isActive: true,
+          boat: {
+            enabled: true // Only return events for enabled boats
+          }
         }
       },
       include: {
-        boat: true
+        template: {
+          include: {
+            boat: true
+          }
+        }
       },
       orderBy: {
         dueDate: 'asc'
@@ -275,25 +292,29 @@ export class NotificationService {
    * This should be called when a boat is disabled
    */
   async removeNotificationsForBoat(boatId: string): Promise<number> {
-    // Find all maintenance tasks for this boat
-    const maintenanceTasks = await prisma.maintenanceTask.findMany({
-      where: { boatId },
+    // Find all maintenance events for this boat's templates
+    const maintenanceEvents = await prisma.maintenanceEvent.findMany({
+      where: { 
+        template: {
+          boatId
+        }
+      },
       select: { id: true }
     });
 
-    const taskIds = maintenanceTasks.map(task => task.id);
+    const eventIds = maintenanceEvents.map(event => event.id);
 
-    if (taskIds.length === 0) {
+    if (eventIds.length === 0) {
       return 0;
     }
 
-    // Delete notifications for these maintenance tasks
+    // Delete notifications for these maintenance events
     const result = await prisma.notification.deleteMany({
       where: {
         type: 'maintenance_due',
-        entityType: 'maintenance_task',
+        entityType: 'maintenance_event',
         entityId: {
-          in: taskIds
+          in: eventIds
         }
       }
     });
@@ -304,6 +325,102 @@ export class NotificationService {
     });
 
     return result.count;
+  }
+
+  /**
+   * Remove notifications when maintenance events are completed
+   * This should be called when an event is marked as completed
+   */
+  async removeNotificationsForCompletedEvent(eventId: string): Promise<number> {
+    const result = await prisma.notification.deleteMany({
+      where: {
+        type: 'maintenance_due',
+        entityType: 'maintenance_event',
+        entityId: eventId
+      }
+    });
+
+    logger.info('Notifications removed for completed maintenance event', {
+      eventId,
+      notificationsRemoved: result.count
+    });
+
+    return result.count;
+  }
+
+  /**
+   * Update notification schedules when template changes affect timing
+   * This should be called when template recurrence or other timing-related fields change
+   */
+  async updateNotificationSchedulesForTemplate(templateId: string): Promise<number> {
+    // Find all future (incomplete) events for this template
+    const futureEvents = await prisma.maintenanceEvent.findMany({
+      where: {
+        templateId,
+        completedAt: null,
+        dueDate: {
+          gt: new Date()
+        }
+      },
+      include: {
+        template: {
+          include: {
+            boat: true
+          }
+        }
+      }
+    });
+
+    let notificationsUpdated = 0;
+
+    for (const event of futureEvents) {
+      // Remove existing notifications for this event
+      await prisma.notification.deleteMany({
+        where: {
+          type: 'maintenance_due',
+          entityType: 'maintenance_event',
+          entityId: event.id
+        }
+      });
+
+      // Check if this event should have a notification (within 7 days and boat enabled)
+      const now = new Date();
+      const daysUntilDue = Math.ceil((event.dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (daysUntilDue <= 7 && daysUntilDue >= 0 && event.template.boat.enabled && event.template.isActive) {
+        let title: string;
+        let message: string;
+
+        if (daysUntilDue <= 0) {
+          title = 'Maintenance Due Today';
+          message = `${event.template.title.trim()} is due today for ${event.template.boat.name.trim()}`;
+        } else if (daysUntilDue === 1) {
+          title = 'Maintenance Due Tomorrow';
+          message = `${event.template.title.trim()} is due tomorrow for ${event.template.boat.name.trim()}`;
+        } else {
+          title = 'Maintenance Due Soon';
+          message = `${event.template.title.trim()} is due in ${daysUntilDue} days for ${event.template.boat.name.trim()}`;
+        }
+
+        await this.createNotification({
+          type: 'maintenance_due',
+          title,
+          message,
+          entityType: 'maintenance_event',
+          entityId: event.id
+        });
+
+        notificationsUpdated++;
+      }
+    }
+
+    logger.info('Notification schedules updated for template', {
+      templateId,
+      eventsProcessed: futureEvents.length,
+      notificationsUpdated
+    });
+
+    return notificationsUpdated;
   }
 }
 

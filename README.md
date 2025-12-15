@@ -66,6 +66,96 @@ npm test                # Run all tests
 npm run test:property   # Run property-based tests only
 ```
 
+#### Universal Property Test Runner
+
+The project includes a universal property test runner that can execute property-based tests across all platforms (backend and Android) with AI-friendly output and comprehensive reporting.
+
+**Prerequisites:**
+- For backend tests: Docker services must be running (`docker-compose up -d`)
+- For Android tests: Android SDK and build tools must be installed
+- Node.js dependencies installed in backend directory (`cd backend && npm install`)
+
+**Basic Usage:**
+```bash
+# Run all property tests across all platforms
+./run-property-tests.sh
+
+# Run only backend property tests
+./run-property-tests.sh --backend-only
+
+# Run only Android property tests
+./run-property-tests.sh --android-only
+
+# Run specific tests (e.g., auth-related)
+./run-property-tests.sh --tests auth
+
+# Run with verbose output for debugging
+./run-property-tests.sh --verbose
+
+# Run with custom iteration count (default: 100)
+./run-property-tests.sh --iterations 200
+
+# Set timeout per platform (default: 300 seconds)
+./run-property-tests.sh --timeout 600
+
+# Show all available options
+./run-property-tests.sh --help
+```
+
+**Key Features:**
+- **Cross-Platform**: Runs property tests on both backend (Jest + fast-check) and Android (Kotest)
+- **AI-Friendly Output**: Minimal progress indicators during execution, detailed failure extraction
+- **Comprehensive Reporting**: Clear pass/fail status with execution time and test counts
+- **Configurable**: Supports test filtering, custom iteration counts, and platform selection
+- **Context Preservation**: Extracts failure details for debugging and AI analysis
+
+**Example Output:**
+```
+Universal Property Test Runner
+Boat Tracking System
+
+========================================
+BACKEND PROPERTY TESTS
+========================================
+Found 15 backend property test files
+✓ Backend property tests passed
+
+========================================
+ANDROID PROPERTY TESTS
+========================================
+Found 3 Android property test files
+✓ Android property tests passed
+
+========================================
+PROPERTY TEST EXECUTION REPORT
+========================================
+
+Configuration:
+  Iterations per test: 100
+  Timeout per platform: 300s
+  Backend enabled: true
+  Android enabled: true
+
+Platform Results:
+  Backend:  ✓ PASSED (15/15 tests)
+  Android:  ✓ PASSED (3/3 tests)
+
+Overall Summary:
+  Total tests: 18
+  Passed: 18
+  Failed: 0
+  Duration: 2m 34s
+
+✓✓✓ ALL PROPERTY TESTS PASSED ✓✓✓
+Property-based testing validation complete
+```
+
+This runner is particularly useful for:
+- **Continuous Integration**: Validate all property tests in a single command
+- **Development Workflow**: Quick validation after making changes
+- **AI-Assisted Debugging**: Clean failure output for automated analysis
+- **Task Validation**: Ensure all property tests pass consecutively (required by testing workflow)
+
 ### Docker Commands
 
 ```bash

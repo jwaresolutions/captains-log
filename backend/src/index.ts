@@ -10,7 +10,10 @@ import tripRoutes from './routes/trips';
 import captainLogRoutes from './routes/captainLog';
 import noteRoutes from './routes/notes';
 import todoRoutes from './routes/todos';
-import maintenanceRoutes from './routes/maintenance';
+import maintenanceRoutes from './routes/maintenance-simple';
+import maintenanceTemplateRoutes from './routes/maintenance-templates';
+import maintenanceEventRoutes from './routes/maintenance-events';
+import offlineSyncRoutes from './routes/offline-sync';
 import notificationRoutes from './routes/notifications';
 import locationRoutes from './routes/locations';
 import photoRoutes from './routes/photos';
@@ -25,9 +28,9 @@ dotenv.config();
 const app: Express = express();
 const port = process.env.PORT || 8585;
 
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Middleware - increase limits for trip data with GPS points
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Rate limiting (apply to all routes)
 app.use(apiRateLimiter);
@@ -64,6 +67,9 @@ app.get('/api/v1', (_req: Request, res: Response) => {
       notes: '/api/v1/notes',
       todos: '/api/v1/todos',
       maintenance: '/api/v1/maintenance',
+      maintenanceTemplates: '/api/v1/maintenance/templates',
+      maintenanceEvents: '/api/v1/maintenance/events',
+      offlineSync: '/api/v1/offline-sync',
       notifications: '/api/v1/notifications',
       locations: '/api/v1/locations',
       photos: '/api/v1/photos',
@@ -96,6 +102,15 @@ app.use('/api/v1/todos', authenticateToken, todoRoutes);
 
 // Maintenance routes (requires authentication)
 app.use('/api/v1/maintenance', authenticateToken, maintenanceRoutes);
+
+// Maintenance template routes (requires authentication)
+app.use('/api/v1/maintenance/templates', authenticateToken, maintenanceTemplateRoutes);
+
+// Maintenance event routes (requires authentication)
+app.use('/api/v1/maintenance/events', authenticateToken, maintenanceEventRoutes);
+
+// Offline sync routes (requires authentication)
+app.use('/api/v1/offline-sync', authenticateToken, offlineSyncRoutes);
 
 // Notification routes (requires authentication)
 app.use('/api/v1/notifications', authenticateToken, notificationRoutes);

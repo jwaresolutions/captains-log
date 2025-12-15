@@ -17,7 +17,8 @@
     "list-users": "tsx src/scripts/list-users-cli.ts",
     "change-password": "tsx src/scripts/change-password-cli.ts",
     "reset-db": "tsx src/scripts/reset-db-cli.ts",
-    "seed-db": "tsx src/scripts/seed-db-cli.ts"
+    "seed-db": "tsx src/scripts/seed-db-cli.ts",
+    "maintenance-migration": "node scripts/maintenance-migration-cleanup.js"
   },
   "keywords": [
     "boat",

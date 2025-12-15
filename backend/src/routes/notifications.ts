@@ -238,7 +238,7 @@ router.get('/upcoming-maintenance', async (req: Request, res: Response) => {
   try {
     const { daysAhead = 7 } = req.query;
 
-    const tasks = await notificationService.getUpcomingMaintenanceTasks(Number(daysAhead));
+    const tasks = await notificationService.getUpcomingMaintenanceEvents(Number(daysAhead));
 
     res.json({
       tasks,

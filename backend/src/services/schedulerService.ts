@@ -1,14 +1,16 @@
 import * as cron from 'node-cron';
 import { notificationService } from './notificationService';
+import { eventGeneratorService } from './eventGeneratorService';
 import { logger } from '../utils/logger';
 
 /**
  * Scheduler Service
- * Handles scheduled tasks like maintenance due date checking
+ * Handles scheduled tasks like maintenance due date checking and daily maintenance automation
  */
 export class SchedulerService {
   private maintenanceCheckJob: cron.ScheduledTask | null = null;
   private cleanupJob: cron.ScheduledTask | null = null;
+  private dailyMaintenanceJob: cron.ScheduledTask | null = null;
 
   /**
    * Start all scheduled jobs
@@ -16,6 +18,7 @@ export class SchedulerService {
   start(): void {
     this.startMaintenanceCheck();
     this.startNotificationCleanup();
+    this.startDailyMaintenanceTask();
     logger.info('Scheduler service started');
   }
 
@@ -31,6 +34,11 @@ export class SchedulerService {
     if (this.cleanupJob) {
       this.cleanupJob.stop();
       this.cleanupJob = null;
+    }
+
+    if (this.dailyMaintenanceJob) {
+      this.dailyMaintenanceJob.stop();
+      this.dailyMaintenanceJob = null;
     }
 
     logger.info('Scheduler service stopped');
@@ -91,6 +99,46 @@ export class SchedulerService {
   }
 
   /**
+   * Start the daily maintenance task automation job
+   * Runs every day at midnight UTC to generate missing maintenance events
+   */
+  private startDailyMaintenanceTask(): void {
+    // Run every day at midnight UTC
+    this.dailyMaintenanceJob = cron.schedule('0 0 * * *', async () => {
+      try {
+        logger.info('Starting daily maintenance task automation');
+        
+        const report = await eventGeneratorService.generateMissingEvents();
+        
+        logger.info('Daily maintenance task automation completed', {
+          templatesProcessed: report.templatesProcessed,
+          eventsCreated: report.eventsCreated,
+          errorsCount: report.errors.length
+        });
+
+        // Log individual errors if any occurred
+        if (report.errors.length > 0) {
+          report.errors.forEach((error, index) => {
+            logger.error(`Daily maintenance task error ${index + 1}`, { error });
+          });
+        }
+      } catch (error) {
+        logger.error('Critical error in daily maintenance task automation', {
+          error: error instanceof Error ? error.message : error,
+          stack: error instanceof Error ? error.stack : undefined
+        });
+        
+        // Implement retry logic for critical failures
+        await this.retryDailyMaintenanceTask();
+      }
+    }, {
+      timezone: 'UTC'
+    });
+
+    logger.info('Daily maintenance task automation scheduled (daily at midnight UTC)');
+  }
+
+  /**
    * Manually trigger maintenance due check (for testing)
    */
   async triggerMaintenanceCheck(): Promise<void> {
@@ -127,6 +175,83 @@ export class SchedulerService {
         error: error instanceof Error ? error.message : error
       });
       throw error;
+    }
+  }
+
+  /**
+   * Manually trigger daily maintenance task automation (for testing)
+   */
+  async triggerDailyMaintenanceTask(): Promise<void> {
+    try {
+      logger.info('Manual daily maintenance task automation triggered');
+      
+      const report = await eventGeneratorService.generateMissingEvents();
+      
+      logger.info('Manual daily maintenance task automation completed', {
+        templatesProcessed: report.templatesProcessed,
+        eventsCreated: report.eventsCreated,
+        errorsCount: report.errors.length
+      });
+
+      // Log individual errors if any occurred
+      if (report.errors.length > 0) {
+        report.errors.forEach((error, index) => {
+          logger.error(`Manual daily maintenance task error ${index + 1}`, { error });
+        });
+      }
+    } catch (error) {
+      logger.error('Error in manual daily maintenance task automation', {
+        error: error instanceof Error ? error.message : error
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Retry logic for failed daily maintenance task executions
+   * Implements exponential backoff with maximum 3 retry attempts
+   */
+  private async retryDailyMaintenanceTask(): Promise<void> {
+    const maxRetries = 3;
+    const baseDelay = 5000; // 5 seconds
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        logger.info(`Retrying daily maintenance task automation (attempt ${attempt}/${maxRetries})`);
+        
+        // Exponential backoff delay
+        const delay = baseDelay * Math.pow(2, attempt - 1);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        
+        const report = await eventGeneratorService.generateMissingEvents();
+        
+        logger.info(`Daily maintenance task automation retry ${attempt} succeeded`, {
+          templatesProcessed: report.templatesProcessed,
+          eventsCreated: report.eventsCreated,
+          errorsCount: report.errors.length
+        });
+
+        // Log individual errors if any occurred
+        if (report.errors.length > 0) {
+          report.errors.forEach((error, index) => {
+            logger.error(`Daily maintenance task retry ${attempt} error ${index + 1}`, { error });
+          });
+        }
+
+        return; // Success, exit retry loop
+      } catch (error) {
+        logger.error(`Daily maintenance task automation retry ${attempt} failed`, {
+          error: error instanceof Error ? error.message : error,
+          attemptsRemaining: maxRetries - attempt
+        });
+
+        if (attempt === maxRetries) {
+          logger.error('Daily maintenance task automation failed after all retry attempts', {
+            totalAttempts: maxRetries,
+            finalError: error instanceof Error ? error.message : error
+          });
+        }
+      }
     }
   }
 }

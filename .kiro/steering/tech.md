@@ -103,8 +103,8 @@ npm run dev
 # Run tests
 npm test
 
-# Run property tests
-npm run test:property
+# Run property tests (MANDATORY: use universal runner)
+./run-property-tests.sh
 
 # Build for production
 npm run build

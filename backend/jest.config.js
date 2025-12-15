@@ -6,6 +6,7 @@ module.exports = {
   roots: ['<rootDir>/tests'],
   testMatch: ['**/*.test.ts'],
   maxWorkers: 1, // Run tests serially to avoid database conflicts
+  testTimeout: 10000, // 10 seconds timeout for all tests
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/**/*.d.ts',
