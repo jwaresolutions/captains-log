@@ -32,15 +32,15 @@ class BoatViewModel(application: Application) : AndroidViewModel(application) {
     val successMessage: StateFlow<String?> = _successMessage
 
     init {
-        val database = AppDatabase.getDatabase(application)
+        val database = AppDatabase.getInstance(application)
         connectionManager = ConnectionManager.getInstance(application)
         connectionManager.initialize()
         
         // Initialize repository with ConnectionManager
-        repository = BoatRepository(database, connectionManager)
+        repository = BoatRepository(database, connectionManager, application)
         
-        // Initial sync from API (async)
-        syncBoatsFromApi()
+        // Comprehensive sync is now handled by MainActivity on startup
+        // Individual boat operations will still trigger immediate sync via repository
     }
 
     /**
@@ -142,6 +142,30 @@ class BoatViewModel(application: Application) : AndroidViewModel(application) {
             _isLoading.value = true
             repository.syncBoatsToApi()
             _isLoading.value = false
+        }
+    }
+
+    /**
+     * Perform full bidirectional sync using comprehensive sync manager
+     */
+    fun performFullSync() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            
+            try {
+                val database = (getApplication<Application>() as com.captainslog.BoatTrackingApplication).database
+                val comprehensiveSyncManager = com.captainslog.sync.ComprehensiveSyncManager.getInstance(getApplication(), database)
+                
+                // Trigger comprehensive sync for all data types
+                comprehensiveSyncManager.performFullSync()
+                
+                _successMessage.value = "Comprehensive sync started"
+            } catch (e: Exception) {
+                _error.value = "Sync failed: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
         }
     }
 

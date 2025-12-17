@@ -4,6 +4,20 @@ import { authService } from '../services/authService';
 
 const router = Router();
 
+// Add CORS headers to all auth routes
+router.use((req: Request, res: Response, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  next();
+});
+
 /**
  * POST /api/v1/auth/login
  * Login with username and password
@@ -30,7 +44,7 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
     // Attempt login
     const result = await authService.login(username, password);
 
-    // Return user info and token
+    // Return user info and token directly (Android app expects this format)
     res.status(200).json({
       user: result.user,
       token: result.token,

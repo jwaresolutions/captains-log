@@ -1,10 +1,18 @@
 import java.util.Properties
+import java.io.FileInputStream
 
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.devtools.ksp")
+}
+
+// Load environment variables from root .env file
+val envFile = file("../../.env")
+val envProps = Properties()
+if (envFile.exists()) {
+    envProps.load(FileInputStream(envFile))
 }
 
 android {
@@ -31,6 +39,10 @@ android {
             // Allow HTTP connections and disable certificate pinning for development
             buildConfigField("Boolean", "ALLOW_HTTP", "true")
             buildConfigField("Boolean", "REQUIRE_CERT_PINNING", "false")
+            
+            // Default server URL from environment
+            val defaultServerUrl = envProps.getProperty("DEFAULT_SERVER_URL") ?: "http://10.0.0.145:8585"
+            buildConfigField("String", "DEFAULT_SERVER_URL", "\"$defaultServerUrl\"")
         }
         release {
             isMinifyEnabled = false
@@ -41,6 +53,10 @@ android {
             // Require HTTPS and certificate pinning in production
             buildConfigField("Boolean", "ALLOW_HTTP", "false")
             buildConfigField("Boolean", "REQUIRE_CERT_PINNING", "true")
+            
+            // Default server URL from environment
+            val defaultServerUrl = envProps.getProperty("DEFAULT_SERVER_URL") ?: "https://boat.jware.dev"
+            buildConfigField("String", "DEFAULT_SERVER_URL", "\"$defaultServerUrl\"")
         }
     }
 
@@ -83,6 +99,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
     implementation("androidx.compose.runtime:runtime-livedata:1.7.5")
     implementation("androidx.navigation:navigation-compose:2.8.4")

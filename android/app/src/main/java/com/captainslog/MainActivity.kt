@@ -13,13 +13,16 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.captainslog.connection.ConnectionManager
+import com.captainslog.network.NetworkMonitor
 import com.captainslog.security.SecurePreferences
+import com.captainslog.sync.ImmediateSyncService
 import com.captainslog.ui.auth.LoginScreen
-
+import com.captainslog.ui.components.ConnectivityStatusBar
 import com.captainslog.ui.theme.BoatTrackingTheme
 import com.captainslog.ui.MainNavigation
 import com.captainslog.util.PermissionManager
@@ -31,6 +34,7 @@ class MainActivity : ComponentActivity() {
     
     private lateinit var securePreferences: SecurePreferences
     private lateinit var connectionManager: ConnectionManager
+    private lateinit var networkMonitor: NetworkMonitor
     private var permissionsGranted by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,6 +44,7 @@ class MainActivity : ComponentActivity() {
         
         securePreferences = SecurePreferences(this)
         connectionManager = ConnectionManager.getInstance(this)
+        networkMonitor = NetworkMonitor.getInstance(this)
         
         // Set up token expiration callback
         connectionManager.onTokenExpired = {
@@ -129,6 +134,14 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        // Cleanup network monitor
+        if (::networkMonitor.isInitialized) {
+            networkMonitor.cleanup()
+        }
+    }
 }
 
 @Composable
@@ -150,8 +163,98 @@ fun MainContent(
 
 @Composable
 fun MainApp() {
-    // Main app with bottom navigation
-    MainNavigation()
+    // Get network and sync status
+    val networkMonitor = NetworkMonitor.getInstance(LocalContext.current)
+    val isConnected by networkMonitor.isConnected.collectAsState()
+    val connectionType by networkMonitor.connectionType.collectAsState()
+    
+    // Get database and sync services
+    val context = LocalContext.current
+    val database = (context.applicationContext as BoatTrackingApplication).database
+    val immediateSyncService = ImmediateSyncService.getInstance(context, database)
+    val isSyncing by immediateSyncService.isSyncing.collectAsState()
+    val syncConflicts by immediateSyncService.syncConflicts.collectAsState()
+    
+    // Get comprehensive sync manager
+    val comprehensiveSyncManager = remember { 
+        com.captainslog.sync.ComprehensiveSyncManager.getInstance(context, database)
+    }
+    val isComprehensiveSyncing by comprehensiveSyncManager.isSyncing.collectAsState()
+    val syncProgress by comprehensiveSyncManager.syncProgress.collectAsState()
+    
+    // Trigger comprehensive sync on app startup and when network connects
+    LaunchedEffect(Unit) {
+        Log.d("MainActivity", "App started, checking for sync...")
+        if (isConnected) {
+            Log.d("MainActivity", "Network available, starting immediate sync...")
+            comprehensiveSyncManager.performFullSync()
+        } else {
+            Log.d("MainActivity", "No network, will sync when connected")
+        }
+    }
+    
+    // Also trigger sync when network becomes available
+    LaunchedEffect(isConnected) {
+        if (isConnected) {
+            Log.d("MainActivity", "Network connected, starting comprehensive sync...")
+            comprehensiveSyncManager.performFullSync()
+        }
+    }
+    
+    // Get offline status
+    val offlineChangeService = remember { 
+        com.captainslog.sync.OfflineChangeService(database.offlineChangeDao()) 
+    }
+    var offlineStatus by remember { 
+        mutableStateOf(com.captainslog.sync.OfflineStatus(false, 0, 0, null)) 
+    }
+    
+    // Update offline status
+    LaunchedEffect(Unit) {
+        offlineStatus = offlineChangeService.getOfflineStatus()
+    }
+    
+    // Navigation state for sync conflict screen
+    var showSyncConflicts by remember { mutableStateOf(false) }
+    
+    Column(modifier = Modifier.fillMaxSize()) {
+        // Connectivity status bar at the top
+        ConnectivityStatusBar(
+            isConnected = isConnected,
+            connectionType = connectionType,
+            offlineStatus = offlineStatus,
+            isSyncing = isSyncing || isComprehensiveSyncing,
+            hasUnresolvedConflicts = syncConflicts.isNotEmpty(),
+            onSyncConflictClick = { showSyncConflicts = true }
+        )
+        
+        // Show sync progress if comprehensive sync is running
+        syncProgress?.let { progress ->
+            LinearProgressIndicator(
+                progress = { progress.percentage / 100f },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Text(
+                text = progress.message,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        
+        // Main app content
+        if (showSyncConflicts) {
+            com.captainslog.ui.sync.SyncConflictScreen(
+                conflicts = syncConflicts,
+                onBack = { showSyncConflicts = false },
+                onResolveConflict = { conflictId, useLocal ->
+                    immediateSyncService.resolveSyncConflict(conflictId, useLocal)
+                }
+            )
+        } else {
+            MainNavigation()
+        }
+    }
 }
 
 @Composable

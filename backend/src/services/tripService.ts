@@ -1,4 +1,4 @@
-import { PrismaClient, Trip, GPSPoint } from '@prisma/client';
+import { PrismaClient, Trip, GPSPoint, Boat } from '@prisma/client';
 import { logger } from '../utils/logger';
 import { determineTripTimezone } from './timezoneService';
 
@@ -65,6 +65,7 @@ export interface StopPoint {
 
 export interface TripWithGPS extends Trip {
   gpsPoints: GPSPoint[];
+  boat: Boat;
 }
 
 export class TripService {
@@ -439,7 +440,11 @@ export class TripService {
       }
     });
 
-    return trip;
+    if (!trip) {
+      return null;
+    }
+
+    return this.transformTripForAPI(trip);
   }
 
   /**
@@ -473,12 +478,15 @@ export class TripService {
     const trips = await prisma.trip.findMany({
       where,
       include: {
-        boat: true
+        boat: true,
+        gpsPoints: {
+          orderBy: { timestamp: 'asc' }
+        }
       },
       orderBy: { startTime: 'desc' }
     });
 
-    return trips;
+    return trips.map(trip => this.transformTripForAPI(trip));
   }
 
   /**
@@ -530,6 +538,73 @@ export class TripService {
     });
 
     logger.info('Trip deleted', { tripId: id });
+  }
+
+  /**
+   * Transform a raw Prisma trip to the format expected by the web application
+   */
+  private transformTripForAPI(trip: any): any {
+    console.log('Transforming trip:', trip.id, 'with statistics:', {
+      durationSeconds: trip.durationSeconds,
+      distanceMeters: trip.distanceMeters
+    });
+    
+    // Extract stop points from GPS points
+    const stopPoints = trip.gpsPoints 
+      ? trip.gpsPoints
+          .filter((point: any) => point.isStopPoint)
+          .map((point: any) => ({
+            latitude: point.latitude,
+            longitude: point.longitude,
+            startTime: point.timestamp,
+            endTime: point.timestamp, // For now, use same timestamp
+            durationSeconds: 300 // Default 5 minutes for stop points
+          }))
+      : [];
+
+    // Create the transformed trip object
+    const transformed = {
+      id: trip.id,
+      boatId: trip.boatId,
+      startTime: trip.startTime,
+      endTime: trip.endTime,
+      waterType: trip.waterType,
+      role: trip.role,
+      timezone: trip.timezone,
+      createdAt: trip.createdAt,
+      updatedAt: trip.updatedAt,
+      // Statistics directly on trip object for property tests
+      durationSeconds: trip.durationSeconds || 0,
+      distanceMeters: trip.distanceMeters || 0,
+      averageSpeedKnots: trip.averageSpeedKnots || 0,
+      maxSpeedKnots: trip.maxSpeedKnots || 0,
+      // Manual data fields directly on trip object (matching Prisma model)
+      engineHours: trip.engineHours,
+      fuelConsumed: trip.fuelConsumed,
+      weatherConditions: trip.weatherConditions,
+      numberOfPassengers: trip.numberOfPassengers,
+      destination: trip.destination,
+      gpsPoints: trip.gpsPoints || [],
+      boat: trip.boat,
+      statistics: {
+        durationSeconds: trip.durationSeconds || 0,
+        distanceMeters: trip.distanceMeters || 0,
+        averageSpeedKnots: trip.averageSpeedKnots || 0,
+        maxSpeedKnots: trip.maxSpeedKnots || 0,
+        stopPoints: stopPoints
+      },
+      manualData: {
+        engineHours: trip.engineHours,
+        fuelConsumed: trip.fuelConsumed,
+        weatherConditions: trip.weatherConditions,
+        numberOfPassengers: trip.numberOfPassengers,
+        destination: trip.destination
+      },
+      notes: trip.notes || [],
+      photos: trip.photos || []
+    };
+
+    return transformed;
   }
 }
 

@@ -512,6 +512,255 @@ describe('Trip Service Property Tests', () => {
   });
 
   /**
+   * **Feature: boat-tracking-system, Property 13: Trip Display Completeness**
+   * **Validates: Requirements 5.1**
+   * 
+   * For any trip, displaying the trip should show start time, end time, duration, distance,
+   * average speed, water type, boat name, role, and GPS route.
+   */
+  describe('Property 13: Trip Display Completeness', () => {
+    test('should display all required fields for any trip', async () => {
+      // Use deterministic mock data for different trip scenarios
+      const mockScenarios = [
+        {
+          waterType: 'inland' as const,
+          role: 'captain' as const,
+          points: [
+            { lat: 40.7128, lon: -74.0060, time: new Date('2024-01-01T10:00:00Z') },
+            { lat: 40.7138, lon: -74.0070, time: new Date('2024-01-01T10:05:00Z') },
+            { lat: 40.7148, lon: -74.0080, time: new Date('2024-01-01T10:10:00Z') }
+          ]
+        },
+        {
+          waterType: 'coastal' as const,
+          role: 'crew' as const,
+          points: [
+            { lat: 37.7749, lon: -122.4194, time: new Date('2024-02-01T08:00:00Z') },
+            { lat: 37.7849, lon: -122.4294, time: new Date('2024-02-01T08:30:00Z') },
+            { lat: 37.7949, lon: -122.4394, time: new Date('2024-02-01T09:00:00Z') },
+            { lat: 37.8049, lon: -122.4494, time: new Date('2024-02-01T09:30:00Z') }
+          ]
+        },
+        {
+          waterType: 'offshore' as const,
+          role: 'observer' as const,
+          points: [
+            { lat: 25.7617, lon: -80.1918, time: new Date('2024-03-01T14:00:00Z') },
+            { lat: 25.7627, lon: -80.1928, time: new Date('2024-03-01T14:01:00Z') },
+            { lat: 25.7637, lon: -80.1938, time: new Date('2024-03-01T14:02:00Z') },
+            { lat: 25.7647, lon: -80.1948, time: new Date('2024-03-01T14:03:00Z') },
+            { lat: 25.7657, lon: -80.1958, time: new Date('2024-03-01T14:04:00Z') }
+          ]
+        }
+      ];
+
+      // Verify boat exists
+      const boat = await boatService.getBoat(testBoatId);
+      if (!boat) {
+        throw new Error(`Test boat ${testBoatId} not found`);
+      }
+
+      for (const scenario of mockScenarios) {
+        const gpsPoints = scenario.points.map(p => ({
+          latitude: p.lat,
+          longitude: p.lon,
+          timestamp: p.time
+        }));
+
+        const startTime = gpsPoints[0].timestamp;
+        const endTime = new Date(gpsPoints[gpsPoints.length - 1].timestamp.getTime() + 60000);
+
+        // Create trip
+        const trip = await tripService.createTrip({
+          boatId: testBoatId,
+          startTime,
+          endTime,
+          waterType: scenario.waterType,
+          role: scenario.role,
+          gpsPoints
+        });
+
+        // Retrieve trip for display (this simulates the display functionality)
+        const displayedTrip = await tripService.getTrip(trip.id);
+        expect(displayedTrip).toBeDefined();
+
+        // Verify all required display fields are present and valid
+        // Start time
+        expect(displayedTrip!.startTime).toBeDefined();
+        expect(displayedTrip!.startTime).toEqual(startTime);
+
+        // End time
+        expect(displayedTrip!.endTime).toBeDefined();
+        expect(displayedTrip!.endTime).toEqual(endTime);
+
+        // Duration (calculated from GPS points)
+        expect(displayedTrip!.durationSeconds).toBeDefined();
+        expect(displayedTrip!.durationSeconds).toBeGreaterThan(0);
+
+        // Distance (calculated from GPS points)
+        expect(displayedTrip!.distanceMeters).toBeDefined();
+        expect(displayedTrip!.distanceMeters).toBeGreaterThanOrEqual(0);
+
+        // Average speed (calculated from GPS points)
+        expect(displayedTrip!.averageSpeedKnots).toBeDefined();
+        expect(displayedTrip!.averageSpeedKnots).toBeGreaterThanOrEqual(0);
+
+        // Water type
+        expect(displayedTrip!.waterType).toBeDefined();
+        expect(displayedTrip!.waterType).toBe(scenario.waterType);
+
+        // Boat name (from associated boat)
+        expect(displayedTrip!.boat).toBeDefined();
+        expect(displayedTrip!.boat.name).toBeDefined();
+        expect(displayedTrip!.boat.name).toBe(boat.name);
+
+        // Role
+        expect(displayedTrip!.role).toBeDefined();
+        expect(displayedTrip!.role).toBe(scenario.role);
+
+        // GPS route (GPS points)
+        expect(displayedTrip!.gpsPoints).toBeDefined();
+        expect(displayedTrip!.gpsPoints.length).toBe(gpsPoints.length);
+        expect(displayedTrip!.gpsPoints.length).toBeGreaterThan(0);
+
+        // Verify GPS points have required fields for route display
+        for (const gpsPoint of displayedTrip!.gpsPoints) {
+          expect(gpsPoint.latitude).toBeDefined();
+          expect(gpsPoint.longitude).toBeDefined();
+          expect(gpsPoint.timestamp).toBeDefined();
+          expect(typeof gpsPoint.latitude).toBe('number');
+          expect(typeof gpsPoint.longitude).toBe('number');
+          expect(gpsPoint.timestamp instanceof Date).toBe(true);
+        }
+
+        // Clean up
+        await tripService.deleteTrip(trip.id);
+      }
+    });
+
+    test('should display complete trip information even with minimal GPS data', async () => {
+      // Verify boat exists
+      const boat = await boatService.getBoat(testBoatId);
+      if (!boat) {
+        throw new Error(`Test boat ${testBoatId} not found`);
+      }
+
+      // Test with minimal GPS data (just 2 points)
+      const gpsPoints = [
+        {
+          latitude: 40.7128,
+          longitude: -74.0060,
+          timestamp: new Date('2024-01-01T10:00:00Z')
+        },
+        {
+          latitude: 40.7138,
+          longitude: -74.0070,
+          timestamp: new Date('2024-01-01T10:05:00Z')
+        }
+      ];
+
+      const startTime = gpsPoints[0].timestamp;
+      const endTime = new Date(gpsPoints[1].timestamp.getTime() + 60000);
+
+      // Create trip with defaults
+      const trip = await tripService.createTrip({
+        boatId: testBoatId,
+        startTime,
+        endTime,
+        gpsPoints
+        // waterType and role will use defaults
+      });
+
+      // Retrieve trip for display
+      const displayedTrip = await tripService.getTrip(trip.id);
+      expect(displayedTrip).toBeDefined();
+
+      // All required fields should still be present with defaults
+      expect(displayedTrip!.startTime).toEqual(startTime);
+      expect(displayedTrip!.endTime).toEqual(endTime);
+      expect(displayedTrip!.durationSeconds).toBeGreaterThan(0);
+      expect(displayedTrip!.distanceMeters).toBeGreaterThanOrEqual(0);
+      expect(displayedTrip!.averageSpeedKnots).toBeGreaterThanOrEqual(0);
+      expect(displayedTrip!.waterType).toBe('inland'); // Default
+      expect(displayedTrip!.role).toBe('captain'); // Default
+      expect(displayedTrip!.boat.name).toBe(boat.name);
+      expect(displayedTrip!.gpsPoints.length).toBe(2);
+
+      // Clean up
+      await tripService.deleteTrip(trip.id);
+    });
+
+    test('should display trip information consistently across multiple retrievals', async () => {
+      // Verify boat exists
+      const boat = await boatService.getBoat(testBoatId);
+      if (!boat) {
+        throw new Error(`Test boat ${testBoatId} not found`);
+      }
+
+      // Create a trip with comprehensive data
+      const gpsPoints = [
+        { latitude: 40.7128, longitude: -74.0060, timestamp: new Date('2024-01-01T10:00:00Z') },
+        { latitude: 40.7138, longitude: -74.0070, timestamp: new Date('2024-01-01T10:05:00Z') },
+        { latitude: 40.7148, longitude: -74.0080, timestamp: new Date('2024-01-01T10:10:00Z') },
+        { latitude: 40.7158, longitude: -74.0090, timestamp: new Date('2024-01-01T10:15:00Z') }
+      ];
+
+      const startTime = gpsPoints[0].timestamp;
+      const endTime = new Date(gpsPoints[gpsPoints.length - 1].timestamp.getTime() + 60000);
+
+      const trip = await tripService.createTrip({
+        boatId: testBoatId,
+        startTime,
+        endTime,
+        waterType: 'coastal',
+        role: 'crew',
+        gpsPoints
+      });
+
+      // Retrieve the same trip multiple times
+      const retrieval1 = await tripService.getTrip(trip.id);
+      const retrieval2 = await tripService.getTrip(trip.id);
+      const retrieval3 = await tripService.getTrip(trip.id);
+
+      // All retrievals should return identical display data
+      expect(retrieval1).toBeDefined();
+      expect(retrieval2).toBeDefined();
+      expect(retrieval3).toBeDefined();
+
+      // Compare key display fields
+      expect(retrieval1!.startTime).toEqual(retrieval2!.startTime);
+      expect(retrieval2!.startTime).toEqual(retrieval3!.startTime);
+
+      expect(retrieval1!.endTime).toEqual(retrieval2!.endTime);
+      expect(retrieval2!.endTime).toEqual(retrieval3!.endTime);
+
+      expect(retrieval1!.durationSeconds).toBe(retrieval2!.durationSeconds);
+      expect(retrieval2!.durationSeconds).toBe(retrieval3!.durationSeconds);
+
+      expect(retrieval1!.distanceMeters).toBe(retrieval2!.distanceMeters);
+      expect(retrieval2!.distanceMeters).toBe(retrieval3!.distanceMeters);
+
+      expect(retrieval1!.averageSpeedKnots).toBe(retrieval2!.averageSpeedKnots);
+      expect(retrieval2!.averageSpeedKnots).toBe(retrieval3!.averageSpeedKnots);
+
+      expect(retrieval1!.waterType).toBe(retrieval2!.waterType);
+      expect(retrieval2!.waterType).toBe(retrieval3!.waterType);
+
+      expect(retrieval1!.boat.name).toBe(retrieval2!.boat.name);
+      expect(retrieval2!.boat.name).toBe(retrieval3!.boat.name);
+
+      expect(retrieval1!.role).toBe(retrieval2!.role);
+      expect(retrieval2!.role).toBe(retrieval3!.role);
+
+      expect(retrieval1!.gpsPoints.length).toBe(retrieval2!.gpsPoints.length);
+      expect(retrieval2!.gpsPoints.length).toBe(retrieval3!.gpsPoints.length);
+
+      // Clean up
+      await tripService.deleteTrip(trip.id);
+    });
+  });
+
+  /**
    * **Feature: boat-tracking-system, Property 14: Trip Editability**
    * **Validates: Requirements 5.3**
    * 

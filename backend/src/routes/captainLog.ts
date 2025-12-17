@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { captainLogService } from '../services/captainLogService.js';
+import { captainLogService } from '../services/captainLogService';
+import { sendJsonResponse } from '../utils/serialization';
 
 const router = Router();
 
@@ -16,7 +17,7 @@ router.get('/progress', async (_req, res) => {
   try {
     const progress = await captainLogService.getLicenseProgress();
     
-    res.json({
+    sendJsonResponse(res, {
       success: true,
       data: progress
     });
@@ -63,7 +64,7 @@ router.get('/sea-time-days', async (req, res) => {
     
     const seaTimeDays = await captainLogService.calculateSeaTimeDays(startDateObj, endDateObj);
     
-    res.json({
+    sendJsonResponse(res, {
       success: true,
       data: seaTimeDays
     });
@@ -101,7 +102,7 @@ router.get('/breakdown', async (req, res) => {
     
     const breakdown = await captainLogService.getSeaTimeBreakdown(yearNum);
     
-    res.json({
+    sendJsonResponse(res, {
       success: true,
       data: breakdown
     });
@@ -147,7 +148,7 @@ router.get('/check-day/:date', async (req, res) => {
     
     const isSeaTimeDay = await captainLogService.isSeaTimeDay(date);
     
-    res.json({
+    sendJsonResponse(res, {
       success: true,
       data: {
         date,

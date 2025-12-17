@@ -25,6 +25,9 @@ interface PhotoDao {
     @Delete
     suspend fun deletePhoto(photo: PhotoEntity)
 
+    @Query("SELECT * FROM photos WHERE id = :photoId")
+    suspend fun getPhotoById(photoId: String): PhotoEntity?
+
     @Query("UPDATE photos SET uploaded = 1, uploadedAt = :uploadedAt WHERE id = :photoId")
     suspend fun markAsUploaded(photoId: String, uploadedAt: Date)
 }

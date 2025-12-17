@@ -145,8 +145,8 @@ fun TripDetailScreen(
                                 },
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = androidx.compose.ui.graphics.Color.Red.copy(alpha = 0.8f),
-                                    contentColor = androidx.compose.ui.graphics.Color.White
+                                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                                    contentColor = MaterialTheme.colorScheme.onErrorContainer
                                 )
                             ) {
                                 Text("🐛 FORCE STOP (debug - if normal stop fails)")
@@ -179,7 +179,8 @@ fun TripDetailScreen(
                                 },
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.secondary
+                                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                                 )
                             ) {
                                 Text("🐛 CLEANUP (debug only)")

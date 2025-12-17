@@ -1,8 +1,11 @@
 import { Router, Request, Response } from 'express';
 import { boatService } from '../services/boatService';
 import { logger } from '../utils/logger';
+import { serializeBoat } from '../utils/serialization';
 
 const router = Router();
+
+
 
 /**
  * POST /api/v1/boats
@@ -26,10 +29,24 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
 
     const boat = await boatService.createBoat({ name, metadata });
 
-    res.status(201).json({
-      data: boat,
+    // Transform dates to ISO strings for API compatibility
+    const serializedBoat = {
+      id: boat.id,
+      name: boat.name,
+      enabled: boat.enabled,
+      isActive: boat.isActive,
+      metadata: boat.metadata,
+      createdAt: boat.createdAt instanceof Date ? boat.createdAt.toISOString() : new Date().toISOString(),
+      updatedAt: boat.updatedAt instanceof Date ? boat.updatedAt.toISOString() : new Date().toISOString()
+    };
+
+    const responseData = {
+      data: serializedBoat,
       timestamp: new Date().toISOString()
-    });
+    };
+
+    res.setHeader('Content-Type', 'application/json');
+    res.status(201).send(JSON.stringify(responseData));
   } catch (error) {
     logger.error('Error creating boat', { error });
     res.status(500).json({
@@ -51,11 +68,25 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
   try {
     const boats = await boatService.listBoats();
 
-    res.json({
-      data: boats,
-      count: boats.length,
+    // Manually serialize boats with proper date handling
+    const serializedBoats = boats.map(boat => ({
+      id: boat.id,
+      name: boat.name,
+      enabled: boat.enabled,
+      isActive: boat.isActive,
+      metadata: boat.metadata,
+      createdAt: boat.createdAt instanceof Date ? boat.createdAt.toISOString() : new Date().toISOString(),
+      updatedAt: boat.updatedAt instanceof Date ? boat.updatedAt.toISOString() : new Date().toISOString()
+    }));
+
+    const responseData = {
+      data: serializedBoats,
+      count: serializedBoats.length,
       timestamp: new Date().toISOString()
-    });
+    };
+
+    res.setHeader('Content-Type', 'application/json');
+    res.send(JSON.stringify(responseData));
   } catch (error) {
     logger.error('Error listing boats', { error });
     res.status(500).json({
@@ -90,8 +121,11 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    // Transform dates to ISO strings for API compatibility
+    const serializedBoat = serializeBoat(boat);
+
     res.json({
-      data: boat,
+      data: serializedBoat,
       timestamp: new Date().toISOString()
     });
   } catch (error) {
@@ -118,10 +152,24 @@ router.put('/:id', async (req: Request, res: Response): Promise<void> => {
 
     const boat = await boatService.updateBoat(id, { name, metadata });
 
-    res.json({
-      data: boat,
+    // Transform dates to ISO strings for API compatibility
+    const serializedBoat = {
+      id: boat.id,
+      name: boat.name,
+      enabled: boat.enabled,
+      isActive: boat.isActive,
+      metadata: boat.metadata,
+      createdAt: boat.createdAt instanceof Date ? boat.createdAt.toISOString() : new Date().toISOString(),
+      updatedAt: boat.updatedAt instanceof Date ? boat.updatedAt.toISOString() : new Date().toISOString()
+    };
+
+    const responseData = {
+      data: serializedBoat,
       timestamp: new Date().toISOString()
-    });
+    };
+
+    res.setHeader('Content-Type', 'application/json');
+    res.send(JSON.stringify(responseData));
   } catch (error) {
     logger.error('Error updating boat', { error });
     
@@ -171,8 +219,11 @@ router.patch('/:id/status', async (req: Request, res: Response): Promise<void> =
 
     const boat = await boatService.toggleBoatStatus(id, enabled);
 
+    // Transform dates to ISO strings for API compatibility
+    const serializedBoat = serializeBoat(boat);
+
     res.json({
-      data: boat,
+      data: serializedBoat,
       timestamp: new Date().toISOString()
     });
   } catch (error) {
@@ -210,8 +261,11 @@ router.patch('/:id/active', async (req: Request, res: Response): Promise<void> =
     const { id } = req.params;
     const boat = await boatService.setActiveBoat(id);
 
+    // Transform dates to ISO strings for API compatibility
+    const serializedBoat = serializeBoat(boat);
+
     res.json({
-      data: boat,
+      data: serializedBoat,
       message: 'Active boat updated successfully',
       timestamp: new Date().toISOString()
     });

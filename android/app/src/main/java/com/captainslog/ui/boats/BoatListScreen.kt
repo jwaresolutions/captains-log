@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -63,12 +64,9 @@ fun BoatListScreen(
             TopAppBar(
                 title = { Text("Boats") },
                 actions = {
-                    IconButton(onClick = { viewModel.syncBoatsFromApi() }) {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = "Sync boats"
-                        )
-                    }
+                    com.captainslog.ui.components.CompactSyncStatusIndicator(
+                        onSyncClick = { viewModel.performFullSync() }
+                    )
                 }
             )
         },

@@ -1,0 +1,70 @@
+version: '3.8'
+
+# Development overrides for docker-compose.yml
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+
+services:
+  postgres:
+    # Development-specific configuration
+    ports:
+      - "5432:5432"  # Expose port for direct database access
+    environment:
+      # Development settings
+      POSTGRES_LOG_STATEMENT: "all"
+      POSTGRES_LOG_MIN_DURATION_STATEMENT: "0"
+    # Development resource limits (more relaxed)
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 256M
+    # Development restart policy
+    restart: "no"
+    # Verbose logging for development
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  backend:
+    # Development build with cache mount for faster rebuilds
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+      cache_from:
+        - node:20-alpine
+    # Development environment overrides
+    environment:
+      NODE_ENV: development
+      LOG_LEVEL: debug
+    # Development volumes for hot reload (if needed)
+    volumes:
+      - photo_storage:/app/uploads
+      - backup_storage:/app/backups
+      - log_storage:/app/logs
+      # Mount source code for development (optional)
+      # - ./backend/src:/app/src:ro
+    # Development resource limits (more relaxed)
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 256M
+    # Development restart policy
+    restart: "no"
+    # Verbose logging for development
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+    # Development health check with longer intervals
+    healthcheck:
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 5

@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import multer from 'multer';
 import { photoService } from '../services/photoService';
 import { logger } from '../utils/logger';
+import { sendJsonResponse } from '../utils/serialization';
 
 const router = Router();
 
@@ -98,10 +99,10 @@ router.post('/', upload.single('photo'), async (req: Request, res: Response): Pr
     // Attach the photo to the specified entity
     await photoService.attachPhotoToEntity(photo.id, entityType, entityId);
 
-    res.status(201).json({
+    sendJsonResponse(res, {
       data: photo,
       timestamp: new Date().toISOString()
-    });
+    }, 201);
   } catch (error) {
     logger.error('Error uploading photo', { error });
     
@@ -152,7 +153,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    res.json({
+    sendJsonResponse(res, {
       data: photo,
       timestamp: new Date().toISOString()
     });
@@ -254,7 +255,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     if (entityType === 'maintenance_event') {
       const eventPhotos = await photoService.getEventDisplayPhotos(entityId as string);
       
-      res.json({
+      sendJsonResponse(res, {
         data: {
           templatePhotos: eventPhotos.templatePhotos,
           completionPhotos: eventPhotos.completionPhotos,
@@ -276,7 +277,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
       entityId as string
     );
 
-    res.json({
+    sendJsonResponse(res, {
       data: photos,
       count: photos.length,
       timestamp: new Date().toISOString()
@@ -320,7 +321,7 @@ router.get('/by-category', async (req: Request, res: Response): Promise<void> =>
       category as string
     );
 
-    res.json({
+    sendJsonResponse(res, {
       data: photos,
       count: photos.length,
       category: category,
@@ -507,7 +508,7 @@ router.get('/statistics', async (req: Request, res: Response): Promise<void> => 
       entityId as string
     );
 
-    res.json({
+    sendJsonResponse(res, {
       data: statistics,
       timestamp: new Date().toISOString()
     });
@@ -534,7 +535,7 @@ router.post('/validate-template-visibility/:templateId', async (req: Request, re
 
     const validation = await photoService.validateTemplatePhotoVisibility(templateId);
 
-    res.json({
+    sendJsonResponse(res, {
       data: validation,
       message: validation.visibilityConfirmed 
         ? 'Template photo visibility confirmed on all related events'

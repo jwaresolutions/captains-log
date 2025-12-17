@@ -9,6 +9,9 @@ interface BoatDao {
     @Query("SELECT * FROM boats ORDER BY createdAt DESC")
     fun getAllBoats(): Flow<List<BoatEntity>>
 
+    @Query("SELECT * FROM boats ORDER BY createdAt DESC")
+    suspend fun getAllBoatsSync(): List<BoatEntity>
+
     @Query("SELECT * FROM boats WHERE id = :boatId")
     suspend fun getBoatById(boatId: String): BoatEntity?
 

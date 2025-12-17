@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { noteService } from '../services/noteService';
 import { logger } from '../utils/logger';
+import { sendJsonResponse } from '../utils/serialization';
 
 const router = Router();
 
@@ -44,10 +45,10 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
       tags 
     });
 
-    res.status(201).json({
+    sendJsonResponse(res, {
       data: note,
       timestamp: new Date().toISOString()
-    });
+    }, 201);
   } catch (error) {
     logger.error('Error creating note', { error });
     
@@ -125,7 +126,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
 
     const notes = await noteService.listNotes(filters);
 
-    res.json({
+    sendJsonResponse(res, {
       data: notes,
       count: notes.length,
       filters,
@@ -152,7 +153,7 @@ router.get('/tags/all', async (req: Request, res: Response): Promise<void> => {
   try {
     const tags = await noteService.getAllTags();
 
-    res.json({
+    sendJsonResponse(res, {
       data: tags,
       count: tags.length,
       timestamp: new Date().toISOString()
@@ -191,7 +192,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    res.json({
+    sendJsonResponse(res, {
       data: note,
       timestamp: new Date().toISOString()
     });
@@ -219,7 +220,7 @@ router.put('/:id', async (req: Request, res: Response): Promise<void> => {
 
     const note = await noteService.updateNote(id, { content, tags });
 
-    res.json({
+    sendJsonResponse(res, {
       data: note,
       timestamp: new Date().toISOString()
     });
@@ -320,7 +321,7 @@ router.post('/:id/tags', async (req: Request, res: Response): Promise<void> => {
 
     const note = await noteService.addTags(id, tags);
 
-    res.json({
+    sendJsonResponse(res, {
       data: note,
       timestamp: new Date().toISOString()
     });
@@ -373,7 +374,7 @@ router.delete('/:id/tags', async (req: Request, res: Response): Promise<void> =>
 
     const note = await noteService.removeTags(id, tags);
 
-    res.json({
+    sendJsonResponse(res, {
       data: note,
       timestamp: new Date().toISOString()
     });

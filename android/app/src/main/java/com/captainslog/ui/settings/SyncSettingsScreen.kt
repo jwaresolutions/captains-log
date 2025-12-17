@@ -9,12 +9,14 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 
 /**
  * Screen for viewing sync settings and conflict logs
+ * Now focused on automatic sync status and conflict resolution
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -22,8 +24,8 @@ fun SyncSettingsScreen(
     conflictLogs: String,
     isSyncing: Boolean,
     onBack: () -> Unit,
-    onTriggerSync: () -> Unit,
     onClearLogs: () -> Unit,
+    onTriggerSync: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Scaffold(
@@ -61,24 +63,33 @@ fun SyncSettingsScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
-                        text = "Sync Controls",
+                        text = "Automatic Sync Status",
                         style = MaterialTheme.typography.titleMedium
                     )
                     
                     Text(
-                        text = "Trips are automatically synced every 15 minutes when online. You can also trigger a manual sync.",
+                        text = "Data is automatically synced immediately when you make changes and have an internet connection. Photos are uploaded only when connected to WiFi.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     
-                    Button(
-                        onClick = onTriggerSync,
-                        enabled = !isSyncing,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Icon(Icons.Default.Refresh, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(if (isSyncing) "Syncing..." else "Sync Now")
+                    if (isSyncing) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            CircularProgressIndicator(modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Syncing pending changes...")
+                        }
+                    } else {
+                        Text(
+                            text = "✓ All changes are synced",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
                 }
             }
@@ -159,10 +170,11 @@ fun SyncSettingsScreen(
                     )
                     
                     Text(
-                        text = "• Trips are synced automatically when you have an internet connection\n" +
-                               "• Unsynced trips are marked with a badge in the trip list\n" +
-                               "• Conflicts are resolved using the newest timestamp\n" +
-                               "• You will be notified when conflicts are resolved",
+                        text = "• All data changes sync immediately when connected\n" +
+                               "• Photo metadata syncs immediately, files upload on WiFi only\n" +
+                               "• When offline, changes are queued and sync when reconnected\n" +
+                               "• Sync conflicts require manual resolution\n" +
+                               "• Connection status is shown at the top of the app",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSecondaryContainer
                     )

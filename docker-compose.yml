@@ -10,6 +10,8 @@ services:
       POSTGRES_DB: ${DB_NAME:-boat_tracking}
       POSTGRES_USER: ${DB_USER:-boat_user}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
+      # Optimize PostgreSQL for better performance
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -19,12 +21,26 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
     restart: unless-stopped
+    # Resource limits for better container management
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    # Security optimizations
+    security_opt:
+      - no-new-privileges:true
 
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      # Build arguments for optimization
+      args:
+        NODE_ENV: ${NODE_ENV:-production}
     container_name: boat-tracking-api
     ports:
       - "8585:8585"
@@ -54,7 +70,24 @@ services:
     networks:
       - boat-tracking-network
     restart: unless-stopped
-    command: sh -c "npx prisma migrate deploy && node dist/index.js"
+    # Resource limits for better container management
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+    # Security optimizations
+    security_opt:
+      - no-new-privileges:true
+    # Optimized startup command with better error handling
+    command: >
+      sh -c "
+      echo 'Starting backend service...' &&
+      npx prisma migrate deploy &&
+      echo 'Database migrations completed' &&
+      exec node dist/index.js
+      "
 
 volumes:
   postgres_data:

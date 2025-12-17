@@ -23,6 +23,7 @@ class PhotoSyncWorker(
     private val database = AppDatabase.getInstance(context)
     private val photoRepository = PhotoRepository(database, context)
     private val connectionManager = ConnectionManager.getInstance(context)
+    private val syncStatusManager = SyncStatusManager.getInstance(context)
 
     companion object {
         const val TAG = "PhotoSyncWorker"
@@ -36,12 +37,14 @@ class PhotoSyncWorker(
             // Check if we have internet connection
             if (!connectionManager.hasInternetConnection()) {
                 Log.d(TAG, "No internet connection, will retry later")
+                // Don't report as failure for photos since they have different requirements
                 return@withContext Result.retry()
             }
 
             // Check if we're on WiFi (requirement: WiFi-only uploads)
             if (!connectionManager.isOnWiFi()) {
                 Log.d(TAG, "Not on WiFi, skipping photo sync")
+                // Don't report as failure - this is expected behavior
                 return@withContext Result.success() // Success because we don't want to retry on mobile data
             }
 
@@ -109,6 +112,12 @@ class PhotoSyncWorker(
             }
 
             Log.d(TAG, "Photo sync complete: $successCount succeeded, $failureCount failed")
+
+            // Photos have different success criteria - don't affect main sync status unless critical failure
+            if (failureCount > 0 && successCount == 0 && unuploadedPhotos.size > 5) {
+                // Only report photo failures if many photos failed and none succeeded
+                syncStatusManager.reportSyncFailure("Failed to upload $failureCount photo(s)")
+            }
 
             // Return success if at least some photos uploaded, retry if all failed
             return@withContext if (successCount > 0 || failureCount == 0) {

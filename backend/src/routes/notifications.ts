@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { notificationService } from '../services/notificationService';
 import { logger } from '../utils/logger';
+import { sendJsonResponse } from '../utils/serialization';
 
 const router = Router();
 
@@ -32,7 +33,7 @@ router.get('/', async (req: Request, res: Response) => {
 
     const notifications = await notificationService.getActiveNotifications(filters);
 
-    res.json({
+    sendJsonResponse(res, {
       notifications,
       count: notifications.length
     });
@@ -83,7 +84,7 @@ router.post('/', async (req: Request, res: Response) => {
       entityId
     });
 
-    res.status(201).json(notification);
+    sendJsonResponse(res, notification, 201);
   } catch (error) {
     logger.error('Error creating notification', { error: error instanceof Error ? error.message : error });
     res.status(500).json({
@@ -105,7 +106,7 @@ router.patch('/:id/read', async (req: Request, res: Response) => {
 
     const notification = await notificationService.markAsRead(id);
 
-    res.json(notification);
+    sendJsonResponse(res, notification);
   } catch (error) {
     logger.error('Error marking notification as read', { 
       notificationId: req.params.id,
@@ -154,7 +155,7 @@ router.patch('/read-all', async (req: Request, res: Response) => {
 
     const count = await notificationService.markAllAsRead(filters);
 
-    res.json({
+    sendJsonResponse(res, {
       message: 'Notifications marked as read',
       count
     });
@@ -214,7 +215,7 @@ router.post('/check-maintenance', async (req: Request, res: Response) => {
 
     const notifications = await notificationService.checkMaintenanceDue(daysAhead);
 
-    res.json({
+    sendJsonResponse(res, {
       message: 'Maintenance due check completed',
       notificationsCreated: notifications.length,
       notifications
@@ -240,7 +241,7 @@ router.get('/upcoming-maintenance', async (req: Request, res: Response) => {
 
     const tasks = await notificationService.getUpcomingMaintenanceEvents(Number(daysAhead));
 
-    res.json({
+    sendJsonResponse(res, {
       tasks,
       count: tasks.length
     });

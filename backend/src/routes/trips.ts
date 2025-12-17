@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { tripService } from '../services/tripService';
 import { logger } from '../utils/logger';
+import { sendJsonResponse } from '../utils/serialization';
 
 const router = Router();
 
@@ -96,10 +97,10 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
       destination
     });
 
-    res.status(201).json({
+    sendJsonResponse(res, {
       data: trip,
       timestamp: new Date().toISOString()
-    });
+    }, 201);
   } catch (error) {
     logger.error('Error creating trip', { error });
 
@@ -175,7 +176,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
 
     const trips = await tripService.listTrips(filters);
 
-    res.json({
+    sendJsonResponse(res, {
       data: trips,
       count: trips.length,
       timestamp: new Date().toISOString()
@@ -214,7 +215,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    res.json({
+    sendJsonResponse(res, {
       data: trip,
       timestamp: new Date().toISOString()
     });
@@ -286,7 +287,7 @@ router.put('/:id', async (req: Request, res: Response): Promise<void> => {
       destination
     });
 
-    res.json({
+    sendJsonResponse(res, {
       data: trip,
       timestamp: new Date().toISOString()
     });
@@ -421,7 +422,7 @@ router.patch('/:id/manual-data', async (req: Request, res: Response): Promise<vo
       destination
     });
 
-    res.json({
+    sendJsonResponse(res, {
       data: trip,
       timestamp: new Date().toISOString()
     });

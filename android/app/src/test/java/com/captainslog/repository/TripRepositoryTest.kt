@@ -1,5 +1,6 @@
 package com.captainslog.repository
 
+import android.content.Context
 import com.captainslog.database.AppDatabase
 import com.captainslog.database.dao.GpsPointDao
 import com.captainslog.database.dao.TripDao
@@ -22,6 +23,7 @@ class TripRepositoryTest {
     private lateinit var database: AppDatabase
     private lateinit var tripDao: TripDao
     private lateinit var gpsPointDao: GpsPointDao
+    private lateinit var context: Context
     private lateinit var repository: TripRepository
 
     @BeforeEach
@@ -29,11 +31,12 @@ class TripRepositoryTest {
         database = mockk()
         tripDao = mockk()
         gpsPointDao = mockk()
+        context = mockk()
         
         every { database.tripDao() } returns tripDao
         every { database.gpsPointDao() } returns gpsPointDao
         
-        repository = TripRepository(database)
+        repository = TripRepository(database, context)
     }
 
     @AfterEach

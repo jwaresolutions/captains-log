@@ -12,6 +12,7 @@ import {
   LocationFilters,
   GPSCoordinate,
 } from '../services/locationService';
+import { sendJsonResponse } from '../utils/serialization';
 
 const router = express.Router();
 
@@ -61,7 +62,7 @@ router.post('/', async (req, res) => {
     };
 
     const location = await createMarkedLocation(locationData);
-    res.status(201).json(location);
+    sendJsonResponse(res, location, 201);
   } catch (error) {
     console.error('Error creating marked location:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -105,11 +106,11 @@ router.get('/', async (req, res) => {
 
       const referencePoint: GPSCoordinate = { latitude, longitude };
       const locations = await getMarkedLocationsWithDistance(referencePoint, filters);
-      return res.json(locations);
+      return sendJsonResponse(res, locations);
     }
 
     const locations = await listMarkedLocations(filters);
-    res.json(locations);
+    sendJsonResponse(res, locations);
   } catch (error) {
     console.error('Error listing marked locations:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -155,7 +156,7 @@ router.get('/nearby', async (req, res) => {
     const center: GPSCoordinate = { latitude, longitude };
     const nearbyLocations = await findNearbyLocations(center, radiusMeters);
 
-    res.json(nearbyLocations);
+    sendJsonResponse(res, nearbyLocations);
   } catch (error) {
     console.error('Error finding nearby locations:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -175,7 +176,7 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Marked location not found' });
     }
 
-    res.json(location);
+    sendJsonResponse(res, location);
   } catch (error) {
     console.error('Error getting marked location:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -234,7 +235,7 @@ router.put('/:id', async (req, res) => {
     if (tags !== undefined) updateData.tags = tags;
 
     const updatedLocation = await updateMarkedLocation(id, updateData);
-    res.json(updatedLocation);
+    sendJsonResponse(res, updatedLocation);
   } catch (error) {
     console.error('Error updating marked location:', error);
     res.status(500).json({ error: 'Internal server error' });

@@ -1,15 +1,23 @@
 package com.captainslog.repository
 
+import android.content.Context
+import android.util.Log
 import com.captainslog.database.AppDatabase
 import com.captainslog.database.entities.GpsPointEntity
 import com.captainslog.database.entities.TripEntity
+import com.captainslog.sync.ImmediateSyncService
 import kotlinx.coroutines.flow.Flow
 
 /**
  * Repository for managing trip data and GPS points.
  * Provides a clean API for the UI layer to interact with trip data.
+ * Automatically syncs changes when connected to internet.
  */
-class TripRepository(private val database: AppDatabase) {
+class TripRepository(
+    private val database: AppDatabase,
+    private val context: Context
+) {
+    private val immediateSyncService = ImmediateSyncService.getInstance(context, database)
 
     /**
      * Get all trips as a Flow for reactive updates
@@ -40,17 +48,21 @@ class TripRepository(private val database: AppDatabase) {
     }
 
     /**
-     * Insert a new trip
+     * Insert a new trip and sync immediately
      */
     suspend fun insertTrip(trip: TripEntity) {
         database.tripDao().insertTrip(trip)
+        // Sync immediately if connected, queue if offline
+        immediateSyncService.syncTrip(trip.id)
     }
 
     /**
-     * Update an existing trip
+     * Update an existing trip and sync immediately
      */
     suspend fun updateTrip(trip: TripEntity) {
         database.tripDao().updateTrip(trip)
+        // Sync immediately if connected, queue if offline
+        immediateSyncService.syncTrip(trip.id)
     }
 
     /**
@@ -72,6 +84,35 @@ class TripRepository(private val database: AppDatabase) {
      */
     suspend fun markTripAsSynced(tripId: String) {
         database.tripDao().markAsSynced(tripId)
+    }
+
+    /**
+     * Sync trips from API to local database
+     */
+    suspend fun syncTripsFromApi(): Result<Unit> {
+        return try {
+            // TODO: Implement when backend API supports trip listing
+            // For now, trips are primarily created on mobile and synced to server
+            Log.d("TripRepository", "Trip sync from API not yet implemented")
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Sync unsynced trips to API
+     */
+    suspend fun syncTripsToApi(): Result<Unit> {
+        return try {
+            val unsyncedTrips = getUnsyncedTrips()
+            for (trip in unsyncedTrips) {
+                immediateSyncService.syncTrip(trip.id)
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     /**

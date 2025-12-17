@@ -1,8 +1,12 @@
 import express, { Express, Request, Response } from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { logger } from './utils/logger';
 import { apiRateLimiter } from './middleware/rateLimiter';
 import { authenticateToken } from './middleware/auth';
+import { errorHandler, notFoundHandler } from './middleware/errorHandler';
+import { sanitizeResponse } from './middleware/validation';
 import authRoutes from './routes/auth';
 import testRoutes from './routes/test';
 import boatRoutes from './routes/boats';
@@ -28,12 +32,67 @@ dotenv.config();
 const app: Express = express();
 const port = process.env.PORT || 8585;
 
+// Security headers with helmet.js
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+    },
+  },
+  crossOriginEmbedderPolicy: false, // Allow embedding for development
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true
+  }
+}));
+
+// CORS configuration
+const corsOptions = {
+  origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // In development, allow all origins
+    if (process.env.NODE_ENV === 'development') {
+      return callback(null, true);
+    }
+    
+    // In production, you should configure specific allowed origins
+    const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'];
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      logger.warn('CORS blocked origin', { origin });
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
+  exposedHeaders: ['RateLimit-Limit', 'RateLimit-Remaining', 'RateLimit-Reset']
+};
+
+app.use(cors(corsOptions));
+
 // Middleware - increase limits for trip data with GPS points
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Rate limiting (apply to all routes)
 app.use(apiRateLimiter);
+
+// Response sanitization (apply to all routes)
+app.use(sanitizeResponse);
 
 // Request logging middleware
 app.use((req: Request, _res: Response, next) => {
@@ -51,6 +110,53 @@ app.get('/health', (_req: Request, res: Response) => {
     timestamp: new Date().toISOString(),
     uptime: process.uptime()
   });
+});
+
+// Test CORS endpoint
+app.get('/test-cors', (req: Request, res: Response) => {
+  logger.info('Test CORS endpoint hit', { origin: req.headers.origin });
+  res.json({ message: 'CORS test successful', origin: req.headers.origin });
+});
+
+// Test date serialization endpoint (no auth required)
+app.get('/test-dates', (_req: Request, res: Response) => {
+  console.log('=== TEST DATES ENDPOINT HIT ===');
+  
+  const testDate = new Date();
+  const testObject = {
+    id: 'test-123',
+    name: 'Test Object',
+    createdAt: testDate,
+    updatedAt: testDate
+  };
+  
+  console.log('testDate:', testDate);
+  console.log('testDate type:', typeof testDate);
+  console.log('testDate constructor:', testDate.constructor.name);
+  console.log('testObject:', testObject);
+  console.log('JSON.stringify(testObject):', JSON.stringify(testObject));
+  
+  const response = {
+    message: 'Date serialization test',
+    testObject: testObject,
+    directDate: testDate,
+    isoString: testDate.toISOString(),
+    timestamp: new Date().toISOString()
+  };
+  
+  console.log('Response object:', response);
+  console.log('JSON.stringify(response):', JSON.stringify(response));
+  console.log('===============================');
+  
+  res.json(response);
+});
+
+app.options('/test-cors', (req: Request, res: Response) => {
+  logger.info('Test CORS OPTIONS hit', { origin: req.headers.origin });
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.status(200).end();
 });
 
 // API version endpoint (no auth required)
@@ -127,35 +233,11 @@ app.use('/api/v1/backups', authenticateToken, backupRoutes);
 // Sensor routes (requires authentication)
 app.use('/api/v1/sensors', authenticateToken, sensorRoutes);
 
-// 404 handler
-app.use((req: Request, res: Response) => {
-  res.status(404).json({
-    error: {
-      code: 'NOT_FOUND',
-      message: 'The requested resource was not found',
-      path: req.path
-    },
-    timestamp: new Date().toISOString()
-  });
-});
+// 404 handler for unmatched routes
+app.use(notFoundHandler);
 
-// Error handler
-app.use((err: Error, req: Request, res: Response, _next: any) => {
-  logger.error('Unhandled error', {
-    error: err.message,
-    stack: err.stack,
-    path: req.path
-  });
-
-  res.status(500).json({
-    error: {
-      code: 'INTERNAL_SERVER_ERROR',
-      message: 'An unexpected error occurred'
-    },
-    timestamp: new Date().toISOString(),
-    path: req.path
-  });
-});
+// Global error handler (must be last)
+app.use(errorHandler);
 
 // Start server
 app.listen(port, async () => {

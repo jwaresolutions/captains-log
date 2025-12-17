@@ -63,6 +63,15 @@ model Trip {
   @@index([boatId])
   @@index([startTime])
   @@index([endTime])
+  @@index([boatId, startTime])
+  @@index([waterType])
+  @@index([role])
+  @@index([createdAt])
+  // Additional performance indexes
+  @@index([role, endTime]) // Captain's log queries: role='captain' AND endTime IS NOT NULL
+  @@index([startTime, endTime]) // Date range queries
+  @@index([boatId, role, startTime]) // Boat-specific captain trips ordered by time
+  @@index([endTime, role]) // Completed trips by role (for license calculations)
 }
 
 model GPSPoint {
@@ -81,6 +90,9 @@ model GPSPoint {
 
   @@index([tripId])
   @@index([timestamp])
+  @@index([tripId, timestamp])
+  @@index([isStopPoint])
+  @@index([latitude, longitude])
 }
 
 model User {
@@ -109,6 +121,9 @@ model SessionToken {
   @@index([token])
   @@index([expiresAt])
   @@index([isRevoked])
+  // Additional performance indexes
+  @@index([userId, isRevoked]) // User's active tokens
+  @@index([expiresAt, isRevoked]) // Token cleanup queries
 }
 
 model Note {
@@ -128,6 +143,8 @@ model Note {
   @@index([boatId])
   @@index([tripId])
   @@index([createdAt])
+  @@index([type, boatId])
+  @@index([tags])
 }
 
 model TodoList {
@@ -158,6 +175,9 @@ model TodoItem {
   @@index([todoListId])
   @@index([completed])
   @@index([createdAt])
+  // Additional performance indexes
+  @@index([todoListId, completed]) // List items by completion status
+  @@index([completed, completedAt]) // Completed items ordered by completion time
 }
 
 model MaintenanceTemplate {
@@ -181,6 +201,9 @@ model MaintenanceTemplate {
   @@index([boatId])
   @@index([isActive])
   @@index([createdAt])
+  // Additional performance indexes
+  @@index([boatId, isActive]) // Active templates per boat
+  @@index([isActive, createdAt]) // Active templates ordered by creation
 }
 
 model MaintenanceEvent {
@@ -199,6 +222,10 @@ model MaintenanceEvent {
   @@index([templateId])
   @@index([dueDate])
   @@index([completedAt])
+  // Additional performance indexes
+  @@index([dueDate, completedAt]) // Upcoming events: dueDate <= X AND completedAt IS NULL
+  @@index([templateId, dueDate]) // Template events ordered by due date
+  @@index([templateId, completedAt]) // Template completion history
 }
 
 model Notification {
@@ -215,6 +242,9 @@ model Notification {
   @@index([read])
   @@index([createdAt])
   @@index([entityType, entityId])
+  // Additional performance indexes
+  @@index([read, createdAt]) // Unread notifications ordered by creation
+  @@index([type, read]) // Notification type filtering with read status
 }
 
 model MarkedLocation {
@@ -324,4 +354,8 @@ model OfflineChange {
   @@index([syncAttempts])
   @@index([timestamp])
   @@index([userId])
+  // Additional performance indexes
+  @@index([synced, timestamp]) // Unsynced changes ordered by time
+  @@index([entityType, synced]) // Entity-specific sync status
+  @@index([syncAttempts, lastSyncAttempt]) // Failed sync retry queries
 }

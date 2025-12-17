@@ -63,6 +63,20 @@ export class BoatService {
       ]
     });
 
+    // Debug: Log the actual boat data from Prisma
+    boats.forEach(boat => {
+      logger.info('Raw boat from Prisma', {
+        id: boat.id,
+        name: boat.name,
+        createdAt: boat.createdAt,
+        createdAtType: typeof boat.createdAt,
+        createdAtConstructor: boat.createdAt?.constructor?.name,
+        updatedAt: boat.updatedAt,
+        updatedAtType: typeof boat.updatedAt,
+        updatedAtConstructor: boat.updatedAt?.constructor?.name
+      });
+    });
+
     return boats;
   }
 

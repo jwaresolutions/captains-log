@@ -25,9 +25,10 @@ class TripSyncWorker(
 ) : CoroutineWorker(context, params) {
 
     private val database = AppDatabase.getInstance(context)
-    private val tripRepository = TripRepository(database)
+    private val tripRepository = TripRepository(database, context)
     private val connectionManager = ConnectionManager.getInstance(context)
     private val conflictLogger = ConflictLogger(context)
+    private val syncStatusManager = SyncStatusManager.getInstance(context)
 
     companion object {
         const val TAG = "TripSyncWorker"
@@ -37,10 +38,14 @@ class TripSyncWorker(
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         try {
             Log.d(TAG, "Starting trip sync...")
+            
+            // Report sync started
+            syncStatusManager.reportSyncStarted()
 
             // Check if we have internet connection
             if (!connectionManager.hasInternetConnection()) {
                 Log.d(TAG, "No internet connection, will retry later")
+                syncStatusManager.reportSyncFailure("No internet connection")
                 return@withContext Result.retry()
             }
 
@@ -50,6 +55,7 @@ class TripSyncWorker(
 
             if (unsyncedTrips.isEmpty()) {
                 Log.d(TAG, "No trips to sync")
+                syncStatusManager.reportSyncSuccess(0)
                 return@withContext Result.success()
             }
 
@@ -227,15 +233,18 @@ class TripSyncWorker(
 
             Log.d(TAG, "Sync complete: $successCount succeeded, $failureCount failed")
 
-            // Return success if at least some trips synced, retry if all failed
-            return@withContext if (successCount > 0 || failureCount == 0) {
-                Result.success()
+            // Report sync result to status manager
+            if (successCount > 0 || failureCount == 0) {
+                syncStatusManager.reportSyncSuccess(successCount)
+                return@withContext Result.success()
             } else {
-                Result.retry()
+                syncStatusManager.reportSyncFailure("Failed to sync $failureCount trip(s)")
+                return@withContext Result.retry()
             }
 
         } catch (e: Exception) {
             Log.e(TAG, "Fatal error during sync: ${e.message}", e)
+            syncStatusManager.reportSyncFailure("Sync error: ${e.message}")
             return@withContext Result.retry()
         }
     }

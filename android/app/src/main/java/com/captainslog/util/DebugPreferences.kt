@@ -13,8 +13,8 @@ class DebugPreferences(context: Context) {
         private const val PREFS_NAME = "debug_preferences"
         private const val KEY_DEBUG_MODE = "debug_mode_enabled"
         
-        // Default to debug mode enabled for development
-        private const val DEFAULT_DEBUG_MODE = true
+        // Default to debug mode disabled for production
+        private const val DEFAULT_DEBUG_MODE = false
     }
     
     private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)

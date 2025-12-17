@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import { templateManagerService, MaintenanceTemplateCreateDTO, MaintenanceTemplateUpdateDTO } from '../services/templateManagerService';
 import { scheduleChangeService } from '../services/scheduleChangeService';
 import { templateInformationService, TemplateInformationChanges } from '../services/templateInformationService';
+import { sendJsonResponse } from '../utils/serialization';
 
 const router = express.Router();
 
@@ -109,10 +110,10 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
 
     const template = await templateManagerService.createTemplate(data);
 
-    res.status(201).json({
+    sendJsonResponse(res, {
       success: true,
       data: template
-    });
+    }, 201);
   } catch (error) {
     console.error('Error creating maintenance template:', error);
     
@@ -165,7 +166,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
       activeOnly === 'true'
     );
 
-    res.json({
+    sendJsonResponse(res, {
       success: true,
       data: templates
     });
@@ -204,7 +205,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    res.json({
+    sendJsonResponse(res, {
       success: true,
       data: template
     });
@@ -255,7 +256,7 @@ router.put('/:id', async (req: Request, res: Response): Promise<void> => {
 
     const template = await templateManagerService.updateTemplate(id, data);
 
-    res.json({
+    sendJsonResponse(res, {
       success: true,
       data: template
     });
@@ -496,7 +497,7 @@ router.post('/:id/schedule-change/preview', async (req: Request, res: Response):
 
     const preview = await scheduleChangeService.previewScheduleChange(id, recurrence);
 
-    res.json({
+    sendJsonResponse(res, {
       success: true,
       data: preview
     });
@@ -577,7 +578,7 @@ router.post('/:id/schedule-change/apply', async (req: Request, res: Response): P
       const { offlineChangeService } = await import('../services/offlineChangeService');
       const change = await offlineChangeService.queueScheduleChange(id, recurrence);
       
-      res.json({
+      sendJsonResponse(res, {
         success: true,
         data: {
           queued: true,
@@ -591,7 +592,7 @@ router.post('/:id/schedule-change/apply', async (req: Request, res: Response): P
     const result = await scheduleChangeService.applyScheduleChange(id, recurrence);
 
     if (result.success) {
-      res.json({
+      sendJsonResponse(res, {
         success: true,
         data: result,
         message: 'Schedule change applied successfully'
@@ -678,7 +679,7 @@ router.post('/:id/information-change/preview', async (req: Request, res: Respons
 
     const preview = await templateInformationService.previewInformationChanges(id, changes);
 
-    res.json({
+    sendJsonResponse(res, {
       success: true,
       data: preview,
       timestamp: new Date().toISOString()
@@ -755,7 +756,7 @@ router.post('/:id/information-change/apply', async (req: Request, res: Response)
     const result = await templateInformationService.applyInformationChanges(id, changes);
 
     if (result.errors.length === 0) {
-      res.json({
+      sendJsonResponse(res, {
         success: true,
         data: {
           templateId: result.templateId,
@@ -827,7 +828,7 @@ router.post('/sync-offline-changes', async (req: Request, res: Response) => {
     const successful = results.filter(r => r.errors.length === 0).length;
     const failed = results.filter(r => r.errors.length > 0).length;
 
-    res.json({
+    sendJsonResponse(res, {
       success: true,
       data: {
         totalProcessed,
@@ -881,7 +882,7 @@ router.post('/:id/photos/propagate', async (req: Request, res: Response) => {
     );
 
     if (result.errors.length === 0) {
-      res.json({
+      sendJsonResponse(res, {
         success: true,
         data: {
           templateId: result.templateId,

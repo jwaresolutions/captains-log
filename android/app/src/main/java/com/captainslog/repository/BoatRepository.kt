@@ -1,21 +1,26 @@
 package com.captainslog.repository
 
+import android.content.Context
+import android.util.Log
 import com.captainslog.database.AppDatabase
 import com.captainslog.database.entities.BoatEntity
 import com.captainslog.connection.ConnectionManager
 import com.captainslog.network.ApiService
 import com.captainslog.network.models.CreateBoatRequest
+import com.captainslog.sync.ImmediateSyncService
 import kotlinx.coroutines.flow.Flow
 import java.util.Date
 
 /**
  * Repository for managing boat data.
- * Handles both local database operations and API synchronization.
+ * Handles both local database operations and immediate API synchronization.
  */
 class BoatRepository(
     private val database: AppDatabase,
-    private val connectionManager: ConnectionManager
+    private val connectionManager: ConnectionManager,
+    private val context: Context
 ) {
+    private val immediateSyncService = ImmediateSyncService.getInstance(context, database)
 
     /**
      * Get all boats as a Flow for reactive updates
@@ -39,13 +44,29 @@ class BoatRepository(
     }
 
     /**
-     * Create a new boat locally and sync to API
+     * Create a new boat locally and sync immediately
+     * Checks for existing boats with same name to avoid duplicates
      */
     suspend fun createBoat(name: String): Result<BoatEntity> {
         return try {
+            val trimmedName = name.trim()
+            if (trimmedName.isEmpty()) {
+                return Result.failure(Exception("Boat name cannot be empty"))
+            }
+            
+            // Check if boat with same name already exists locally
+            val existingBoats = database.boatDao().getAllBoatsSync()
+            val existingBoat = existingBoats.find { 
+                it.name.equals(trimmedName, ignoreCase = true) 
+            }
+            
+            if (existingBoat != null) {
+                return Result.failure(Exception("A boat with this name already exists"))
+            }
+            
             // Create boat locally first
             val boat = BoatEntity(
-                name = name,
+                name = trimmedName,
                 enabled = true,
                 isActive = false,
                 synced = false,
@@ -55,35 +76,17 @@ class BoatRepository(
             
             database.boatDao().insertBoat(boat)
             
-            // Try to sync to API
-            try {
-                val apiService = connectionManager.getApiService()
-                val response = apiService.createBoat(CreateBoatRequest(name = name))
-                if (response.isSuccessful && response.body() != null) {
-                    val apiBoat = response.body()!!
-                    // Update local boat with server ID and mark as synced
-                    val syncedBoat = boat.copy(
-                        id = apiBoat.id,
-                        isActive = apiBoat.isActive,
-                        synced = true
-                    )
-                    database.boatDao().updateBoat(syncedBoat)
-                    Result.success(syncedBoat)
-                } else {
-                    // API call failed, but boat is saved locally
-                    Result.success(boat)
-                }
-            } catch (e: Exception) {
-                // Network error, but boat is saved locally
-                Result.success(boat)
-            }
+            // Sync immediately if connected, queue if offline
+            immediateSyncService.syncBoat(boat.id)
+            
+            Result.success(boat)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
     /**
-     * Update boat enabled status
+     * Update boat enabled status and sync immediately
      */
     suspend fun updateBoatStatus(boatId: String, enabled: Boolean): Result<Unit> {
         return try {
@@ -106,14 +109,8 @@ class BoatRepository(
                 }
                 database.boatDao().updateBoat(updatedBoat)
                 
-                // Try to sync to API
-                try {
-                    val apiService = connectionManager.getApiService()
-                    apiService.updateBoatStatus(boatId, mapOf("enabled" to enabled))
-                    database.boatDao().markAsSynced(boatId)
-                } catch (e: Exception) {
-                    // Network error, will sync later
-                }
+                // Sync immediately if connected, queue if offline
+                immediateSyncService.syncBoat(boatId)
                 
                 Result.success(Unit)
             } else {
@@ -125,7 +122,7 @@ class BoatRepository(
     }
 
     /**
-     * Set a boat as the active boat
+     * Set a boat as the active boat and sync immediately
      */
     suspend fun setActiveBoat(boatId: String): Result<Unit> {
         return try {
@@ -141,14 +138,8 @@ class BoatRepository(
                 database.boatDao().updateBoat(boat.copy(synced = false, lastModified = Date()))
             }
             
-            // Try to sync to API
-            try {
-                val apiService = connectionManager.getApiService()
-                apiService.setActiveBoat(boatId)
-                database.boatDao().markAsSynced(boatId)
-            } catch (e: Exception) {
-                // Network error, will sync later
-            }
+            // Sync immediately if connected, queue if offline
+            immediateSyncService.syncBoat(boatId)
             
             Result.success(Unit)
         } catch (e: Exception) {
@@ -158,30 +149,77 @@ class BoatRepository(
 
     /**
      * Sync boats from API to local database
+     * Merges server boats with local boats, avoiding duplicates
      */
     suspend fun syncBoatsFromApi(): Result<Unit> {
         return try {
+            Log.d("BoatRepository", "Starting syncBoatsFromApi...")
+            
             val apiService = connectionManager.getApiService()
+            Log.d("BoatRepository", "Got API service, making request...")
+            
             val response = apiService.getBoats()
+            Log.d("BoatRepository", "API response: ${response.code()}, successful: ${response.isSuccessful}")
+            
             if (response.isSuccessful && response.body() != null) {
                 val apiBoats = response.body()!!.data
-                val localBoats = apiBoats.map { apiBoat ->
-                    BoatEntity(
-                        id = apiBoat.id,
-                        name = apiBoat.name,
-                        enabled = apiBoat.enabled,
-                        isActive = apiBoat.isActive,
-                        synced = true,
-                        lastModified = Date(),
-                        createdAt = Date()
-                    )
+                Log.d("BoatRepository", "Received ${apiBoats.size} boats from API")
+                
+                val existingLocalBoats = database.boatDao().getAllBoatsSync()
+                Log.d("BoatRepository", "Found ${existingLocalBoats.size} existing local boats")
+                
+                for (apiBoat in apiBoats) {
+                    Log.d("BoatRepository", "Processing API boat: ${apiBoat.name} (${apiBoat.id})")
+                    
+                    // Check if we already have this boat locally (by ID or name)
+                    val existingBoat = existingLocalBoats.find { 
+                        it.id == apiBoat.id || it.name.equals(apiBoat.name, ignoreCase = true)
+                    }
+                    
+                    if (existingBoat != null) {
+                        Log.d("BoatRepository", "Updating existing boat: ${existingBoat.name}")
+                        // Update existing boat with server data
+                        val updatedBoat = existingBoat.copy(
+                            id = apiBoat.id, // Use server ID
+                            name = apiBoat.name, // Use server name (preserves case)
+                            enabled = apiBoat.enabled,
+                            isActive = apiBoat.isActive,
+                            synced = true,
+                            lastModified = Date()
+                        )
+                        database.boatDao().updateBoat(updatedBoat)
+                    } else {
+                        Log.d("BoatRepository", "Inserting new boat: ${apiBoat.name}")
+                        // Insert new boat from server
+                        val newBoat = BoatEntity(
+                            id = apiBoat.id,
+                            name = apiBoat.name,
+                            enabled = apiBoat.enabled,
+                            isActive = apiBoat.isActive,
+                            synced = true,
+                            lastModified = Date(),
+                            createdAt = Date()
+                        )
+                        database.boatDao().insertBoat(newBoat)
+                    }
                 }
-                database.boatDao().insertBoats(localBoats)
+                
+                // Verify boats were inserted
+                val finalLocalBoats = database.boatDao().getAllBoatsSync()
+                Log.d("BoatRepository", "After sync: ${finalLocalBoats.size} boats in local database")
+                for (boat in finalLocalBoats) {
+                    Log.d("BoatRepository", "Local boat: ${boat.name} (${boat.id}) - synced: ${boat.synced}")
+                }
+                
+                Log.d("BoatRepository", "syncBoatsFromApi completed successfully")
                 Result.success(Unit)
             } else {
-                Result.failure(Exception("Failed to fetch boats from API"))
+                val errorMsg = "Failed to fetch boats from API: ${response.code()} - ${response.message()}"
+                Log.e("BoatRepository", errorMsg)
+                Result.failure(Exception(errorMsg))
             }
         } catch (e: Exception) {
+            Log.e("BoatRepository", "Exception in syncBoatsFromApi", e)
             Result.failure(e)
         }
     }

@@ -47,7 +47,7 @@ fun HomeScreen(
             
             // App subtitle
             Text(
-                text = "Boat Tracking & Captain's Log System",
+                text = "Captain's Log System",
                 style = MaterialTheme.typography.titleMedium,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurface

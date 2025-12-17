@@ -113,10 +113,7 @@ describe('Backup Service Property Tests', () => {
           ),
           photos: fc.array(
             fc.record({
-              filename: fc.string({ minLength: 1, maxLength: 20 })
-                .filter(s => s.trim().length > 0)
-                .filter(s => /^[a-zA-Z0-9_-]+$/.test(s)) // Only alphanumeric, underscore, and dash
-                .map(s => `${s}.jpg`),
+              filename: fc.uuid().map(uuid => `photo_${uuid}.jpg`), // Ensure unique filenames
               content: fc.string({ minLength: 10, maxLength: 100 })
             }),
             { minLength: 0, maxLength: 5 }

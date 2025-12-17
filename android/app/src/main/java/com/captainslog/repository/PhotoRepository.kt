@@ -7,6 +7,7 @@ import com.captainslog.connection.ConnectionManager
 import com.captainslog.database.AppDatabase
 import com.captainslog.database.entities.PhotoEntity
 import com.captainslog.network.models.PhotoResponse
+import com.captainslog.sync.ImmediateSyncService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -21,6 +22,7 @@ import java.util.*
 
 /**
  * Repository for managing photos locally and syncing with the backend
+ * Automatically syncs photo metadata immediately, uploads files on WiFi
  */
 class PhotoRepository(
     private val database: AppDatabase,
@@ -28,6 +30,7 @@ class PhotoRepository(
 ) {
     private val photoDao = database.photoDao()
     private val connectionManager = ConnectionManager.getInstance(context)
+    private val immediateSyncService = ImmediateSyncService.getInstance(context, database)
 
     companion object {
         const val TAG = "PhotoRepository"
@@ -78,6 +81,9 @@ class PhotoRepository(
 
             // Save to database
             photoDao.insertPhoto(photoEntity)
+            
+            // Sync metadata immediately if connected, upload file only on WiFi
+            immediateSyncService.syncPhoto(photoEntity.id)
             
             Log.d(TAG, "Photo saved locally: ${photoEntity.id}")
             photoEntity

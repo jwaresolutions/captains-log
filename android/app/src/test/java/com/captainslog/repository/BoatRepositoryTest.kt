@@ -1,5 +1,6 @@
 package com.captainslog.repository
 
+import android.content.Context
 import com.captainslog.database.AppDatabase
 import com.captainslog.database.dao.BoatDao
 import com.captainslog.database.entities.BoatEntity
@@ -27,6 +28,7 @@ class BoatRepositoryTest {
     private lateinit var boatDao: BoatDao
     private lateinit var apiService: ApiService
     private lateinit var connectionManager: ConnectionManager
+    private lateinit var context: Context
     private lateinit var repository: BoatRepository
 
     @BeforeEach
@@ -35,11 +37,12 @@ class BoatRepositoryTest {
         boatDao = mockk()
         apiService = mockk()
         connectionManager = mockk()
+        context = mockk()
         
         every { database.boatDao() } returns boatDao
         coEvery { connectionManager.getApiService() } returns apiService
         
-        repository = BoatRepository(database, connectionManager)
+        repository = BoatRepository(database, connectionManager, context)
     }
 
     @AfterEach

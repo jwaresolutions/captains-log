@@ -403,7 +403,7 @@ run_single_android_test() {
     local exit_code=0
     
     # Run test with macOS-compatible timeout using background process
-    ./gradlew test --tests="*${test_pattern}*PropertyTest*" -Dkotest.proptest.default.iteration.count=$iterations_to_use --quiet > "$output_file" 2>&1 &
+    ./gradlew testDebugUnitTest --tests "*${test_pattern}*PropertyTest*" -Dkotest.proptest.default.iteration.count=$iterations_to_use --quiet > "$output_file" 2>&1 &
     local test_pid=$!
     
     # Wait for process with timeout

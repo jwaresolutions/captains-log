@@ -4,6 +4,7 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.captainslog.BuildConfig
 import com.captainslog.connection.ConnectionManager
 import com.captainslog.network.models.LoginRequest
 import com.captainslog.security.SecurePreferences
@@ -31,7 +32,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(
         LoginUiState(
-            serverUrl = securePreferences.remoteUrl ?: "",
+            serverUrl = securePreferences.remoteUrl ?: BuildConfig.DEFAULT_SERVER_URL,
             hasStoredToken = securePreferences.jwtToken != null
         )
     )

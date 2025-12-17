@@ -22,8 +22,7 @@ import com.captainslog.sync.OfflineStatus
 fun OfflineStatusIndicator(
     offlineStatus: OfflineStatus,
     isConnected: Boolean,
-    modifier: Modifier = Modifier,
-    onSyncClick: (() -> Unit)? = null
+    modifier: Modifier = Modifier
 ) {
     if (!offlineStatus.hasPendingChanges && isConnected) {
         // No offline status to show when connected and no pending changes
@@ -96,21 +95,28 @@ fun OfflineStatusIndicator(
                 }
             }
 
-            // Sync button (only show when connected and there are pending changes)
-            if (isConnected && offlineStatus.hasPendingChanges && onSyncClick != null) {
-                TextButton(
-                    onClick = onSyncClick,
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = when {
+            // Show syncing indicator when data is being synced
+            if (isConnected && offlineStatus.hasPendingChanges) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp,
+                        color = when {
                             offlineStatus.failedCount > 0 -> MaterialTheme.colorScheme.onErrorContainer
                             else -> MaterialTheme.colorScheme.onPrimaryContainer
                         }
                     )
-                ) {
+                    Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "Sync Now",
+                        text = "Syncing",
                         fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Medium,
+                        color = when {
+                            offlineStatus.failedCount > 0 -> MaterialTheme.colorScheme.onErrorContainer
+                            else -> MaterialTheme.colorScheme.onPrimaryContainer
+                        }
                     )
                 }
             }
@@ -124,8 +130,8 @@ fun OfflineStatusIndicator(
 private fun getStatusTitle(offlineStatus: OfflineStatus, isConnected: Boolean): String {
     return when {
         offlineStatus.failedCount > 0 -> "Sync Errors"
-        offlineStatus.hasPendingChanges && !isConnected -> "Offline Mode"
-        offlineStatus.hasPendingChanges && isConnected -> "Sync Pending"
+        offlineStatus.hasPendingChanges && !isConnected -> "No Internet Connection"
+        offlineStatus.hasPendingChanges && isConnected -> "Syncing Changes"
         else -> "All Synced"
     }
 }
@@ -138,7 +144,7 @@ private fun getStatusMessage(offlineStatus: OfflineStatus): String {
         if (offlineStatus.pendingCount > 0) {
             append("${offlineStatus.pendingCount} change")
             if (offlineStatus.pendingCount > 1) append("s")
-            append(" queued")
+            append(" will sync when connected")
         }
         
         if (offlineStatus.failedCount > 0) {
@@ -147,7 +153,7 @@ private fun getStatusMessage(offlineStatus: OfflineStatus): String {
         }
         
         if (isEmpty()) {
-            append("No pending changes")
+            append("Changes sync automatically")
         }
     }
 }

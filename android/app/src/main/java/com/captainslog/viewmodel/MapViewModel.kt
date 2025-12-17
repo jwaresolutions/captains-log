@@ -33,12 +33,12 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
     private val connectionManager: ConnectionManager
 
     init {
-        val database = AppDatabase.getDatabase(application)
+        val database = AppDatabase.getInstance(application)
         connectionManager = ConnectionManager.getInstance(application)
         connectionManager.initialize()
         
         // Initialize repositories with ConnectionManager
-        tripRepository = TripRepository(database)
+        tripRepository = TripRepository(database, application)
         markedLocationRepository = MarkedLocationRepository(database, connectionManager)
         
         // Load initial data

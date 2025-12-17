@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Boat Tracking</string>
+    <string name="app_name">Captain\'s Log</string>
     
     <!-- Setup Wizard -->
-    <string name="setup_welcome">Welcome to Boat Tracking</string>
+    <string name="setup_welcome">Welcome to Captain\'s Log</string>
     <string name="setup_username">Username</string>
     <string name="setup_password">Password</string>
     <string name="setup_remote_url">Remote Server URL (Required)</string>

@@ -70,8 +70,8 @@ class TripTrackingViewModel(application: Application) : AndroidViewModel(applica
     }
 
     init {
-        database = AppDatabase.getDatabase(application)
-        repository = TripRepository(database)
+        database = AppDatabase.getInstance(application)
+        repository = TripRepository(database, application)
     }
 
     /**

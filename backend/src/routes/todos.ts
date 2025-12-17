@@ -1,5 +1,6 @@
 import express from 'express';
 import { todoService, TodoListCreateDTO, TodoItemCreateDTO, TodoItemUpdateDTO } from '../services/todoService';
+import { sendJsonResponse } from '../utils/serialization';
 
 const router = express.Router();
 
@@ -24,10 +25,10 @@ router.post('/', async (req, res) => {
 
     const todoList = await todoService.createList(data);
 
-    res.status(201).json({
+    sendJsonResponse(res, {
       success: true,
       data: todoList
-    });
+    }, 201);
   } catch (error) {
     console.error('Error creating todo list:', error);
     
@@ -60,7 +61,7 @@ router.get('/', async (req, res) => {
 
     const todoLists = await todoService.getLists(boatId as string);
 
-    res.json({
+    sendJsonResponse(res, {
       data: todoLists,
       count: todoLists.length,
       timestamp: new Date().toISOString()
@@ -89,7 +90,7 @@ router.get('/:id', async (req, res) => {
       });
     }
 
-    res.json({
+    sendJsonResponse(res, {
       success: true,
       data: todoList
     });
@@ -115,7 +116,7 @@ router.put('/:id', async (req, res) => {
       boatId: boatId || undefined
     });
 
-    res.json({
+    sendJsonResponse(res, {
       success: true,
       data: todoList
     });
@@ -196,10 +197,10 @@ router.post('/:id/items', async (req, res) => {
 
     const item = await todoService.addItem(id, data);
 
-    res.status(201).json({
+    sendJsonResponse(res, {
       success: true,
       data: item
-    });
+    }, 201);
   } catch (error) {
     console.error('Error adding todo item:', error);
     
@@ -241,7 +242,7 @@ router.put('/items/:itemId', async (req, res) => {
 
     const item = await todoService.updateItem(itemId, data);
 
-    res.json({
+    sendJsonResponse(res, {
       success: true,
       data: item
     });
@@ -277,7 +278,7 @@ router.patch('/items/:itemId/complete', async (req, res) => {
 
     const item = await todoService.toggleItemCompletion(itemId);
 
-    res.json({
+    sendJsonResponse(res, {
       success: true,
       data: item
     });

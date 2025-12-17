@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
 import { eventManagerService, MaintenanceEventCompletionDTO } from '../services/eventManagerService';
+import { sendJsonResponse } from '../utils/serialization';
 
 const router = express.Router();
 
@@ -45,7 +46,7 @@ router.get('/upcoming', async (req: Request, res: Response): Promise<void> => {
 
     const events = await eventManagerService.getUpcomingEvents(options);
 
-    res.json({
+    sendJsonResponse(res, {
       success: true,
       data: events
     });
@@ -104,7 +105,7 @@ router.get('/completed', async (req: Request, res: Response): Promise<void> => {
 
     const events = await eventManagerService.getCompletedEvents(options);
 
-    res.json({
+    sendJsonResponse(res, {
       success: true,
       data: events
     });
@@ -143,7 +144,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    res.json({
+    sendJsonResponse(res, {
       success: true,
       data: event
     });
@@ -212,7 +213,7 @@ router.post('/:id/complete', async (req: Request, res: Response): Promise<void> 
 
     const completedEvent = await eventManagerService.completeEvent(id, completionData);
 
-    res.json({
+    sendJsonResponse(res, {
       success: true,
       data: completedEvent,
       message: 'Maintenance event completed successfully'

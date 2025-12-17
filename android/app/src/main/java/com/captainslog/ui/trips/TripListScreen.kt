@@ -28,7 +28,6 @@ fun TripListScreen(
     trips: List<TripEntity>,
     onTripClick: (String) -> Unit,
     onStartNewTrip: (String, String, String) -> Unit, // Changed to take trip parameters
-    onSyncTrips: () -> Unit = {},
     boats: List<com.captainslog.database.entities.BoatEntity> = emptyList(),
     activeBoat: com.captainslog.database.entities.BoatEntity? = null,
     isTracking: Boolean = false,
@@ -52,37 +51,6 @@ fun TripListScreen(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            // Sync button
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Sync trips with server",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Button(
-                        onClick = onSyncTrips,
-                        modifier = Modifier.wrapContentWidth()
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Sync")
-                    }
-                }
-            }
 
             // Debug card (only visible when debug mode is enabled)
             if (isDebugMode) {
@@ -90,7 +58,9 @@ fun TripListScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = androidx.compose.ui.graphics.Color.Yellow)
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
+                    )
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text("🐛 Debug Info:", style = MaterialTheme.typography.titleSmall)

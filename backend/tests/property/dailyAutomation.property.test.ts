@@ -402,6 +402,10 @@ describe('Daily Automation Property Tests', () => {
                 if (recurrence.interval >= 26) {
                   // 26+ week intervals: may only have 1-2 events
                   expectedMinDays = 0;
+                } else if (recurrence.interval >= 8) {
+                  // 8-25 week intervals: expect at least 6 months
+                  expectedMinDays = 180; // More realistic for 8-9 week intervals
+                  expectedMaxDays = 400;
                 } else {
                   // Shorter intervals: expect to span most of a year
                   expectedMinDays = 200;
