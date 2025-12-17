@@ -55,6 +55,7 @@
 - **Minimum SDK**: Android 8.0 (API 26)
 - **Target SDK**: Android 16 (API 35)
 - **Compile SDK**: Android 16 (API 35)
+- **Package Name**: com.captainslog (changed from com.boattracking)
 - **Architecture**: MVVM with Jetpack Compose
 - **Database**: Room (offline storage)
 - **Networking**: Retrofit + OkHttp with Certificate Pinning (separate pins for local/remote Cloudflare certs)
@@ -62,13 +63,12 @@
 - **Connection**: Dual mode (local priority with 2s timeout, remote fallback), both HTTPS via Cloudflare
 - **Certificate Updates**: Via app update only
 - **Photo Retention**: 7 days local retention after successful upload
-- **Maps**: Google Maps Android API
+- **Maps**: OpenStreetMap with osmdroid (changed from Google Maps)
 - **Background Services**: WorkManager + Foreground Service
 - **Bluetooth**: Android Bluetooth API
 - **Image Loading**: Coil
 - **Testing**: JUnit 5 + MockK + Espresso + Robolectric
 - **Property Testing**: Kotest Property Testing
-- **Crash Reporting**: Firebase Crashlytics
 - **KSP**: 2.0.21-1.0.28 (Kotlin Symbol Processing for Room, etc.)
 
 ## Deployment

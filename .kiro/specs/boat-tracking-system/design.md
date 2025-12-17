@@ -8,7 +8,7 @@ The Boat Tracking System is a full-stack application consisting of three main co
 2. **Web Application** - A React-based single-page application with LCARS design system (Star Trek TNG/Voyager aesthetic) that provides a comprehensive dashboard and management interface
 3. **Android Application** - A native Android app built with Kotlin that provides mobile-first features including GPS tracking, offline functionality, and sensor integration
 
-The system uses PostgreSQL as the primary database, deployed via Docker Compose for easy setup and portability. All communication between clients and the API is secured using API key authentication over HTTPS through a Cloudflare tunnel.
+The system uses PostgreSQL as the primary database, deployed via Docker Compose for easy setup and portability. All communication between clients and the API is secured using username/password authentication with JWT session tokens over HTTPS, with dual connection support (local and remote) through Cloudflare certificates.
 
 ## Architecture
 

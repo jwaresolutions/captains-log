@@ -23,13 +23,14 @@ All file paths, commands, and tooling assume a macOS environment. Avoid Linux-sp
 │       ├── product.md
 │       ├── tech.md
 │       └── structure.md
-├── backend/                # Node.js/Express API
+├── backend/                # Node.js/Express API (IMPLEMENTED)
 │   ├── src/
 │   │   ├── services/      # Business logic services
 │   │   ├── routes/        # API route handlers
 │   │   ├── middleware/    # Express middleware (auth, error handling)
 │   │   ├── models/        # Prisma schema and types
 │   │   ├── utils/         # Utility functions
+│   │   ├── scripts/       # CLI management scripts
 │   │   └── index.ts       # Application entry point
 │   ├── prisma/
 │   │   ├── schema.prisma  # Database schema
@@ -37,13 +38,13 @@ All file paths, commands, and tooling assume a macOS environment. Avoid Linux-sp
 │   ├── tests/
 │   │   ├── unit/          # Unit tests
 │   │   ├── integration/   # Integration tests
-│   │   └── property/      # Property-based tests
+│   │   └── property/      # Property-based tests (55+ tests)
 │   ├── uploads/           # Photo storage (Docker volume)
 │   ├── backups/           # Database backups
 │   ├── Dockerfile
 │   ├── package.json
 │   └── tsconfig.json
-├── web/                   # React web application
+├── web/                   # React web application (IMPLEMENTED)
 │   ├── src/
 │   │   ├── components/    # Reusable React components
 │   │   │   └── lcars/     # LCARS design system components
@@ -64,11 +65,11 @@ All file paths, commands, and tooling assume a macOS environment. Avoid Linux-sp
 │   ├── package.json
 │   ├── vite.config.ts
 │   └── tsconfig.json
-├── android/               # Android application
+├── android/               # Android application (IMPLEMENTED)
 │   ├── app/
 │   │   ├── src/
 │   │   │   ├── main/
-│   │   │   │   ├── java/com/boattracking/
+│   │   │   │   ├── java/com/captainslog/
 │   │   │   │   │   ├── ui/           # Jetpack Compose screens
 │   │   │   │   │   ├── viewmodel/    # ViewModels
 │   │   │   │   │   ├── repository/   # Data repositories
@@ -88,6 +89,14 @@ All file paths, commands, and tooling assume a macOS environment. Avoid Linux-sp
 │   ├── build.gradle.kts
 │   └── settings.gradle.kts
 ├── docker-compose.yml     # Docker orchestration
+├── docker-compose.dev.yml # Development Docker configuration
+├── docker-compose.prod.yml # Production Docker configuration
+├── run-property-tests.sh  # Universal property test runner (CRITICAL TOOL)
+├── setup-verify.sh        # Development environment verification
+├── temp/                  # Test scripts and configurations (excluded from git)
+│   ├── test-results/      # Property test output files
+│   ├── task-*.sh          # Task validation scripts
+│   └── *.json             # Test configurations
 ├── .env.example           # Environment variables template
 ├── .env                   # Environment variables (not in git)
 └── README.md              # Project documentation

@@ -44,7 +44,7 @@ Mark task complete ← CORRECT!
 
 ## CRITICAL: Mandatory Property Test Tool Usage
 
-**ABSOLUTE REQUIREMENT**: ALL property-based testing tasks MUST use the universal property test runner (`./run-property-tests.sh`). 
+**ABSOLUTE REQUIREMENT**: ALL property-based testing tasks MUST use the universal property test runner (`./run-property-tests.sh`). The system currently has 55+ backend property tests implemented and working. 
 
 **DO NOT use these deprecated commands for property test tasks**:
 - ❌ `npm run test:property` - Can hang, produces massive logs, no isolation
