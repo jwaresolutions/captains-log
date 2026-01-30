@@ -13,7 +13,6 @@ const SIDEBAR_W = '200px'
 const ELBOW = '60px'
 const HEADER_H = '60px'
 const FOOTER_H = '40px'
-const BAR_THICKNESS = '30px'
 const GAP = '3px'
 const BTN_H = '44px'
 const MOBILE_BP = '768px'
@@ -23,11 +22,6 @@ const MOBILE_BP = '768px'
 const fadeIn = keyframes`
   from { opacity: 0; }
   to   { opacity: 1; }
-`
-
-const slideIn = keyframes`
-  from { transform: translateX(-20px); opacity: 0; }
-  to   { transform: translateX(0); opacity: 1; }
 `
 
 // -- Root container --------------------------------------------------------
@@ -64,9 +58,9 @@ const Sidebar = styled.aside`
   display: flex;
   flex-direction: column;
   gap: ${GAP};
-  padding-right: ${GAP};
   overflow-y: auto;
   overflow-x: hidden;
+  animation: ${fadeIn} 0.4s ease;
 
   @media (max-width: ${MOBILE_BP}) {
     display: none;
@@ -85,40 +79,16 @@ const TopElbow = styled.div`
   position: relative;
   flex-shrink: 0;
   border-radius: 32px 0 0 0;
-
-  /* Quarter-circle cutout — bottom-right corner */
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: ${ELBOW};
-    height: ${BAR_THICKNESS};
-    background: ${p => p.theme.colors.background};
-    border-radius: 0 24px 0 0;
-  }
 `
 
 const BottomElbow = styled.div`
   width: ${SIDEBAR_W};
-  height: ${ELBOW};
+  height: ${FOOTER_H};
   background: ${p => p.theme.colors.primary.lilac};
   position: relative;
   flex-shrink: 0;
   border-radius: 0 0 0 32px;
   margin-top: auto;
-
-  /* Quarter-circle cutout — top-right corner */
-  &::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: ${ELBOW};
-    height: ${BAR_THICKNESS};
-    background: ${p => p.theme.colors.background};
-    border-radius: 0 0 24px 0;
-  }
 `
 
 // -- Sidebar nav buttons ---------------------------------------------------
@@ -130,18 +100,13 @@ const NAV_COLORS = [
   'lilac',
   'goldenTanoi',
   'neonCarrot',
-  'paleCanary',
   'mariner',
   'anakiwa',
   'lilac',
   'tanoi',
+  'neonCarrot',
   'goldenTanoi',
 ] as const
-
-const activeGlow = keyframes`
-  0%, 100% { box-shadow: 0 0 8px currentColor, inset 0 0 8px rgba(255,255,255,0.15); }
-  50%      { box-shadow: 0 0 18px currentColor, inset 0 0 12px rgba(255,255,255,0.25); }
-`
 
 const SidebarButton = styled.button<{ $color: string; $isActive: boolean }>`
   width: 100%;
@@ -159,14 +124,36 @@ const SidebarButton = styled.button<{ $color: string; $isActive: boolean }>`
   text-align: right;
   padding: 0 18px 0 0;
   border-radius: 0 24px 24px 0;
-  transition: filter 0.15s ease, transform 0.1s ease;
   position: relative;
-  animation: ${slideIn} 0.4s ease backwards;
+  overflow: hidden;
+  z-index: 0;
+
+  /* Left-to-right sweep hover effect */
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateX(-100%);
+    transition: transform 0.35s ease;
+    z-index: 0;
+    border-radius: inherit;
+  }
+
+  &:hover:not(:disabled)::after {
+    transform: translateX(0);
+  }
+
+  &:active:not(:disabled)::after {
+    background: rgba(255, 255, 255, 0.35);
+  }
 
   ${p => p.$isActive && css`
     filter: brightness(1.35);
-    animation: ${activeGlow} 2s ease-in-out infinite;
-    z-index: 1;
+    box-shadow: 0 0 12px currentColor, inset 0 0 8px rgba(255,255,255,0.15);
 
     &::before {
       content: '';
@@ -177,18 +164,9 @@ const SidebarButton = styled.button<{ $color: string; $isActive: boolean }>`
       width: 4px;
       background: #fff;
       border-radius: 0 2px 2px 0;
+      z-index: 1;
     }
   `}
-
-  &:hover:not(:disabled) {
-    filter: brightness(1.25);
-    transform: translateX(3px);
-  }
-
-  &:active:not(:disabled) {
-    filter: brightness(1.4);
-    transform: translateX(1px);
-  }
 `
 
 // Thin filler bars between buttons (decorative)
@@ -213,22 +191,9 @@ const HeaderBar = styled.header`
   padding: 0 24px 0 16px;
   position: relative;
 
-  /* Left notch — connects visually to the elbow cutout */
-  &::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    width: 24px;
-    height: ${BAR_THICKNESS};
-    background: ${p => p.theme.colors.background};
-    border-radius: 0 12px 0 0;
-  }
-
   @media (max-width: ${MOBILE_BP}) {
     border-radius: 0;
     justify-content: center;
-    &::before { display: none; }
   }
 `
 
@@ -274,23 +239,9 @@ const ContentArea = styled.main`
   background: ${p => p.theme.colors.background};
   overflow-y: auto;
   padding: ${p => p.theme.spacing.lg};
-  position: relative;
-
-  /* Subtle inner border glow on left edge */
-  &::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 1px;
-    background: ${p => p.theme.colors.primary.eggplant};
-    opacity: 0.4;
-  }
 
   @media (max-width: ${MOBILE_BP}) {
     padding: ${p => p.theme.spacing.md};
-    &::before { display: none; }
   }
 `
 
@@ -305,22 +256,9 @@ const FooterBar = styled.footer`
   padding: 0 24px 0 16px;
   position: relative;
 
-  /* Left notch — mirrors header */
-  &::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 24px;
-    height: ${BAR_THICKNESS};
-    background: ${p => p.theme.colors.background};
-    border-radius: 0 0 12px 0;
-  }
-
   @media (max-width: ${MOBILE_BP}) {
     border-radius: 0;
     justify-content: center;
-    &::before { display: none; }
   }
 `
 
@@ -413,15 +351,6 @@ const MobileMenuTrigger = styled.button`
 
 // -- Utilities panel -------------------------------------------------------
 
-const UtilityRow = styled.div`
-  position: absolute;
-  top: 4px;
-  right: 8px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  z-index: 2;
-`
 
 // ---------------------------------------------------------------------------
 // Navigation data
@@ -446,13 +375,16 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Settings', path: '/settings' },
 ]
 
-// Compute a TNG-style stardate (just decorative)
+// Compute a TNG-style stardate
+// Formula from wikihow: Stardate = (year - 2323) * 1000 + (day_of_year / days_in_year) * 1000
 function getStardate(): string {
   const now = new Date()
   const year = now.getFullYear()
-  const start = new Date(year, 0, 1).getTime()
-  const fraction = ((now.getTime() - start) / (365.25 * 86400000)) * 1000
-  return `${year - 323}.${fraction.toFixed(1)}`
+  const startOfYear = new Date(year, 0, 1).getTime()
+  const endOfYear = new Date(year + 1, 0, 1).getTime()
+  const dayFraction = (now.getTime() - startOfYear) / (endOfYear - startOfYear)
+  const stardate = (year - 2323) * 1000 + dayFraction * 1000
+  return stardate.toFixed(1)
 }
 
 // ---------------------------------------------------------------------------
@@ -485,8 +417,6 @@ export const LCARSLayout: React.FC<LCARSLayoutProps> = ({ children }) => {
 
   return (
     <LayoutContainer>
-      <OfflineIndicator />
-
       {/* ---- Sidebar (desktop) ---- */}
       <Sidebar>
         <TopElbow />
@@ -516,7 +446,6 @@ export const LCARSLayout: React.FC<LCARSLayoutProps> = ({ children }) => {
                 $color={hex}
                 $isActive={isActive(item.path)}
                 onClick={() => go(item.path)}
-                style={{ animationDelay: `${i * 50}ms` }}
                 aria-current={isActive(item.path) ? 'page' : undefined}
               >
                 {item.label}
@@ -535,9 +464,9 @@ export const LCARSLayout: React.FC<LCARSLayoutProps> = ({ children }) => {
         </MobileMenuTrigger>
         <HeaderStardate>Stardate {stardate}</HeaderStardate>
         <HeaderTitle onClick={() => go('/')}>Captain&apos;s Log</HeaderTitle>
-        <UtilityRow>
+        <div style={{ marginLeft: '16px' }}>
           <NotificationPanel />
-        </UtilityRow>
+        </div>
       </HeaderBar>
 
       {/* ---- Main content ---- */}
@@ -547,7 +476,8 @@ export const LCARSLayout: React.FC<LCARSLayoutProps> = ({ children }) => {
 
       {/* ---- Footer bar ---- */}
       <FooterBar>
-        <FooterText>LCARS v47.3 &mdash; Library Computer Access/Retrieval System</FooterText>
+        <OfflineIndicator />
+        <FooterText style={{ marginLeft: 'auto' }}>LCARS v47.3 &mdash; Library Computer Access/Retrieval System</FooterText>
       </FooterBar>
 
       {/* ---- Mobile overlay menu ---- */}

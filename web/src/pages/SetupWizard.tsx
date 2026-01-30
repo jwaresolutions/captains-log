@@ -85,10 +85,11 @@ export const SetupWizard: React.FC = () => {
   const [formData, setFormData] = useState({
     username: '',
     password: '',
-    serverUrl: import.meta.env.VITE_DEFAULT_SERVER_URL || 'http://localhost:8585',
+    serverUrl: import.meta.env.VITE_DEFAULT_SERVER_URL || '',
   })
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null)
+  const [showAdvanced, setShowAdvanced] = useState(false)
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -104,10 +105,14 @@ export const SetupWizard: React.FC = () => {
     setMessage(null)
 
     try {
-      // Update the API service base URL
-      apiService.updateBaseUrl(formData.serverUrl)
-      
-      console.log('Server URL configured:', formData.serverUrl)
+      // Only update base URL if a custom server URL is provided
+      if (formData.serverUrl.trim()) {
+        apiService.updateBaseUrl(formData.serverUrl)
+        console.log('Server URL configured:', formData.serverUrl)
+      } else {
+        console.log('Using default server URL (proxy)')
+      }
+
       console.log('Attempting login with:', { username: formData.username })
 
       // Attempt login
@@ -187,19 +192,38 @@ export const SetupWizard: React.FC = () => {
               />
             </FormGroup>
 
-            <FormGroup>
-              <Label htmlFor="serverUrl">Server URL</Label>
-              <Input
-                type="url"
-                id="serverUrl"
-                name="serverUrl"
-                value={formData.serverUrl}
-                onChange={handleInputChange}
-                placeholder="http://localhost:8585"
-                required
-                disabled={isLoading}
-              />
-            </FormGroup>
+            <div style={{ textAlign: 'right' }}>
+              <button
+                type="button"
+                onClick={() => setShowAdvanced(!showAdvanced)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#99CCFF',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px'
+                }}
+              >
+                {showAdvanced ? 'Hide Advanced' : 'Advanced Options'}
+              </button>
+            </div>
+
+            {showAdvanced && (
+              <FormGroup>
+                <Label htmlFor="serverUrl">Server URL (Optional)</Label>
+                <Input
+                  type="url"
+                  id="serverUrl"
+                  name="serverUrl"
+                  value={formData.serverUrl}
+                  onChange={handleInputChange}
+                  placeholder="Leave empty for default"
+                  disabled={isLoading}
+                />
+              </FormGroup>
+            )}
 
             {message && (
               <LCARSAlert 

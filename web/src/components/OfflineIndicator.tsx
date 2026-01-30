@@ -39,23 +39,20 @@ const RetryButton = styled.button`
 `;
 
 const ConnectionStatus = styled.div<{ $isOnline: boolean }>`
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 9999;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 12px;
+  position: static;
+  z-index: auto;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 11px;
   font-weight: bold;
   display: flex;
   align-items: center;
   gap: 8px;
-  background: ${props => props.$isOnline 
-    ? props.theme.colors.status.success 
+  background: ${props => props.$isOnline
+    ? props.theme.colors.status.success
     : props.theme.colors.status.error};
   color: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  
+
   &::before {
     content: '';
     width: 8px;
@@ -64,7 +61,7 @@ const ConnectionStatus = styled.div<{ $isOnline: boolean }>`
     background: currentColor;
     animation: ${props => props.$isOnline ? 'none' : 'pulse 2s infinite'};
   }
-  
+
   @keyframes pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }

@@ -136,27 +136,25 @@ const NotificationBadge = styled.div<{ count: number }>`
 
 const NotificationToggle = styled.button<{ $hasUnread: boolean }>`
   position: relative;
-  background: transparent;
-  border: 2px solid ${props => props.theme.colors.primary.anakiwa};
-  color: ${props => props.theme.colors.primary.anakiwa};
-  padding: 8px 12px;
+  background: ${props => props.theme.colors.primary.anakiwa};
+  color: ${props => props.theme.colors.text.inverse};
+  border: none;
+  border-radius: 9999px;
+  padding: 0 16px;
+  height: 32px;
   cursor: pointer;
   font-family: ${props => props.theme.typography.fontFamily.primary};
   font-size: 14px;
   font-weight: bold;
   text-transform: uppercase;
-  transition: all 0.3s ease;
+  transition: filter 0.2s ease;
 
   &:hover {
-    border-color: ${props => props.theme.colors.primary.neonCarrot};
-    color: ${props => props.theme.colors.primary.neonCarrot};
+    filter: brightness(1.2);
   }
-  
+
   ${props => props.$hasUnread && `
-    animation: ${keyframes`
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-    `} 2s ease-in-out infinite;
+    filter: brightness(1.3);
   `}
 `;
 

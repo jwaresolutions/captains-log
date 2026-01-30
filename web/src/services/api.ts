@@ -22,10 +22,11 @@ class ApiService {
   private client: AxiosInstance
 
   constructor() {
-    // Check for dynamically set API base URL first, then fall back to environment variable
-    const dynamicBaseUrl = localStorage.getItem('api_base_url')
-    const baseURL = dynamicBaseUrl || import.meta.env.VITE_API_BASE_URL || 'http://localhost:8585/api/v1'
-    
+    const baseURL = import.meta.env.VITE_API_BASE_URL || '/api/v1'
+
+    // Clear any stale dynamic URL from localStorage
+    localStorage.removeItem('api_base_url')
+
     this.client = axios.create({
       baseURL,
       timeout: 10000,
@@ -177,19 +178,36 @@ class ApiService {
 
   // Update the base URL dynamically
   updateBaseUrl(serverUrl: string): void {
-    let apiBaseUrl = serverUrl
-    
-    // Ensure the server URL ends with /api/v1 for API calls
-    if (!apiBaseUrl.endsWith('/api/v1')) {
-      apiBaseUrl = apiBaseUrl.replace(/\/$/, '') + '/api/v1'
+    // If the serverUrl points to the same host we're running on, use relative URL
+    // to leverage the Vite dev proxy
+    let apiBaseUrl: string
+
+    try {
+      const serverOrigin = new URL(serverUrl).origin
+      const currentOrigin = window.location.origin
+
+      // If server is on same origin or common local dev setup, use relative path
+      if (serverOrigin === currentOrigin ||
+          (window.location.hostname === 'localhost' && new URL(serverUrl).hostname === 'localhost')) {
+        apiBaseUrl = '/api/v1'
+      } else {
+        // Different host — use absolute URL
+        apiBaseUrl = serverUrl.replace(/\/$/, '')
+        if (!apiBaseUrl.endsWith('/api/v1')) {
+          apiBaseUrl += '/api/v1'
+        }
+      }
+    } catch {
+      // Invalid URL, try using as-is with /api/v1 appended
+      apiBaseUrl = serverUrl.replace(/\/$/, '')
+      if (!apiBaseUrl.endsWith('/api/v1')) {
+        apiBaseUrl += '/api/v1'
+      }
     }
-    
+
     // Update the axios client base URL
     this.client.defaults.baseURL = apiBaseUrl
-    
-    // Store in localStorage for persistence
-    localStorage.setItem('api_base_url', apiBaseUrl)
-    
+
     console.log('API base URL updated to:', apiBaseUrl)
   }
 
@@ -491,8 +509,11 @@ class ApiService {
 
   // Notification API methods
   async getNotifications(): Promise<Notification[]> {
-    const response = await this.get<{ notifications: Notification[]; count: number }>('/notifications')
-    return response.notifications
+    const response = await this.get<Notification[] | { notifications: Notification[]; count: number }>('/notifications')
+    if (Array.isArray(response)) {
+      return response
+    }
+    return response?.notifications || []
   }
 
   async markNotificationAsRead(id: string): Promise<void> {

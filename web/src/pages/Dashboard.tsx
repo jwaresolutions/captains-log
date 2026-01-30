@@ -1,14 +1,11 @@
 import React from 'react'
 import styled from 'styled-components'
-import { 
-  LCARSPanel, 
-  LCARSHeader, 
-  LCARSDataDisplay, 
-  LCARSButton, 
-  LCARSBar, 
-  LCARSElbow,
-  LCARSColumn,
-  LCARSAlert 
+import {
+  LCARSPanel,
+  LCARSHeader,
+  LCARSDataDisplay,
+  LCARSButton,
+  LCARSAlert
 } from '../components/lcars'
 import { useBoats } from '../hooks/useBoats'
 import { useTrips } from '../hooks/useTrips'
@@ -16,32 +13,8 @@ import { useLicenseProgress } from '../hooks/useLicenseProgress'
 
 const DashboardContainer = styled.div`
   display: flex;
-  gap: ${props => props.theme.spacing.lg};
-  min-height: calc(100vh - 200px);
-  
-  @media (max-width: ${props => props.theme.breakpoints.lg}) {
-    flex-direction: column;
-  }
-`
-
-const MainContent = styled.div`
-  flex: 1;
-  display: flex;
   flex-direction: column;
   gap: ${props => props.theme.spacing.lg};
-`
-
-const TopSection = styled.div`
-  display: flex;
-  align-items: center;
-  gap: ${props => props.theme.spacing.md};
-  margin-bottom: ${props => props.theme.spacing.lg};
-`
-
-const HeaderLogo = styled.img`
-  height: 40px;
-  width: auto;
-  filter: drop-shadow(0 0 5px ${props => props.theme.colors.primary.neonCarrot}40);
 `
 
 const StatusGrid = styled.div`
@@ -151,9 +124,66 @@ export const Dashboard: React.FC = () => {
 
   return (
     <DashboardContainer>
-      <LCARSColumn width="250px">
-        <LCARSElbow position="top-left" size={60} />
-        <LCARSBar height={20} colors={['neonCarrot']} />
+      <LCARSHeader level={1}>Command Center</LCARSHeader>
+
+      {(boatsError || tripsError || licenseError) && (
+        <LCARSAlert type="error">
+          Unable to load dashboard data. Check your connection and try again.
+        </LCARSAlert>
+      )}
+
+      <StatusGrid>
+        <LCARSPanel title="Fleet Status" variant="accent">
+          {boatsLoading ? (
+            <LCARSDataDisplay label="Loading" value="..." valueColor="anakiwa" />
+          ) : (
+            <>
+              <LCARSDataDisplay
+                label="Total Vessels"
+                value={boats?.length || 0}
+                valueColor="anakiwa"
+              />
+              <LCARSDataDisplay
+                label="Active Vessels"
+                value={activeBoats.length}
+                valueColor="success"
+              />
+              <LCARSDataDisplay
+                label="Inactive Vessels"
+                value={(boats?.length || 0) - activeBoats.length}
+                valueColor="neonCarrot"
+              />
+            </>
+          )}
+        </LCARSPanel>
+
+        <LCARSPanel title="License Progress" variant="secondary">
+          {licenseLoading ? (
+            <LCARSDataDisplay label="Loading" value="..." valueColor="lilac" />
+          ) : licenseProgress ? (
+            <>
+              <LCARSDataDisplay
+                label="Sea Time Days"
+                value={licenseProgress.totalSeaTimeDays}
+                valueColor="lilac"
+              />
+              <LCARSDataDisplay
+                label="Days (3 Years)"
+                value={licenseProgress.seaTimeDaysLast3Years}
+                valueColor="lilac"
+              />
+              <div>
+                <ProgressBar progress={calculateProgress(licenseProgress.totalSeaTimeDays, 360)} />
+                <ProgressText>
+                  <span>360 Day Goal</span>
+                  <span>{Math.round(calculateProgress(licenseProgress.totalSeaTimeDays, 360))}%</span>
+                </ProgressText>
+              </div>
+            </>
+          ) : (
+            <LCARSDataDisplay label="Status" value="Disabled" valueColor="neonCarrot" />
+          )}
+        </LCARSPanel>
 
         <LCARSPanel title="System Status" variant="primary">
           <LCARSDataDisplay
@@ -175,135 +205,52 @@ export const Dashboard: React.FC = () => {
             size="sm"
           />
         </LCARSPanel>
+      </StatusGrid>
 
-        <LCARSBar height={20} colors={['lilac']} />
+      <QuickActions>
+        <LCARSButton size="sm" variant="primary">
+          New Trip
+        </LCARSButton>
+        <LCARSButton size="sm" variant="secondary">
+          Add Boat
+        </LCARSButton>
+      </QuickActions>
 
-        <QuickActions>
-          <LCARSButton size="sm" variant="primary">
-            New Trip
-          </LCARSButton>
-          <LCARSButton size="sm" variant="secondary">
-            Add Boat
-          </LCARSButton>
-        </QuickActions>
-
-        <LCARSElbow position="bottom-left" size={60} color="neonCarrot" />
-      </LCARSColumn>
-
-      <MainContent>
-        <TopSection>
-          <LCARSElbow position="top-right" size={120} color="lilac" />
-          <LCARSBar width="100%" />
-          <HeaderLogo 
-            src="/assets/captains-log-logo.png" 
-            alt="Captain's Log" 
-          />
-          <LCARSHeader level={1}>
-            Captain's Log - Command Center
-          </LCARSHeader>
-        </TopSection>
-
-        {(boatsError || tripsError || licenseError) && (
-          <LCARSAlert type="error">
-            Unable to load dashboard data. Check your connection and try again.
-          </LCARSAlert>
-        )}
-
-        <StatusGrid>
-          <LCARSPanel title="Fleet Status" variant="accent">
-            {boatsLoading ? (
-              <LCARSDataDisplay label="Loading" value="..." valueColor="anakiwa" />
-            ) : (
-              <>
+      <RecentSection>
+        <LCARSPanel title="Recent Trips" variant="primary">
+          {tripsLoading ? (
+            <LCARSDataDisplay label="Loading" value="..." valueColor="neonCarrot" />
+          ) : recentTrips.length > 0 ? (
+            recentTrips.map((trip) => (
+              <TripItem key={trip.id}>
+                <TripInfo>
+                  <TripDate>{formatDate(trip.startTime)}</TripDate>
+                  <TripDetails>
+                    {formatDuration(trip.statistics?.durationSeconds || 0)} • {trip.waterType}
+                  </TripDetails>
+                </TripInfo>
                 <LCARSDataDisplay
-                  label="Total Vessels"
-                  value={boats?.length || 0}
-                  valueColor="anakiwa"
-                />
-                <LCARSDataDisplay
-                  label="Active Vessels"
-                  value={activeBoats.length}
-                  valueColor="success"
-                />
-                <LCARSDataDisplay
-                  label="Inactive Vessels"
-                  value={(boats?.length || 0) - activeBoats.length}
+                  label="Distance"
+                  value={Math.round((trip.statistics?.distanceMeters || 0) / 1852)}
+                  unit="nm"
+                  size="sm"
                   valueColor="neonCarrot"
                 />
-              </>
-            )}
-          </LCARSPanel>
-
-          <LCARSPanel title="License Progress" variant="secondary">
-            {licenseLoading ? (
-              <LCARSDataDisplay label="Loading" value="..." valueColor="lilac" />
-            ) : licenseProgress ? (
-              <>
-                <LCARSDataDisplay
-                  label="Sea Time Days"
-                  value={licenseProgress.totalSeaTimeDays}
-                  valueColor="lilac"
-                />
-                <LCARSDataDisplay
-                  label="Days (3 Years)"
-                  value={licenseProgress.seaTimeDaysLast3Years}
-                  valueColor="lilac"
-                />
-                <div>
-                  <ProgressBar progress={calculateProgress(licenseProgress.totalSeaTimeDays, 360)} />
-                  <ProgressText>
-                    <span>360 Day Goal</span>
-                    <span>{Math.round(calculateProgress(licenseProgress.totalSeaTimeDays, 360))}%</span>
-                  </ProgressText>
-                </div>
-              </>
-            ) : (
-              <LCARSDataDisplay label="Status" value="Disabled" valueColor="neonCarrot" />
-            )}
-          </LCARSPanel>
-        </StatusGrid>
-
-        <RecentSection>
-          <LCARSPanel title="Recent Trips" variant="primary">
-            {tripsLoading ? (
-              <LCARSDataDisplay label="Loading" value="..." valueColor="neonCarrot" />
-            ) : recentTrips.length > 0 ? (
-              recentTrips.map((trip) => (
-                <TripItem key={trip.id}>
-                  <TripInfo>
-                    <TripDate>{formatDate(trip.startTime)}</TripDate>
-                    <TripDetails>
-                      {formatDuration(trip.statistics?.durationSeconds || 0)} • {trip.waterType}
-                    </TripDetails>
-                  </TripInfo>
-                  <LCARSDataDisplay
-                    label="Distance"
-                    value={Math.round((trip.statistics?.distanceMeters || 0) / 1852)}
-                    unit="nm"
-                    size="sm"
-                    valueColor="neonCarrot"
-                  />
-                </TripItem>
-              ))
-            ) : (
-              <div style={{ textAlign: 'center', padding: '2rem', color: '#999' }}>
-                No trips recorded yet
-              </div>
-            )}
-          </LCARSPanel>
-
-          <LCARSPanel title="Upcoming Tasks" variant="accent">
+              </TripItem>
+            ))
+          ) : (
             <div style={{ textAlign: 'center', padding: '2rem', color: '#999' }}>
-              No maintenance tasks due
+              No trips recorded yet
             </div>
-          </LCARSPanel>
-        </RecentSection>
+          )}
+        </LCARSPanel>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <LCARSElbow position="bottom-right" size={80} />
-          <LCARSBar width="100%" colors={['anakiwa']} />
-        </div>
-      </MainContent>
+        <LCARSPanel title="Upcoming Tasks" variant="accent">
+          <div style={{ textAlign: 'center', padding: '2rem', color: '#999' }}>
+            No maintenance tasks due
+          </div>
+        </LCARSPanel>
+      </RecentSection>
     </DashboardContainer>
   )
 }

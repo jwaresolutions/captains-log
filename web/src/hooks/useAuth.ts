@@ -68,8 +68,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = useCallback(async (username: string, password: string) => {
     try {
-      setAuthState(prev => ({ ...prev, isLoading: true }))
-
       const response = await apiService.login(username, password)
 
       setAuthState({
@@ -84,9 +82,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error: any) {
       setAuthState(prev => ({
         ...prev,
-        isLoading: false,
         isAuthenticated: false,
-        needsSetup: true,
       }))
       return {
         success: false,

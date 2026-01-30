@@ -80,7 +80,7 @@ export const GlobalStyles = createGlobalStyle`
   input, textarea, select {
     font-family: 'Antonio', sans-serif;
     font-size: inherit;
-    text-transform: uppercase;
+    text-transform: none;
     color: #FFCC99;
     background-color: #0A0A0A;
     border: 2px solid #664466;
@@ -96,7 +96,6 @@ export const GlobalStyles = createGlobalStyle`
 
     &::placeholder {
       color: #664466;
-      text-transform: uppercase;
     }
   }
 
