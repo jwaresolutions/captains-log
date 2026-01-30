@@ -491,7 +491,8 @@ class ApiService {
 
   // Notification API methods
   async getNotifications(): Promise<Notification[]> {
-    return this.get('/notifications')
+    const response = await this.get<{ notifications: Notification[]; count: number }>('/notifications')
+    return response.notifications
   }
 
   async markNotificationAsRead(id: string): Promise<void> {

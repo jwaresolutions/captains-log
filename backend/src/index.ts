@@ -14,7 +14,6 @@ import tripRoutes from './routes/trips';
 import captainLogRoutes from './routes/captainLog';
 import noteRoutes from './routes/notes';
 import todoRoutes from './routes/todos';
-import maintenanceRoutes from './routes/maintenance-simple';
 import maintenanceTemplateRoutes from './routes/maintenance-templates';
 import maintenanceEventRoutes from './routes/maintenance-events';
 import offlineSyncRoutes from './routes/offline-sync';
@@ -89,6 +88,10 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
+// Sync events SSE endpoint (registered BEFORE rate limiter to avoid interfering with long-lived connections)
+// Auth handled internally to support query param token for EventSource
+app.use('/api/v1/sync/events', syncEventRoutes);
+
 // Rate limiting (apply to all routes)
 app.use(apiRateLimiter);
 
@@ -111,53 +114,6 @@ app.get('/health', (_req: Request, res: Response) => {
     timestamp: new Date().toISOString(),
     uptime: process.uptime()
   });
-});
-
-// Test CORS endpoint
-app.get('/test-cors', (req: Request, res: Response) => {
-  logger.info('Test CORS endpoint hit', { origin: req.headers.origin });
-  res.json({ message: 'CORS test successful', origin: req.headers.origin });
-});
-
-// Test date serialization endpoint (no auth required)
-app.get('/test-dates', (_req: Request, res: Response) => {
-  console.log('=== TEST DATES ENDPOINT HIT ===');
-  
-  const testDate = new Date();
-  const testObject = {
-    id: 'test-123',
-    name: 'Test Object',
-    createdAt: testDate,
-    updatedAt: testDate
-  };
-  
-  console.log('testDate:', testDate);
-  console.log('testDate type:', typeof testDate);
-  console.log('testDate constructor:', testDate.constructor.name);
-  console.log('testObject:', testObject);
-  console.log('JSON.stringify(testObject):', JSON.stringify(testObject));
-  
-  const response = {
-    message: 'Date serialization test',
-    testObject: testObject,
-    directDate: testDate,
-    isoString: testDate.toISOString(),
-    timestamp: new Date().toISOString()
-  };
-  
-  console.log('Response object:', response);
-  console.log('JSON.stringify(response):', JSON.stringify(response));
-  console.log('===============================');
-  
-  res.json(response);
-});
-
-app.options('/test-cors', (req: Request, res: Response) => {
-  logger.info('Test CORS OPTIONS hit', { origin: req.headers.origin });
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.status(200).end();
 });
 
 // API version endpoint (no auth required)
@@ -208,9 +164,6 @@ app.use('/api/v1/notes', authenticateToken, noteRoutes);
 // Todo routes (requires authentication)
 app.use('/api/v1/todos', authenticateToken, todoRoutes);
 
-// Maintenance routes (requires authentication)
-app.use('/api/v1/maintenance', authenticateToken, maintenanceRoutes);
-
 // Maintenance template routes (requires authentication)
 app.use('/api/v1/maintenance/templates', authenticateToken, maintenanceTemplateRoutes);
 
@@ -234,9 +187,6 @@ app.use('/api/v1/backups', authenticateToken, backupRoutes);
 
 // Sensor routes (requires authentication)
 app.use('/api/v1/sensors', authenticateToken, sensorRoutes);
-
-// Sync events SSE endpoint (auth handled internally to support query param token for EventSource)
-app.use('/api/v1/sync/events', syncEventRoutes);
 
 // 404 handler for unmatched routes
 app.use(notFoundHandler);

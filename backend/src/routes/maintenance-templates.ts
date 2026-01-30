@@ -884,8 +884,8 @@ router.post('/:id/photos/propagate', async (req: Request, res: Response) => {
     }
 
     const result = await templateInformationService.propagatePhotoChanges(
-      id, 
-      addedPhotoIds, 
+      id,
+      addedPhotoIds,
       removedPhotoIds
     );
 
@@ -914,7 +914,7 @@ router.post('/:id/photos/propagate', async (req: Request, res: Response) => {
     }
   } catch (error) {
     console.error('Error propagating photo changes:', error);
-    
+
     if (error instanceof Error) {
       if (error.message === 'Maintenance template not found') {
         res.status(404).json({
@@ -936,6 +936,29 @@ router.post('/:id/photos/propagate', async (req: Request, res: Response) => {
       },
       timestamp: new Date().toISOString(),
       path: req.path
+    });
+  }
+});
+
+/**
+ * POST /api/v1/maintenance/templates/trigger-daily-task
+ * Manually trigger the daily maintenance task automation (for testing)
+ * Migrated from legacy maintenance-simple route
+ */
+router.post('/trigger-daily-task', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const { schedulerService } = await import('../services/schedulerService');
+    await schedulerService.triggerDailyMaintenanceTask();
+
+    res.json({
+      success: true,
+      message: 'Daily maintenance task automation triggered successfully'
+    });
+  } catch (error) {
+    console.error('Error triggering daily maintenance task:', error);
+
+    res.status(500).json({
+      error: 'Failed to trigger daily maintenance task automation'
     });
   }
 });

@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { LCARSPanel } from './lcars/LCARSPanel';
-import { LCARSButton } from './lcars/LCARSButton';
 import { apiService } from '../services/api';
 
 const OfflineContainer = styled.div<{ $show: boolean }>`

@@ -29,7 +29,6 @@ import { BackupManager } from './pages/BackupManager'
 import { Calendar } from './pages/Calendar'
 import { PhotoGallery } from './pages/PhotoGallery'
 import { useAuth } from './hooks/useAuth'
-import LCARSDemo from './LCARSDemo'
 
 const AppContainer = styled.div`
   min-height: 100vh;
@@ -118,7 +117,6 @@ function App() {
             <Route path="/settings/backup" element={<BackupManager />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/photos" element={<PhotoGallery />} />
-            <Route path="/lcars-demo" element={<LCARSDemo />} />
             {/* Additional routes will be added in subsequent tasks */}
             <Route path="*" element={<Dashboard />} />
           </Routes>

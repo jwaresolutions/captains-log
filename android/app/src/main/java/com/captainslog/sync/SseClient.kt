@@ -146,7 +146,10 @@ class SseClient(
             "trips" -> DataType.TRIPS
             "notes" -> DataType.NOTES
             "todos" -> DataType.TODOS
-            "maintenance_templates", "maintenance_events" -> DataType.MAINTENANCE
+            "maintenance_templates", "maintenance_events" -> {
+                Log.d(TAG, "Ignoring maintenance event (legacy system removed)")
+                return
+            }
             "locations" -> DataType.MARKED_LOCATIONS
             "photos" -> DataType.PHOTOS
             else -> {

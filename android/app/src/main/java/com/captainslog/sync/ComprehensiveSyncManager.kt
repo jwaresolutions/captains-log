@@ -45,7 +45,6 @@ class ComprehensiveSyncManager(
     private lateinit var tripRepository: TripRepository
     private lateinit var noteRepository: NoteRepository
     private lateinit var todoRepository: TodoRepository
-    private lateinit var maintenanceRepository: MaintenanceRepository
     private lateinit var markedLocationRepository: MarkedLocationRepository
     private lateinit var photoRepository: PhotoRepository
     
@@ -73,7 +72,6 @@ class ComprehensiveSyncManager(
         tripRepository = TripRepository(database, context)
         noteRepository = NoteRepository(database, connectionManager)
         todoRepository = TodoRepository(connectionManager, database.todoListDao(), database.todoItemDao())
-        maintenanceRepository = MaintenanceRepository(connectionManager, database.maintenanceTaskDao(), database.maintenanceCompletionDao())
         markedLocationRepository = MarkedLocationRepository(database, connectionManager)
         photoRepository = PhotoRepository(database, context)
     }
@@ -111,11 +109,7 @@ class ComprehensiveSyncManager(
                 _syncProgress.value = SyncProgress("Syncing todo lists...", 55, 100)
                 syncTodos()
                 
-                // Step 5: Sync maintenance data
-                _syncProgress.value = SyncProgress("Syncing maintenance...", 70, 100)
-                syncMaintenance()
-                
-                // Step 6: Sync marked locations
+                // Step 5: Sync marked locations
                 _syncProgress.value = SyncProgress("Syncing locations...", 85, 100)
                 syncMarkedLocations()
                 
@@ -256,26 +250,6 @@ class ComprehensiveSyncManager(
     }
     
     /**
-     * Sync maintenance data bidirectionally
-     */
-    private suspend fun syncMaintenance() {
-        try {
-            Log.d(TAG, "Syncing maintenance from server...")
-            val result = maintenanceRepository.syncMaintenanceTasks()
-            if (result.isFailure) {
-                Log.w(TAG, "Failed to sync maintenance from server: ${result.exceptionOrNull()?.message}")
-            }
-            
-            // TODO: Add sync TO server for unsynced maintenance tasks
-            // Currently MaintenanceRepository is mostly offline-first
-            
-            Log.d(TAG, "Maintenance sync completed")
-        } catch (e: Exception) {
-            Log.e(TAG, "Error syncing maintenance", e)
-        }
-    }
-    
-    /**
      * Sync marked locations bidirectionally
      */
     private suspend fun syncMarkedLocations() {
@@ -336,7 +310,6 @@ class ComprehensiveSyncManager(
                     DataType.TRIPS -> syncTrips()
                     DataType.NOTES -> syncNotes()
                     DataType.TODOS -> syncTodos()
-                    DataType.MAINTENANCE -> syncMaintenance()
                     DataType.MARKED_LOCATIONS -> syncMarkedLocations()
                     DataType.PHOTOS -> syncPhotos()
                 }
@@ -382,7 +355,6 @@ enum class DataType {
     TRIPS,
     NOTES,
     TODOS,
-    MAINTENANCE,
     MARKED_LOCATIONS,
     PHOTOS
 }

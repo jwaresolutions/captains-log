@@ -2,11 +2,6 @@ import React from 'react';
 import styled, { keyframes } from 'styled-components';
 import { LCARSPanel } from './lcars/LCARSPanel';
 
-const progressAnimation = keyframes`
-  0% { width: 0%; }
-  100% { width: 100%; }
-`;
-
 const indeterminateAnimation = keyframes`
   0% { left: -100%; }
   100% { left: 100%; }

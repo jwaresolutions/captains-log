@@ -112,12 +112,17 @@ class BluetoothManager(private val context: Context) {
     
     /**
      * Check if required permissions are granted
+     * On Android 12+ (API 31+): checks BLUETOOTH_CONNECT and BLUETOOTH_SCAN
+     * On older versions: BLUETOOTH and BLUETOOTH_ADMIN are normal permissions (auto-granted)
      */
     fun hasRequiredPermissions(): Boolean {
-        return ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_GRANTED &&
-               ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_ADMIN) == PackageManager.PERMISSION_GRANTED &&
-               ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED &&
-               ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED
+        return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED
+        } else {
+            // BLUETOOTH and BLUETOOTH_ADMIN are normal permissions on older versions (auto-granted)
+            true
+        }
     }
     
     /**

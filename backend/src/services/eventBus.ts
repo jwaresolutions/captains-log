@@ -17,7 +17,6 @@ interface SseClient {
 class EventBus {
   private emitter = new EventEmitter();
   private clients: SseClient[] = [];
-  private heartbeatInterval: NodeJS.Timeout | null = null;
 
   constructor() {
     this.emitter.setMaxListeners(100);
@@ -55,7 +54,7 @@ class EventBus {
   }
 
   private startHeartbeat(): void {
-    this.heartbeatInterval = setInterval(() => {
+    setInterval(() => {
       this.clients.forEach(client => {
         try {
           client.res.write(`: heartbeat\n\n`);

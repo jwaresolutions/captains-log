@@ -204,3 +204,13 @@ class MaintenanceTemplateViewModel(context: Context) : ViewModel() {
     }
 }
 
+/**
+ * Color coding for maintenance event status
+ */
+enum class TaskColor {
+    RED,      // Overdue
+    YELLOW,   // Due soon (within 7 days)
+    GREEN,    // Completed
+    GRAY      // Future (not due soon)
+}
+
