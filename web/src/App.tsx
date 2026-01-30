@@ -3,6 +3,7 @@ import styled from 'styled-components'
 import { LCARSLayout } from './components/lcars/LCARSLayout'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { Dashboard } from './pages/Dashboard'
+import { HomePage } from './pages/HomePage'
 import { SetupWizard } from './pages/SetupWizard'
 import { BoatList } from './pages/BoatList'
 import { BoatDetail } from './pages/BoatDetail'
@@ -89,7 +90,7 @@ function App() {
       <ErrorBoundary>
         <LCARSLayout>
           <Routes>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/" element={<HomePage />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/boats" element={<BoatList />} />
             <Route path="/boats/new" element={<BoatForm />} />
@@ -118,7 +119,7 @@ function App() {
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/photos" element={<PhotoGallery />} />
             {/* Additional routes will be added in subsequent tasks */}
-            <Route path="*" element={<Dashboard />} />
+            <Route path="*" element={<HomePage />} />
           </Routes>
         </LCARSLayout>
       </ErrorBoundary>

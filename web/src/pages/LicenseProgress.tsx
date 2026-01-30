@@ -88,15 +88,13 @@ export const LicenseProgress: React.FC = () => {
     )
   }
 
-  if (!licenseProgress || !licenseProgress.enabled) {
+  if (!licenseProgress) {
     return (
       <PageContainer>
         <LCARSHeader>Captain's License Progress</LCARSHeader>
-        <LCARSPanel title="License Tracking Disabled" variant="secondary">
+        <LCARSPanel title="No Data" variant="secondary">
           <DisabledMessage>
-            Captain's license progress tracking is currently disabled.
-            <br />
-            Enable it in your settings to track progress toward OUPV certification.
+            No license progress data available yet. Log some trips to start tracking.
           </DisabledMessage>
         </LCARSPanel>
       </PageContainer>
@@ -104,19 +102,17 @@ export const LicenseProgress: React.FC = () => {
   }
 
   const {
-    totalSeaTimeDays,
-    seaTimeDaysLast3Years,
+    totalDays,
+    daysInLast3Years,
     totalHours,
-    daysToGoal360,
-    daysToGoal90,
-    estimatedCompletionDate
+    daysRemaining360,
+    daysRemaining90In3Years,
+    estimatedCompletion360
   } = licenseProgress
 
-  // Calculate progress percentages (removed unused variables)
-  
   // Check if goals are achieved
-  const goal360Achieved = totalSeaTimeDays >= 360
-  const goal90Achieved = seaTimeDaysLast3Years >= 90
+  const goal360Achieved = totalDays >= 360
+  const goal90Achieved = daysInLast3Years >= 90
   const bothGoalsAchieved = goal360Achieved && goal90Achieved
 
   return (
@@ -134,13 +130,13 @@ export const LicenseProgress: React.FC = () => {
         <StatsGrid>
           <LCARSDataDisplay
             label="Total Sea Time Days"
-            value={totalSeaTimeDays}
+            value={totalDays}
             valueColor="neonCarrot"
             size="lg"
           />
           <LCARSDataDisplay
             label="Days (Last 3 Years)"
-            value={seaTimeDaysLast3Years}
+            value={daysInLast3Years}
             valueColor="lilac"
             size="lg"
           />
@@ -153,7 +149,7 @@ export const LicenseProgress: React.FC = () => {
           />
           <LCARSDataDisplay
             label="Average Hours/Day"
-            value={totalSeaTimeDays > 0 ? (totalHours / totalSeaTimeDays).toFixed(1) : '0.0'}
+            value={totalDays > 0 ? (totalHours / totalDays).toFixed(1) : '0.0'}
             unit="hrs"
             valueColor="success"
             size="lg"
@@ -166,7 +162,7 @@ export const LicenseProgress: React.FC = () => {
         <LCARSPanel title="360-Day Total Requirement" variant="primary">
           <LCARSProgressChart
             title="Total Sea Time Days"
-            current={totalSeaTimeDays}
+            current={totalDays}
             target={360}
             unit="days"
             color="neonCarrot"
@@ -178,7 +174,7 @@ export const LicenseProgress: React.FC = () => {
         <LCARSPanel title="90-Day Recent Requirement" variant="secondary">
           <LCARSProgressChart
             title="Days in Last 3 Years"
-            current={seaTimeDaysLast3Years}
+            current={daysInLast3Years}
             target={90}
             unit="days"
             color="lilac"
@@ -193,8 +189,8 @@ export const LicenseProgress: React.FC = () => {
         <EstimatesGrid>
           <LCARSEstimateDisplay
             title="360-Day Goal"
-            estimatedDate={!goal360Achieved ? estimatedCompletionDate : undefined}
-            daysRemaining={!goal360Achieved ? daysToGoal360 : undefined}
+            estimatedDate={!goal360Achieved ? estimatedCompletion360 ?? undefined : undefined}
+            daysRemaining={!goal360Achieved ? daysRemaining360 : undefined}
             isComplete={goal360Achieved}
             color="neonCarrot"
             size="md"
@@ -202,7 +198,7 @@ export const LicenseProgress: React.FC = () => {
           
           <LCARSEstimateDisplay
             title="90-Day (3 Years) Goal"
-            daysRemaining={!goal90Achieved ? daysToGoal90 : undefined}
+            daysRemaining={!goal90Achieved ? daysRemaining90In3Years : undefined}
             isComplete={goal90Achieved}
             color="lilac"
             size="md"
@@ -211,7 +207,7 @@ export const LicenseProgress: React.FC = () => {
           {!bothGoalsAchieved && (
             <LCARSEstimateDisplay
               title="License Eligibility"
-              estimatedDate={estimatedCompletionDate}
+              estimatedDate={estimatedCompletion360 ?? undefined}
               isComplete={bothGoalsAchieved}
               color="anakiwa"
               size="md"

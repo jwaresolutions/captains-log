@@ -164,19 +164,19 @@ export const Dashboard: React.FC = () => {
             <>
               <LCARSDataDisplay
                 label="Sea Time Days"
-                value={licenseProgress.totalSeaTimeDays}
+                value={licenseProgress.totalDays}
                 valueColor="lilac"
               />
               <LCARSDataDisplay
                 label="Days (3 Years)"
-                value={licenseProgress.seaTimeDaysLast3Years}
+                value={licenseProgress.daysInLast3Years}
                 valueColor="lilac"
               />
               <div>
-                <ProgressBar progress={calculateProgress(licenseProgress.totalSeaTimeDays, 360)} />
+                <ProgressBar progress={calculateProgress(licenseProgress.totalDays, 360)} />
                 <ProgressText>
                   <span>360 Day Goal</span>
-                  <span>{Math.round(calculateProgress(licenseProgress.totalSeaTimeDays, 360))}%</span>
+                  <span>{Math.round(calculateProgress(licenseProgress.totalDays, 360))}%</span>
                 </ProgressText>
               </div>
             </>

@@ -123,13 +123,15 @@ const tripGenerator = fc.record({
 })
 
 const licenseProgressGenerator = fc.record({
-  totalSeaTimeDays: fc.integer({ min: 0, max: 500 }),
-  seaTimeDaysLast3Years: fc.integer({ min: 0, max: 200 }),
+  totalDays: fc.integer({ min: 0, max: 500 }),
+  daysInLast3Years: fc.integer({ min: 0, max: 200 }),
   totalHours: fc.float({ min: Math.fround(0), max: Math.fround(10000) }),
-  daysToGoal360: fc.integer({ min: 0, max: 360 }),
-  daysToGoal90: fc.integer({ min: 0, max: 90 }),
-  estimatedCompletionDate: fc.date().map(d => d.toISOString()),
-  enabled: fc.boolean(),
+  hoursInLast3Years: fc.float({ min: Math.fround(0), max: Math.fround(5000) }),
+  daysRemaining360: fc.integer({ min: 0, max: 360 }),
+  daysRemaining90In3Years: fc.integer({ min: 0, max: 90 }),
+  estimatedCompletion360: fc.option(fc.date().map(d => d.toISOString()), { nil: null }),
+  estimatedCompletion90In3Years: fc.option(fc.date().map(d => d.toISOString()), { nil: null }),
+  averageDaysPerMonth: fc.float({ min: Math.fround(0), max: Math.fround(30) }),
 })
 
 describe('Dashboard Property Tests', () => {
@@ -223,9 +225,9 @@ describe('Dashboard Property Tests', () => {
           // Verify license progress section
           expect(screen.getByText(/license progress/i)).toBeInTheDocument()
           
-          if (licenseProgress && licenseProgress.enabled) {
+          if (licenseProgress) {
             expect(screen.getByText(/sea time days/i)).toBeInTheDocument()
-            expect(screen.getByText(licenseProgress.totalSeaTimeDays.toString())).toBeInTheDocument()
+            expect(screen.getByText(licenseProgress.totalDays.toString())).toBeInTheDocument()
             expect(screen.getByText(/360 day goal/i)).toBeInTheDocument()
           }
           

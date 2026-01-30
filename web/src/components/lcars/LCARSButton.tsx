@@ -167,6 +167,30 @@ const StyledButton = styled.button<{ variant: keyof typeof buttonVariants; size:
   gap: ${props => props.theme.spacing.sm};
   white-space: nowrap;
   box-shadow: none;
+  position: relative;
+  overflow: hidden;
+
+  /* Left-to-right sweep hover effect */
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateX(-100%);
+    transition: transform 0.35s ease;
+    border-radius: inherit;
+  }
+
+  &:hover:not(:disabled)::after {
+    transform: translateX(0);
+  }
+
+  &:active:not(:disabled)::after {
+    background: rgba(255, 255, 255, 0.35);
+  }
 
   ${props => buttonVariants[props.variant]}
   ${props => buttonSizes[props.size]}

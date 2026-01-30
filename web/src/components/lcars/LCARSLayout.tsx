@@ -106,6 +106,7 @@ const NAV_COLORS = [
   'tanoi',
   'neonCarrot',
   'goldenTanoi',
+  'mariner',
 ] as const
 
 const SidebarButton = styled.button<{ $color: string; $isActive: boolean }>`
@@ -214,6 +215,23 @@ const HeaderTitle = styled.h1`
   @media (max-width: ${MOBILE_BP}) {
     font-size: ${p => p.theme.typography.fontSize.lg};
     letter-spacing: ${p => p.theme.typography.letterSpacing.wide};
+  }
+`
+
+const HeaderLogo = styled.img`
+  height: 40px;
+  width: auto;
+  cursor: pointer;
+  margin-right: 12px;
+  filter: drop-shadow(0 0 6px rgba(255, 153, 51, 0.4));
+  transition: filter 0.2s;
+
+  &:hover {
+    filter: drop-shadow(0 0 10px rgba(255, 153, 51, 0.7));
+  }
+
+  @media (max-width: ${MOBILE_BP}) {
+    height: 32px;
   }
 `
 
@@ -362,7 +380,8 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard', path: '/' },
+  { label: 'Home', path: '/' },
+  { label: 'Dashboard', path: '/dashboard' },
   { label: 'Vessels', path: '/boats' },
   { label: 'Trip Log', path: '/trips' },
   { label: 'Notes', path: '/notes' },
@@ -401,7 +420,8 @@ export const LCARSLayout: React.FC<LCARSLayoutProps> = ({ children }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const isActive = (path: string) => {
-    if (path === '/') return location.pathname === '/' || location.pathname === '/dashboard'
+    if (path === '/') return location.pathname === '/'
+    if (path === '/dashboard') return location.pathname === '/dashboard'
     return location.pathname.startsWith(path)
   }
 
@@ -462,7 +482,8 @@ export const LCARSLayout: React.FC<LCARSLayoutProps> = ({ children }) => {
         <MobileMenuTrigger onClick={() => setMobileMenuOpen(true)}>
           Menu
         </MobileMenuTrigger>
-        <HeaderStardate>Stardate {stardate}</HeaderStardate>
+        <HeaderStardate>Stardate {stardate} ({new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })})</HeaderStardate>
+        <HeaderLogo src="/assets/captains-log-logo.png" alt="Captain's Log" onClick={() => go('/')} />
         <HeaderTitle onClick={() => go('/')}>Captain&apos;s Log</HeaderTitle>
         <div style={{ marginLeft: '16px' }}>
           <NotificationPanel />

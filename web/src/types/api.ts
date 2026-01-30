@@ -212,13 +212,15 @@ export interface Photo {
 
 // License Progress Types
 export interface LicenseProgress {
-  totalSeaTimeDays: number
-  seaTimeDaysLast3Years: number
+  totalDays: number
+  daysInLast3Years: number
   totalHours: number
-  daysToGoal360: number
-  daysToGoal90: number
-  estimatedCompletionDate: string
-  enabled: boolean
+  hoursInLast3Years: number
+  daysRemaining360: number
+  daysRemaining90In3Years: number
+  estimatedCompletion360: string | null
+  estimatedCompletion90In3Years: string | null
+  averageDaysPerMonth: number
 }
 
 // Notification Types
