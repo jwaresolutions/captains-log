@@ -6,6 +6,7 @@ import com.captainslog.database.dao.BoatDao
 import com.captainslog.database.entities.BoatEntity
 import com.captainslog.connection.ConnectionManager
 import com.captainslog.network.ApiService
+import com.captainslog.network.models.ApiDataResponse
 import com.captainslog.network.models.ApiListResponse
 import com.captainslog.network.models.BoatResponse
 import com.captainslog.network.models.CreateBoatRequest
@@ -123,7 +124,7 @@ class BoatRepositoryTest {
         )
         
         coEvery { boatDao.insertBoat(any()) } returns Unit
-        coEvery { apiService.createBoat(any()) } returns Response.success(apiBoat)
+        coEvery { apiService.createBoat(any()) } returns Response.success(ApiDataResponse(data = apiBoat))
         
         val result = repository.createBoat(boatName)
         

@@ -246,7 +246,7 @@ class BoatRepository(
                         // Boat doesn't exist, create it
                         val createResponse = apiService.createBoat(CreateBoatRequest(name = boat.name))
                         if (createResponse.isSuccessful && createResponse.body() != null) {
-                            val apiBoat = createResponse.body()!!
+                            val apiBoat = createResponse.body()!!.data
                             // Update local boat with server ID
                             val syncedBoat = boat.copy(id = apiBoat.id)
                             database.boatDao().insertBoat(syncedBoat)

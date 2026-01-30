@@ -120,7 +120,7 @@ class TripSyncWorker(
                     val response = apiService.createTrip(tripRequest)
 
                     if (response.isSuccessful) {
-                        val serverTrip = response.body()
+                        val serverTrip = response.body()?.data
                         Log.d(TAG, "Successfully synced trip ${trip.id}")
 
                         // Check for conflicts (server has newer data)
@@ -164,7 +164,7 @@ class TripSyncWorker(
                             // Try to fetch the server version
                             val getResponse = apiService.getTrip(trip.id)
                             if (getResponse.isSuccessful) {
-                                val serverTrip = getResponse.body()
+                                val serverTrip = getResponse.body()?.data
                                 if (serverTrip != null) {
                                     val serverModified = parseDate(serverTrip.updatedAt)
                                     val localModified = trip.lastModified

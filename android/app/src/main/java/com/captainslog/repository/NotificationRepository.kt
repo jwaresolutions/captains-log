@@ -30,7 +30,7 @@ class NotificationRepository(
             
             val response = apiService.getNotifications()
             if (response.isSuccessful && response.body() != null) {
-                val notifications = response.body()!!
+                val notifications = response.body()!!.notifications
                 _notifications.value = notifications
                 Log.d(TAG, "Fetched ${notifications.size} notifications")
                 Result.success(notifications)

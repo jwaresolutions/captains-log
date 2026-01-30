@@ -21,76 +21,76 @@ interface ApiService {
 
     // Boat endpoints
     @POST("api/v1/boats")
-    suspend fun createBoat(@Body request: CreateBoatRequest): Response<BoatResponse>
+    suspend fun createBoat(@Body request: CreateBoatRequest): Response<ApiDataResponse<BoatResponse>>
 
     @GET("api/v1/boats")
     suspend fun getBoats(): Response<ApiListResponse<BoatResponse>>
 
     @GET("api/v1/boats/{id}")
-    suspend fun getBoat(@Path("id") id: String): Response<BoatResponse>
+    suspend fun getBoat(@Path("id") id: String): Response<ApiDataResponse<BoatResponse>>
 
     @PUT("api/v1/boats/{id}")
     suspend fun updateBoat(
         @Path("id") id: String,
         @Body request: CreateBoatRequest
-    ): Response<BoatResponse>
+    ): Response<ApiDataResponse<BoatResponse>>
 
     @PATCH("api/v1/boats/{id}/status")
     suspend fun updateBoatStatus(
         @Path("id") id: String,
         @Body request: Map<String, Boolean>
-    ): Response<BoatResponse>
+    ): Response<ApiDataResponse<BoatResponse>>
 
     @PATCH("api/v1/boats/{id}/active")
-    suspend fun setActiveBoat(@Path("id") id: String): Response<BoatResponse>
+    suspend fun setActiveBoat(@Path("id") id: String): Response<ApiDataResponse<BoatResponse>>
 
     // Trip endpoints
     @POST("api/v1/trips")
-    suspend fun createTrip(@Body request: CreateTripRequest): Response<TripResponse>
+    suspend fun createTrip(@Body request: CreateTripRequest): Response<ApiDataResponse<TripResponse>>
 
     @GET("api/v1/trips")
     suspend fun getTrips(
         @Query("boatId") boatId: String? = null,
         @Query("startDate") startDate: String? = null,
         @Query("endDate") endDate: String? = null
-    ): Response<List<TripResponse>>
+    ): Response<ApiListResponse<TripResponse>>
 
     @GET("api/v1/trips/{id}")
-    suspend fun getTrip(@Path("id") id: String): Response<TripResponse>
+    suspend fun getTrip(@Path("id") id: String): Response<ApiDataResponse<TripResponse>>
 
     @PUT("api/v1/trips/{id}")
     suspend fun updateTrip(
         @Path("id") id: String,
         @Body request: UpdateTripRequest
-    ): Response<TripResponse>
+    ): Response<ApiDataResponse<TripResponse>>
 
     @PATCH("api/v1/trips/{id}/manual-data")
     suspend fun updateTripManualData(
         @Path("id") id: String,
         @Body manualData: ManualData
-    ): Response<TripResponse>
+    ): Response<ApiDataResponse<TripResponse>>
 
     // Captain's Log endpoints
     @GET("api/v1/captain-log/progress")
-    suspend fun getLicenseProgress(): Response<LicenseProgressResponse>
+    suspend fun getLicenseProgress(): Response<ApiSuccessResponse<LicenseProgressResponse>>
 
     @GET("api/v1/captain-log/sea-time-days")
     suspend fun getSeaTimeDays(
         @Query("startDate") startDate: String? = null,
         @Query("endDate") endDate: String? = null
-    ): Response<List<SeaTimeDayResponse>>
+    ): Response<ApiSuccessResponse<List<SeaTimeDayResponse>>>
 
     @GET("api/v1/captain-log/breakdown")
     suspend fun getSeaTimeBreakdown(
         @Query("year") year: Int? = null
-    ): Response<List<SeaTimeBreakdownResponse>>
+    ): Response<ApiSuccessResponse<List<SeaTimeBreakdownResponse>>>
 
     @GET("api/v1/captain-log/check-day/{date}")
-    suspend fun checkSeaTimeDay(@Path("date") date: String): Response<SeaTimeDayCheckResponse>
+    suspend fun checkSeaTimeDay(@Path("date") date: String): Response<ApiSuccessResponse<SeaTimeDayCheckResponse>>
 
     // Notes endpoints
     @POST("api/v1/notes")
-    suspend fun createNote(@Body request: CreateNoteRequest): Response<NoteResponse>
+    suspend fun createNote(@Body request: CreateNoteRequest): Response<ApiDataResponse<NoteResponse>>
 
     @GET("api/v1/notes")
     suspend fun getNotes(
@@ -99,16 +99,16 @@ interface ApiService {
         @Query("tripId") tripId: String? = null,
         @Query("tags") tags: List<String>? = null,
         @Query("search") search: String? = null
-    ): Response<List<NoteResponse>>
+    ): Response<ApiListResponse<NoteResponse>>
 
     @GET("api/v1/notes/{id}")
-    suspend fun getNote(@Path("id") id: String): Response<NoteResponse>
+    suspend fun getNote(@Path("id") id: String): Response<ApiDataResponse<NoteResponse>>
 
     @PUT("api/v1/notes/{id}")
     suspend fun updateNote(
         @Path("id") id: String,
         @Body request: UpdateNoteRequest
-    ): Response<NoteResponse>
+    ): Response<ApiDataResponse<NoteResponse>>
 
     @DELETE("api/v1/notes/{id}")
     suspend fun deleteNote(@Path("id") id: String): Response<Unit>
@@ -117,20 +117,20 @@ interface ApiService {
     suspend fun addNoteTags(
         @Path("id") id: String,
         @Body tags: Map<String, List<String>>
-    ): Response<NoteResponse>
+    ): Response<ApiDataResponse<NoteResponse>>
 
     @DELETE("api/v1/notes/{id}/tags")
     suspend fun removeNoteTags(
         @Path("id") id: String,
         @Body tags: Map<String, List<String>>
-    ): Response<NoteResponse>
+    ): Response<ApiDataResponse<NoteResponse>>
 
     @GET("api/v1/notes/tags/all")
     suspend fun getAllTags(): Response<TagsResponse>
 
     // Todo endpoints
     @POST("api/v1/todos")
-    suspend fun createTodoList(@Body request: CreateTodoListRequest): Response<TodoListResponse>
+    suspend fun createTodoList(@Body request: CreateTodoListRequest): Response<ApiSuccessResponse<TodoListResponse>>
 
     @GET("api/v1/todos")
     suspend fun getTodoLists(
@@ -138,13 +138,13 @@ interface ApiService {
     ): Response<ApiListResponse<TodoListResponse>>
 
     @GET("api/v1/todos/{id}")
-    suspend fun getTodoList(@Path("id") id: String): Response<TodoListResponse>
+    suspend fun getTodoList(@Path("id") id: String): Response<ApiSuccessResponse<TodoListResponse>>
 
     @PUT("api/v1/todos/{id}")
     suspend fun updateTodoList(
         @Path("id") id: String,
         @Body request: UpdateTodoListRequest
-    ): Response<TodoListResponse>
+    ): Response<ApiSuccessResponse<TodoListResponse>>
 
     @DELETE("api/v1/todos/{id}")
     suspend fun deleteTodoList(@Path("id") id: String): Response<Unit>
@@ -153,18 +153,18 @@ interface ApiService {
     suspend fun createTodoItem(
         @Path("id") listId: String,
         @Body request: CreateTodoItemRequest
-    ): Response<TodoItemResponse>
+    ): Response<ApiSuccessResponse<TodoItemResponse>>
 
     @PUT("api/v1/todos/items/{itemId}")
     suspend fun updateTodoItem(
         @Path("itemId") itemId: String,
         @Body request: UpdateTodoItemRequest
-    ): Response<TodoItemResponse>
+    ): Response<ApiSuccessResponse<TodoItemResponse>>
 
     @PATCH("api/v1/todos/items/{itemId}/complete")
     suspend fun toggleTodoItemCompletion(
         @Path("itemId") itemId: String
-    ): Response<TodoItemResponse>
+    ): Response<ApiSuccessResponse<TodoItemResponse>>
 
     @DELETE("api/v1/todos/items/{itemId}")
     suspend fun deleteTodoItem(@Path("itemId") itemId: String): Response<Unit>
@@ -206,7 +206,7 @@ interface ApiService {
 
     // Notification endpoints
     @GET("api/v1/notifications")
-    suspend fun getNotifications(): Response<List<NotificationResponse>>
+    suspend fun getNotifications(): Response<NotificationsListResponse>
 
     @PATCH("api/v1/notifications/{id}/read")
     suspend fun markNotificationAsRead(

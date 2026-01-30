@@ -60,18 +60,18 @@ class TodoRepository constructor(
                 val response = apiService.createTodoList(request)
                 
                 if (response.isSuccessful && response.body() != null) {
-                    val serverTodoList = response.body()!!
+                    val serverTodoList = response.body()!!.data
                     val syncedTodoList = localTodoList.copy(
                         id = serverTodoList.id,
                         createdAt = parseDate(serverTodoList.createdAt),
                         updatedAt = parseDate(serverTodoList.updatedAt),
                         synced = true
                     )
-                    
+
                     // Delete local version and insert synced version
                     todoListDao.deleteTodoListById(localTodoList.id)
                     todoListDao.insertTodoList(syncedTodoList)
-                    
+
                     Log.d(TAG, "Synced todo list to server: ${syncedTodoList.id}")
                     Result.success(syncedTodoList)
                 } else {
@@ -108,9 +108,9 @@ class TodoRepository constructor(
                 val apiService = connectionManager.getApiService()
                 val request = UpdateTodoListRequest(title = title, boatId = boatId)
                 val response = apiService.updateTodoList(id, request)
-                
+
                 if (response.isSuccessful && response.body() != null) {
-                    val serverTodoList = response.body()!!
+                    val serverTodoList = response.body()!!.data
                     val syncedTodoList = updatedTodoList.copy(
                         updatedAt = parseDate(serverTodoList.updatedAt),
                         synced = true
@@ -190,14 +190,14 @@ class TodoRepository constructor(
                 val response = apiService.createTodoItem(listId, request)
                 
                 if (response.isSuccessful && response.body() != null) {
-                    val serverTodoItem = response.body()!!
+                    val serverTodoItem = response.body()!!.data
                     val syncedTodoItem = localTodoItem.copy(
                         id = serverTodoItem.id,
                         createdAt = parseDate(serverTodoItem.createdAt),
                         updatedAt = parseDate(serverTodoItem.updatedAt),
                         synced = true
                     )
-                    
+
                     // Delete local version and insert synced version
                     todoItemDao.deleteTodoItemById(localTodoItem.id)
                     todoItemDao.insertTodoItem(syncedTodoItem)
@@ -242,14 +242,14 @@ class TodoRepository constructor(
                 val response = apiService.updateTodoItem(id, request)
                 
                 if (response.isSuccessful && response.body() != null) {
-                    val serverTodoItem = response.body()!!
+                    val serverTodoItem = response.body()!!.data
                     val syncedTodoItem = updatedTodoItem.copy(
                         completed = serverTodoItem.completed,
                         completedAt = serverTodoItem.completedAt?.let { parseDate(it) },
                         updatedAt = parseDate(serverTodoItem.updatedAt),
                         synced = true
                     )
-                    
+
                     todoItemDao.updateTodoItem(syncedTodoItem)
                     Log.d(TAG, "Synced todo item update to server: $id")
                     Result.success(syncedTodoItem)
@@ -288,9 +288,9 @@ class TodoRepository constructor(
             try {
                 val apiService = connectionManager.getApiService()
                 val response = apiService.toggleTodoItemCompletion(id)
-                
+
                 if (response.isSuccessful && response.body() != null) {
-                    val serverTodoItem = response.body()!!
+                    val serverTodoItem = response.body()!!.data
                     val syncedTodoItem = updatedTodoItem.copy(
                         completed = serverTodoItem.completed,
                         completedAt = serverTodoItem.completedAt?.let { parseDate(it) },

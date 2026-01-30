@@ -42,7 +42,7 @@ class LicenseProgressViewModel(
                 val response = apiService.getLicenseProgress()
                 
                 if (response.isSuccessful) {
-                    val progressResponse = response.body()
+                    val progressResponse = response.body()?.data
                     if (progressResponse != null) {
                         val progress = mapToLicenseProgress(progressResponse)
                         _uiState.value = _uiState.value.copy(

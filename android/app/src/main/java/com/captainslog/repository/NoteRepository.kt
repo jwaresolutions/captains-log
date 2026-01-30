@@ -97,7 +97,7 @@ class NoteRepository(
                 val apiService = connectionManager.getApiService()
                 val response = apiService.createNote(request)
                 if (response.isSuccessful && response.body() != null) {
-                    val apiNote = response.body()!!
+                    val apiNote = response.body()!!.data
                     // Update local note with server ID and mark as synced
                     val syncedNote = note.copy(
                         id = apiNote.id,
@@ -218,7 +218,7 @@ class NoteRepository(
             val apiService = connectionManager.getApiService()
             val response = apiService.getNotes()
             if (response.isSuccessful && response.body() != null) {
-                val apiNotes = response.body()!!
+                val apiNotes = response.body()!!.data
                 val localNotes = apiNotes.map { apiNote ->
                     NoteEntity(
                         id = apiNote.id,
@@ -271,7 +271,7 @@ class NoteRepository(
                         )
                         val createResponse = apiService.createNote(request)
                         if (createResponse.isSuccessful && createResponse.body() != null) {
-                            val apiNote = createResponse.body()!!
+                            val apiNote = createResponse.body()!!.data
                             // Update local note with server ID
                             val syncedNote = note.copy(id = apiNote.id)
                             database.noteDao().insertNote(syncedNote)

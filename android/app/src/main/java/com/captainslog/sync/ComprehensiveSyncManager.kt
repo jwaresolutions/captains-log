@@ -4,7 +4,12 @@ import android.content.Context
 import android.util.Log
 import com.captainslog.connection.ConnectionManager
 import com.captainslog.database.AppDatabase
+import com.captainslog.database.entities.MaintenanceTemplateEntity
+import com.captainslog.database.entities.MaintenanceEventEntity
 import com.captainslog.repository.*
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.TimeZone
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -106,14 +111,22 @@ class ComprehensiveSyncManager(
                 syncNotes()
                 
                 // Step 4: Sync todo lists and items
-                _syncProgress.value = SyncProgress("Syncing todo lists...", 55, 100)
+                _syncProgress.value = SyncProgress("Syncing todo lists...", 50, 100)
                 syncTodos()
-                
-                // Step 5: Sync marked locations
+
+                // Step 5: Sync maintenance templates
+                _syncProgress.value = SyncProgress("Syncing maintenance templates...", 60, 100)
+                syncMaintenanceTemplates()
+
+                // Step 6: Sync maintenance events
+                _syncProgress.value = SyncProgress("Syncing maintenance events...", 70, 100)
+                syncMaintenanceEvents()
+
+                // Step 7: Sync marked locations
                 _syncProgress.value = SyncProgress("Syncing locations...", 85, 100)
                 syncMarkedLocations()
-                
-                // Step 7: Sync photos (metadata only, files on WiFi)
+
+                // Step 8: Sync photos (metadata only, files on WiFi)
                 _syncProgress.value = SyncProgress("Syncing photos...", 95, 100)
                 syncPhotos()
                 
@@ -190,17 +203,19 @@ class ComprehensiveSyncManager(
      */
     private suspend fun syncTrips() {
         try {
-            // TODO: Implement trip sync from server
-            // Currently TripRepository only syncs TO server, not FROM server
-            Log.d(TAG, "Trip sync - currently only supports local to server sync")
-            
-            // Sync unsynced trips to server
-            val unsyncedTrips = database.tripDao().getUnsyncedTrips()
-            Log.d(TAG, "Found ${unsyncedTrips.size} unsynced trips")
-            
-            // Note: Individual trip sync is handled by ImmediateSyncService
-            // We need to add a method to sync trips FROM server
-            
+            Log.d(TAG, "Syncing trips from server...")
+            val fromServerResult = tripRepository.syncTripsFromApi()
+            if (fromServerResult.isFailure) {
+                Log.w(TAG, "Failed to sync trips from server: ${fromServerResult.exceptionOrNull()?.message}")
+            }
+
+            Log.d(TAG, "Syncing trips to server...")
+            val toServerResult = tripRepository.syncTripsToApi()
+            if (toServerResult.isFailure) {
+                Log.w(TAG, "Failed to sync trips to server: ${toServerResult.exceptionOrNull()?.message}")
+            }
+
+            Log.d(TAG, "Trip sync completed")
         } catch (e: Exception) {
             Log.e(TAG, "Error syncing trips", e)
         }
@@ -295,6 +310,123 @@ class ComprehensiveSyncManager(
     }
     
     /**
+     * Sync maintenance templates from server
+     */
+    private suspend fun syncMaintenanceTemplates() {
+        try {
+            Log.d(TAG, "Syncing maintenance templates from server...")
+            val apiService = connectionManager.getApiService()
+            val response = apiService.getMaintenanceTemplates()
+
+            if (response.isSuccessful && response.body() != null) {
+                val apiTemplates = response.body()!!.data
+                Log.d(TAG, "Received ${apiTemplates.size} maintenance templates from API")
+
+                val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US).apply {
+                    timeZone = TimeZone.getTimeZone("UTC")
+                }
+
+                val templateEntities = apiTemplates.map { t ->
+                    MaintenanceTemplateEntity(
+                        id = t.id,
+                        boatId = t.boatId,
+                        title = t.title,
+                        description = t.description,
+                        component = t.component,
+                        estimatedCost = t.estimatedCost,
+                        estimatedTime = t.estimatedTime,
+                        isActive = t.isActive,
+                        recurrenceType = t.recurrence.type,
+                        recurrenceInterval = t.recurrence.interval,
+                        createdAt = dateFormat.parse(t.createdAt) ?: java.util.Date(),
+                        updatedAt = dateFormat.parse(t.updatedAt) ?: java.util.Date()
+                    )
+                }
+
+                database.maintenanceTemplateDao().insertTemplates(templateEntities)
+                Log.d(TAG, "Upserted ${templateEntities.size} maintenance templates")
+            } else {
+                Log.w(TAG, "Failed to fetch maintenance templates: ${response.code()}")
+            }
+
+            Log.d(TAG, "Maintenance template sync completed")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error syncing maintenance templates", e)
+        }
+    }
+
+    /**
+     * Sync maintenance events from server
+     */
+    private suspend fun syncMaintenanceEvents() {
+        try {
+            Log.d(TAG, "Syncing maintenance events from server...")
+            val apiService = connectionManager.getApiService()
+
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US).apply {
+                timeZone = TimeZone.getTimeZone("UTC")
+            }
+
+            val allEvents = mutableListOf<MaintenanceEventEntity>()
+
+            // Fetch upcoming events
+            val upcomingResponse = apiService.getUpcomingMaintenanceEvents()
+            if (upcomingResponse.isSuccessful && upcomingResponse.body() != null) {
+                val upcomingApiEvents = upcomingResponse.body()!!.data
+                Log.d(TAG, "Received ${upcomingApiEvents.size} upcoming maintenance events")
+
+                allEvents.addAll(upcomingApiEvents.map { e ->
+                    MaintenanceEventEntity(
+                        id = e.id,
+                        templateId = e.templateId,
+                        dueDate = dateFormat.parse(e.dueDate) ?: java.util.Date(),
+                        completedAt = e.completedAt?.let { dateFormat.parse(it) },
+                        actualCost = e.actualCost,
+                        actualTime = e.actualTime,
+                        notes = e.notes,
+                        createdAt = dateFormat.parse(e.createdAt) ?: java.util.Date(),
+                        updatedAt = dateFormat.parse(e.updatedAt) ?: java.util.Date()
+                    )
+                })
+            } else {
+                Log.w(TAG, "Failed to fetch upcoming maintenance events: ${upcomingResponse.code()}")
+            }
+
+            // Fetch completed events
+            val completedResponse = apiService.getCompletedMaintenanceEvents()
+            if (completedResponse.isSuccessful && completedResponse.body() != null) {
+                val completedApiEvents = completedResponse.body()!!.data
+                Log.d(TAG, "Received ${completedApiEvents.size} completed maintenance events")
+
+                allEvents.addAll(completedApiEvents.map { e ->
+                    MaintenanceEventEntity(
+                        id = e.id,
+                        templateId = e.templateId,
+                        dueDate = dateFormat.parse(e.dueDate) ?: java.util.Date(),
+                        completedAt = e.completedAt?.let { dateFormat.parse(it) },
+                        actualCost = e.actualCost,
+                        actualTime = e.actualTime,
+                        notes = e.notes,
+                        createdAt = dateFormat.parse(e.createdAt) ?: java.util.Date(),
+                        updatedAt = dateFormat.parse(e.updatedAt) ?: java.util.Date()
+                    )
+                })
+            } else {
+                Log.w(TAG, "Failed to fetch completed maintenance events: ${completedResponse.code()}")
+            }
+
+            if (allEvents.isNotEmpty()) {
+                database.maintenanceEventDao().insertEvents(allEvents)
+                Log.d(TAG, "Upserted ${allEvents.size} maintenance events total")
+            }
+
+            Log.d(TAG, "Maintenance event sync completed")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error syncing maintenance events", e)
+        }
+    }
+
+    /**
      * Sync a specific data type
      */
     fun syncDataType(dataType: DataType) {
@@ -310,6 +442,8 @@ class ComprehensiveSyncManager(
                     DataType.TRIPS -> syncTrips()
                     DataType.NOTES -> syncNotes()
                     DataType.TODOS -> syncTodos()
+                    DataType.MAINTENANCE_TEMPLATES -> syncMaintenanceTemplates()
+                    DataType.MAINTENANCE_EVENTS -> syncMaintenanceEvents()
                     DataType.MARKED_LOCATIONS -> syncMarkedLocations()
                     DataType.PHOTOS -> syncPhotos()
                 }
@@ -355,6 +489,8 @@ enum class DataType {
     TRIPS,
     NOTES,
     TODOS,
+    MAINTENANCE_TEMPLATES,
+    MAINTENANCE_EVENTS,
     MARKED_LOCATIONS,
     PHOTOS
 }

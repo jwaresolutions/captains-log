@@ -14,6 +14,18 @@ data class ApiSuccessResponse<T>(
     val data: T
 )
 
+// Generic wrapper for single-item responses: { data: T, timestamp: "..." }
+data class ApiDataResponse<T>(
+    val data: T,
+    val timestamp: String? = null
+)
+
+// Notifications list response: { notifications: [...], count: N }
+data class NotificationsListResponse(
+    val notifications: List<NotificationResponse>,
+    val count: Int
+)
+
 // Boat models
 data class BoatResponse(
     val id: String,
