@@ -23,6 +23,7 @@ import locationRoutes from './routes/locations';
 import photoRoutes from './routes/photos';
 import backupRoutes from './routes/backups';
 import sensorRoutes from './routes/sensors';
+import syncEventRoutes from './routes/sync-events';
 import { checkAndCreateInitialUser } from './utils/initialSetup';
 import { schedulerService } from './services/schedulerService';
 
@@ -180,7 +181,8 @@ app.get('/api/v1', (_req: Request, res: Response) => {
       locations: '/api/v1/locations',
       photos: '/api/v1/photos',
       backups: '/api/v1/backups',
-      sensors: '/api/v1/sensors'
+      sensors: '/api/v1/sensors',
+      syncEvents: '/api/v1/sync/events'
     }
   });
 });
@@ -232,6 +234,9 @@ app.use('/api/v1/backups', authenticateToken, backupRoutes);
 
 // Sensor routes (requires authentication)
 app.use('/api/v1/sensors', authenticateToken, sensorRoutes);
+
+// Sync events SSE endpoint (auth handled internally to support query param token for EventSource)
+app.use('/api/v1/sync/events', syncEventRoutes);
 
 // 404 handler for unmatched routes
 app.use(notFoundHandler);

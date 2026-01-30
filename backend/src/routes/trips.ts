@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { tripService } from '../services/tripService';
 import { logger } from '../utils/logger';
 import { sendJsonResponse } from '../utils/serialization';
+import { eventBus } from '../services/eventBus';
 
 const router = Router();
 
@@ -101,6 +102,7 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
       data: trip,
       timestamp: new Date().toISOString()
     }, 201);
+    eventBus.publish('trips', 'created', trip.id);
   } catch (error) {
     logger.error('Error creating trip', { error });
 
@@ -291,6 +293,7 @@ router.put('/:id', async (req: Request, res: Response): Promise<void> => {
       data: trip,
       timestamp: new Date().toISOString()
     });
+    eventBus.publish('trips', 'updated', trip.id);
   } catch (error) {
     logger.error('Error updating trip', { error });
 
@@ -426,6 +429,7 @@ router.patch('/:id/manual-data', async (req: Request, res: Response): Promise<vo
       data: trip,
       timestamp: new Date().toISOString()
     });
+    eventBus.publish('trips', 'updated', trip.id);
   } catch (error) {
     logger.error('Error updating trip manual data', { error });
 

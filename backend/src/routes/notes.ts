@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { noteService } from '../services/noteService';
 import { logger } from '../utils/logger';
 import { sendJsonResponse } from '../utils/serialization';
+import { eventBus } from '../services/eventBus';
 
 const router = Router();
 
@@ -49,6 +50,7 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
       data: note,
       timestamp: new Date().toISOString()
     }, 201);
+    eventBus.publish('notes', 'created', note.id);
   } catch (error) {
     logger.error('Error creating note', { error });
     
@@ -224,6 +226,7 @@ router.put('/:id', async (req: Request, res: Response): Promise<void> => {
       data: note,
       timestamp: new Date().toISOString()
     });
+    eventBus.publish('notes', 'updated', note.id);
   } catch (error) {
     logger.error('Error updating note', { error });
     
@@ -272,6 +275,7 @@ router.delete('/:id', async (req: Request, res: Response): Promise<void> => {
     await noteService.deleteNote(id);
 
     res.status(204).send();
+    eventBus.publish('notes', 'deleted', id);
   } catch (error) {
     logger.error('Error deleting note', { error });
     

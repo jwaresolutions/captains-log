@@ -6,6 +6,7 @@ import { ThemeProvider } from 'styled-components'
 import App from './App.tsx'
 import { GlobalStyles } from './styles/GlobalStyles'
 import { lcarsTheme } from './styles/theme'
+import { AuthProvider } from './hooks/useAuth'
 
 // Create a client for React Query
 const queryClient = new QueryClient({
@@ -24,7 +25,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <BrowserRouter>
         <ThemeProvider theme={lcarsTheme}>
           <GlobalStyles />
-          <App />
+          <AuthProvider>
+            <App />
+          </AuthProvider>
         </ThemeProvider>
       </BrowserRouter>
     </QueryClientProvider>

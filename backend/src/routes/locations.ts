@@ -1,4 +1,5 @@
 import express from 'express';
+import { eventBus } from '../services/eventBus';
 import {
   createMarkedLocation,
   updateMarkedLocation,
@@ -63,6 +64,7 @@ router.post('/', async (req, res) => {
 
     const location = await createMarkedLocation(locationData);
     sendJsonResponse(res, location, 201);
+    eventBus.publish('locations', 'created', location.id);
   } catch (error) {
     console.error('Error creating marked location:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -236,6 +238,7 @@ router.put('/:id', async (req, res) => {
 
     const updatedLocation = await updateMarkedLocation(id, updateData);
     sendJsonResponse(res, updatedLocation);
+    eventBus.publish('locations', 'updated', id);
   } catch (error) {
     console.error('Error updating marked location:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -258,6 +261,7 @@ router.delete('/:id', async (req, res) => {
 
     await deleteMarkedLocation(id);
     res.status(204).send();
+    eventBus.publish('locations', 'deleted', id);
   } catch (error) {
     console.error('Error deleting marked location:', error);
     res.status(500).json({ error: 'Internal server error' });

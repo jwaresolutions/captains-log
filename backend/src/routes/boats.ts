@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { boatService } from '../services/boatService';
 import { logger } from '../utils/logger';
 import { serializeBoat } from '../utils/serialization';
+import { eventBus } from '../services/eventBus';
 
 const router = Router();
 
@@ -47,6 +48,7 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
 
     res.setHeader('Content-Type', 'application/json');
     res.status(201).send(JSON.stringify(responseData));
+    eventBus.publish('boats', 'created', boat.id);
   } catch (error) {
     logger.error('Error creating boat', { error });
     res.status(500).json({
@@ -170,6 +172,7 @@ router.put('/:id', async (req: Request, res: Response): Promise<void> => {
 
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify(responseData));
+    eventBus.publish('boats', 'updated', boat.id);
   } catch (error) {
     logger.error('Error updating boat', { error });
     
@@ -226,6 +229,7 @@ router.patch('/:id/status', async (req: Request, res: Response): Promise<void> =
       data: serializedBoat,
       timestamp: new Date().toISOString()
     });
+    eventBus.publish('boats', 'updated', id);
   } catch (error) {
     logger.error('Error toggling boat status', { error });
     
@@ -269,6 +273,7 @@ router.patch('/:id/active', async (req: Request, res: Response): Promise<void> =
       message: 'Active boat updated successfully',
       timestamp: new Date().toISOString()
     });
+    eventBus.publish('boats', 'updated', id);
   } catch (error) {
     logger.error('Error setting active boat', { error });
     

@@ -268,7 +268,7 @@ run_single_backend_test() {
     
     # Wait for process with timeout and monitor file size
     local count=0
-    local max_log_size=1048576  # 1MB max log file size
+    local max_log_size=10485760  # 10MB max log file size
     
     while kill -0 $test_pid 2>/dev/null && [ $count -lt $TIMEOUT ]; do
         sleep 1

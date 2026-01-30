@@ -797,8 +797,11 @@ describe('Notification Service Property Tests', () => {
             // Verify no extra whitespace or formatting issues
             expect(notification.title.trim()).toBe(notification.title);
             expect(notification.message.trim()).toBe(notification.message);
-            expect(notification.title).not.toContain('  '); // No double spaces
-            expect(notification.message).not.toContain('  '); // No double spaces
+            // Only check for double spaces if inputs don't contain them
+            if (!boatName.includes('  ') && !templateTitle.includes('  ')) {
+              expect(notification.title).not.toContain('  '); // No double spaces in template text
+              expect(notification.message).not.toContain('  '); // No double spaces in template text
+            }
             
             // Clean up
             await prisma.notification.deleteMany();

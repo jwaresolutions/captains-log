@@ -268,8 +268,7 @@ export const BoatForm: React.FC = () => {
   }
 
   return (
-    <LCARSLayout>
-      <Container>
+    <Container>
         <HeaderContainer>
           <HeaderTitle>
             <LCARSHeader>ADD NEW VESSEL</LCARSHeader>
@@ -421,7 +420,6 @@ export const BoatForm: React.FC = () => {
           </Form>
         </FormPanel>
       </Container>
-    </LCARSLayout>
   )
 }
 

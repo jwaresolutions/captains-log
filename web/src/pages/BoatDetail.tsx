@@ -1,13 +1,12 @@
 import React, { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
-import { 
-  LCARSLayout, 
-  LCARSHeader, 
-  LCARSPanel, 
-  LCARSButton, 
+import {
+  LCARSHeader,
+  LCARSPanel,
+  LCARSButton,
   LCARSDataDisplay,
-  LCARSAlert 
+  LCARSAlert
 } from '../components/lcars'
 import { useBoat, useUpdateBoat, useToggleBoatStatus, useSetActiveBoat } from '../hooks/useBoats'
 import { useTrips } from '../hooks/useTrips'
@@ -247,32 +246,28 @@ export const BoatDetail: React.FC = () => {
 
   if (isLoading) {
     return (
-      <LCARSLayout>
-        <Container>
-          <LCARSHeader>VESSEL DETAILS</LCARSHeader>
-          <LCARSDataDisplay 
-            label="STATUS" 
-            value="LOADING VESSEL DATA..." 
-            color="blue" 
-          />
-        </Container>
-      </LCARSLayout>
+      <Container>
+        <LCARSHeader>VESSEL DETAILS</LCARSHeader>
+        <LCARSDataDisplay
+          label="STATUS"
+          value="LOADING VESSEL DATA..."
+          color="blue"
+        />
+      </Container>
     )
   }
 
   if (error || !boat) {
     return (
-      <LCARSLayout>
-        <Container>
-          <LCARSHeader>VESSEL DETAILS</LCARSHeader>
-          <LCARSAlert type="error">
-            {error?.message || 'Vessel not found'}
-          </LCARSAlert>
-          <BackButton variant="secondary" onClick={handleBack}>
-            BACK TO VESSELS
-          </BackButton>
-        </Container>
-      </LCARSLayout>
+      <Container>
+        <LCARSHeader>VESSEL DETAILS</LCARSHeader>
+        <LCARSAlert type="error">
+          {error?.message || 'Vessel not found'}
+        </LCARSAlert>
+        <BackButton variant="secondary" onClick={handleBack}>
+          BACK TO VESSELS
+        </BackButton>
+      </Container>
     )
   }
 
@@ -285,7 +280,7 @@ export const BoatDetail: React.FC = () => {
   }, 0) || 0
 
   return (
-    <LCARSLayout>
+    <>
       <Container>
         <HeaderContainer>
           <HeaderTitle>
@@ -453,7 +448,7 @@ export const BoatDetail: React.FC = () => {
           </StatsGrid>
         </StatsSection>
       </Container>
-    </LCARSLayout>
+    </>
   )
 }
 

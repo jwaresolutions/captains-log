@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import { eventManagerService, MaintenanceEventCompletionDTO } from '../services/eventManagerService';
 import { sendJsonResponse } from '../utils/serialization';
+import { eventBus } from '../services/eventBus';
 
 const router = express.Router();
 
@@ -218,6 +219,7 @@ router.post('/:id/complete', async (req: Request, res: Response): Promise<void> 
       data: completedEvent,
       message: 'Maintenance event completed successfully'
     });
+    eventBus.publish('maintenance_events', 'updated', id);
   } catch (error) {
     console.error('Error completing maintenance event:', error);
     
@@ -295,6 +297,7 @@ router.post('/:id/photos', async (req: Request, res: Response): Promise<void> =>
       success: true,
       message: 'Photo attached to maintenance event successfully'
     });
+    eventBus.publish('maintenance_events', 'updated', id);
   } catch (error) {
     console.error('Error attaching photo to maintenance event:', error);
     

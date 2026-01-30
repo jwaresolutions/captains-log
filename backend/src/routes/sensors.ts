@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { sensorService } from '../services/sensorService';
 import { logger } from '../utils/logger';
+import { eventBus } from '../services/eventBus';
 
 const router = Router();
 
@@ -59,6 +60,7 @@ router.post('/types', async (req: Request, res: Response): Promise<void> => {
       data: sensorType,
       timestamp: new Date().toISOString()
     });
+    eventBus.publish('sensors', 'created', sensorType.id);
   } catch (error) {
     logger.error('Error registering sensor type', { error });
     
@@ -181,6 +183,7 @@ router.put('/types/:id', async (req: Request, res: Response): Promise<void> => {
       data: sensorType,
       timestamp: new Date().toISOString()
     });
+    eventBus.publish('sensors', 'updated', sensorType.id);
   } catch (error) {
     logger.error('Error updating sensor type', { error });
     
@@ -299,6 +302,7 @@ router.post('/readings', async (req: Request, res: Response): Promise<void> => {
       data: sensorReading,
       timestamp: new Date().toISOString()
     });
+    eventBus.publish('sensors', 'created', sensorReading.id);
   } catch (error) {
     logger.error('Error recording sensor data', { error });
     

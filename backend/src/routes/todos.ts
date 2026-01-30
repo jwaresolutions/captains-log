@@ -1,6 +1,7 @@
 import express from 'express';
 import { todoService, TodoListCreateDTO, TodoItemCreateDTO, TodoItemUpdateDTO } from '../services/todoService';
 import { sendJsonResponse } from '../utils/serialization';
+import { eventBus } from '../services/eventBus';
 
 const router = express.Router();
 
@@ -29,6 +30,7 @@ router.post('/', async (req, res) => {
       success: true,
       data: todoList
     }, 201);
+    eventBus.publish('todos', 'created', todoList.id);
   } catch (error) {
     console.error('Error creating todo list:', error);
     
@@ -120,6 +122,7 @@ router.put('/:id', async (req, res) => {
       success: true,
       data: todoList
     });
+    eventBus.publish('todos', 'updated', todoList.id);
   } catch (error) {
     console.error('Error updating todo list:', error);
     
@@ -161,6 +164,7 @@ router.delete('/:id', async (req, res) => {
       success: true,
       message: 'Todo list deleted successfully'
     });
+    eventBus.publish('todos', 'deleted', id);
   } catch (error) {
     console.error('Error deleting todo list:', error);
     
@@ -201,6 +205,7 @@ router.post('/:id/items', async (req, res) => {
       success: true,
       data: item
     }, 201);
+    eventBus.publish('todos', 'updated', id);
   } catch (error) {
     console.error('Error adding todo item:', error);
     
@@ -246,6 +251,7 @@ router.put('/items/:itemId', async (req, res) => {
       success: true,
       data: item
     });
+    eventBus.publish('todos', 'updated', itemId);
   } catch (error) {
     console.error('Error updating todo item:', error);
     
@@ -282,6 +288,7 @@ router.patch('/items/:itemId/complete', async (req, res) => {
       success: true,
       data: item
     });
+    eventBus.publish('todos', 'updated', itemId);
   } catch (error) {
     console.error('Error toggling todo item completion:', error);
     
@@ -311,6 +318,7 @@ router.delete('/items/:itemId', async (req, res) => {
       success: true,
       message: 'Todo item deleted successfully'
     });
+    eventBus.publish('todos', 'deleted', itemId);
   } catch (error) {
     console.error('Error deleting todo item:', error);
     

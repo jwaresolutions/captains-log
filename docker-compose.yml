@@ -89,6 +89,29 @@ services:
       exec node dist/index.js
       "
 
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: /api/v1
+    container_name: boat-tracking-web
+    ports:
+      - "${WEB_PORT:-3000}:80"
+    depends_on:
+      - backend
+    networks:
+      - boat-tracking-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+    security_opt:
+      - no-new-privileges:true
+
 volumes:
   postgres_data:
     driver: local

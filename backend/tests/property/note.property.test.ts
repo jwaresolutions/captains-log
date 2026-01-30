@@ -439,7 +439,10 @@ describe('Note Service Property Tests', () => {
             noteContent: fc.string({ minLength: 1, maxLength: 100 }).filter(s => s.trim().length > 0)
           }).filter(({ requiredTags, additionalTags }) => {
             // Ensure no overlap between required and additional tags
-            return !requiredTags.some(tag => additionalTags.includes(tag));
+            // and ensure requiredTags are unique (duplicates cause hasEvery to match partial notes)
+            const uniqueRequired = new Set(requiredTags);
+            return uniqueRequired.size === requiredTags.length &&
+              !requiredTags.some(tag => additionalTags.includes(tag));
           }),
           async ({ requiredTags, additionalTags, noteContent }) => {
             // Clean database

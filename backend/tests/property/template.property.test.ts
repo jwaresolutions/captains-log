@@ -930,7 +930,7 @@ describe('Template Management Property Tests', () => {
             fc.float({ min: Math.fround(0.01), max: Math.fround(5000), noNaN: true }), // new cost
             fc.integer({ min: 1, max: 720 }), // new time
             fc.array(
-              fc.date({ min: new Date('2026-01-01'), max: new Date('2027-12-31') }),
+              fc.date({ min: new Date('2026-06-01'), max: new Date('2027-12-31') }),
               { minLength: 1, maxLength: 5 }
             ), // future event dates
             fc.array(
@@ -1061,7 +1061,7 @@ describe('Template Management Property Tests', () => {
             fc.string({ minLength: 1, maxLength: 200 }).filter(s => s.trim().length > 0), // original description
             fc.constantFrom('title', 'description', 'component', 'estimatedCost', 'estimatedTime'), // field to change
             fc.array(
-              fc.date({ min: new Date('2026-01-01'), max: new Date('2027-12-31') }),
+              fc.date({ min: new Date('2026-06-01'), max: new Date('2027-12-31') }),
               { minLength: 1, maxLength: 3 }
             ) // future event dates
           ),
@@ -1236,7 +1236,7 @@ describe('Template Management Property Tests', () => {
               { minLength: 1, maxLength: 2 }
             ), // additional photo titles
             fc.array(
-              fc.date({ min: new Date('2025-06-01'), max: new Date('2026-12-31') }),
+              fc.date({ min: new Date('2026-06-01'), max: new Date('2027-12-31') }),
               { minLength: 1, maxLength: 4 }
             ), // event dates
             fc.array(

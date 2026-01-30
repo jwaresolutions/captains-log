@@ -3,6 +3,7 @@ import { templateManagerService, MaintenanceTemplateCreateDTO, MaintenanceTempla
 import { scheduleChangeService } from '../services/scheduleChangeService';
 import { templateInformationService, TemplateInformationChanges } from '../services/templateInformationService';
 import { sendJsonResponse } from '../utils/serialization';
+import { eventBus } from '../services/eventBus';
 
 const router = express.Router();
 
@@ -114,6 +115,7 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
       success: true,
       data: template
     }, 201);
+    eventBus.publish('maintenance_templates', 'created', template.id);
   } catch (error) {
     console.error('Error creating maintenance template:', error);
     
@@ -260,6 +262,7 @@ router.put('/:id', async (req: Request, res: Response): Promise<void> => {
       success: true,
       data: template
     });
+    eventBus.publish('maintenance_templates', 'updated', template.id);
   } catch (error) {
     console.error('Error updating maintenance template:', error);
     
@@ -313,6 +316,7 @@ router.delete('/:id', async (req: Request, res: Response): Promise<void> => {
       success: true,
       message: 'Maintenance template deleted successfully'
     });
+    eventBus.publish('maintenance_templates', 'deleted', id);
   } catch (error) {
     console.error('Error deleting maintenance template:', error);
     
@@ -597,6 +601,8 @@ router.post('/:id/schedule-change/apply', async (req: Request, res: Response): P
         data: result,
         message: 'Schedule change applied successfully'
       });
+      eventBus.publish('maintenance_templates', 'updated', id);
+      eventBus.publish('maintenance_events', 'updated');
     } else {
       res.status(500).json({
         error: {
@@ -766,6 +772,8 @@ router.post('/:id/information-change/apply', async (req: Request, res: Response)
         },
         timestamp: new Date().toISOString()
       });
+      eventBus.publish('maintenance_templates', 'updated', id);
+      eventBus.publish('maintenance_events', 'updated');
     } else {
       res.status(500).json({
         error: {

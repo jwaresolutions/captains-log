@@ -3,6 +3,7 @@ package com.captainslog
 import android.app.Application
 import com.captainslog.connection.ConnectionManager
 import com.captainslog.database.AppDatabase
+import com.captainslog.sync.SseClient
 import com.captainslog.sync.SyncManager
 import com.captainslog.sync.SyncNotificationHelper
 
@@ -14,6 +15,9 @@ class BoatTrackingApplication : Application() {
         private set
 
     lateinit var syncManager: SyncManager
+        private set
+
+    lateinit var sseClient: SseClient
         private set
 
     override fun onCreate() {
@@ -34,5 +38,9 @@ class BoatTrackingApplication : Application() {
         
         // Schedule periodic sync
         syncManager.schedulePeriodicSync()
+
+        // Initialize SSE client for real-time sync
+        sseClient = SseClient.getInstance(this, database)
+        sseClient.connect()
     }
 }

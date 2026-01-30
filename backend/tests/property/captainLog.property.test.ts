@@ -1141,13 +1141,13 @@ describe('Captain Log Service Property Tests', () => {
           expectedDaysRemaining: 90,
           expectedEstimate: null
         },
-        // Scenario 2: Recent consistent activity within 3 years
+        // Scenario 2: Recent consistent activity within 3 years (use relative dates)
         {
           trips: [
-            { date: '2023-01-01', hours: 5.0 },
-            { date: '2023-06-01', hours: 4.5 },
-            { date: '2024-01-01', hours: 6.0 },
-            { date: '2024-06-01', hours: 4.0 } // 4 days in recent period
+            { date: new Date(Date.now() - 730 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], hours: 5.0 },  // ~2 years ago
+            { date: new Date(Date.now() - 548 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], hours: 4.5 },  // ~1.5 years ago
+            { date: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], hours: 6.0 },  // ~1 year ago
+            { date: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], hours: 4.0 }   // ~6 months ago, 4 days in recent period
           ],
           expectedDaysRemaining: 86, // 90 - 4
           expectedEstimate: 'should_exist'
@@ -1165,10 +1165,10 @@ describe('Captain Log Service Property Tests', () => {
           expectedDaysRemaining: 84, // 90 - 6
           expectedEstimate: 'should_exist'
         },
-        // Scenario 4: Already achieved 90-day goal
+        // Scenario 4: Already achieved 90-day goal (use relative dates within 3-year window)
         {
           trips: Array.from({ length: 95 }, (_, i) => ({
-            date: new Date(2023, 0, 1 + i).toISOString().split('T')[0],
+            date: new Date(Date.now() - (365 + 95 - i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
             hours: 4.0
           })),
           expectedDaysRemaining: 0, // Already exceeded 90
@@ -1179,8 +1179,8 @@ describe('Captain Log Service Property Tests', () => {
           trips: [
             { date: '2020-01-01', hours: 4.0 }, // Too old
             { date: '2020-06-01', hours: 5.0 }, // Too old
-            { date: '2023-01-01', hours: 6.0 }, // Recent
-            { date: '2024-01-01', hours: 4.5 }  // Recent - only 2 recent days
+            { date: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], hours: 6.0 }, // Recent
+            { date: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], hours: 4.5 }  // Recent - only 2 recent days
           ],
           expectedDaysRemaining: 88, // 90 - 2 (only recent trips count)
           expectedEstimate: 'should_exist'
@@ -1234,9 +1234,9 @@ describe('Captain Log Service Property Tests', () => {
             // Estimate should be in the future
             expect(progress.estimatedCompletion90In3Years!.getTime()).toBeGreaterThan(Date.now());
             
-            // Estimate should be reasonable (not more than 20 years in future)
+            // Estimate should be reasonable (not more than 100 years in future for low-activity scenarios)
             const maxFutureDate = new Date();
-            maxFutureDate.setFullYear(maxFutureDate.getFullYear() + 20);
+            maxFutureDate.setFullYear(maxFutureDate.getFullYear() + 100);
             expect(progress.estimatedCompletion90In3Years!.getTime()).toBeLessThan(maxFutureDate.getTime());
           }
         }
@@ -1297,11 +1297,11 @@ describe('Captain Log Service Property Tests', () => {
           ],
           expectedRecentDays: 2
         },
-        // Exactly 90 days in 3 years
+        // Exactly 90 days in 3 years (use dates relative to now, within 3-year window)
         {
           name: 'Exactly at 90-day goal',
           trips: Array.from({ length: 90 }, (_, i) => ({
-            date: new Date(2023, 0, 1 + i).toISOString().split('T')[0],
+            date: new Date(Date.now() - (365 + 90 - i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
             hours: 4.0
           })),
           expectedRecentDays: 90

@@ -3,6 +3,7 @@ import multer from 'multer';
 import { photoService } from '../services/photoService';
 import { logger } from '../utils/logger';
 import { sendJsonResponse } from '../utils/serialization';
+import { eventBus } from '../services/eventBus';
 
 const router = Router();
 
@@ -103,6 +104,7 @@ router.post('/', upload.single('photo'), async (req: Request, res: Response): Pr
       data: photo,
       timestamp: new Date().toISOString()
     }, 201);
+    eventBus.publish('photos', 'created', photo.id);
   } catch (error) {
     logger.error('Error uploading photo', { error });
     
@@ -353,6 +355,7 @@ router.delete('/:id', async (req: Request, res: Response): Promise<void> => {
       message: 'Photo deleted successfully',
       timestamp: new Date().toISOString()
     });
+    eventBus.publish('photos', 'deleted', id);
   } catch (error) {
     logger.error('Error deleting photo', { error });
     
