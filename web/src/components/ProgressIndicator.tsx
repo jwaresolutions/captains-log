@@ -24,13 +24,13 @@ const ProgressContainer = styled.div<{ variant?: 'inline' | 'modal' }>`
 
 const ProgressContent = styled.div<{ variant?: 'inline' | 'modal' }>`
   ${props => props.variant === 'modal' && `
-    background: ${props.theme.colors.background.primary};
+    background: ${props.theme.colors.background};
     padding: ${props.theme.spacing.xl};
     border-radius: 8px;
     min-width: 300px;
     text-align: center;
   `}
-  
+
   ${props => props.variant === 'inline' && `
     padding: ${props.theme.spacing.md};
   `}
@@ -39,7 +39,7 @@ const ProgressContent = styled.div<{ variant?: 'inline' | 'modal' }>`
 const ProgressBarContainer = styled.div`
   width: 100%;
   height: 20px;
-  background: ${props => props.theme.colors.background.secondary};
+  background: ${props => props.theme.colors.surface.dark};
   border-radius: 10px;
   overflow: hidden;
   position: relative;
@@ -57,7 +57,7 @@ const ProgressBar = styled.div<{
       case 'success': return props.theme.colors.status.success;
       case 'warning': return props.theme.colors.status.warning;
       case 'error': return props.theme.colors.status.error;
-      default: return props.theme.colors.primary.main;
+      default: return props.theme.colors.primary.neonCarrot;
     }
   }};
   border-radius: 10px;
@@ -74,13 +74,13 @@ const ProgressBar = styled.div<{
 
 const ProgressText = styled.div`
   color: ${props => props.theme.colors.text.primary};
-  font-size: ${props => props.theme.typography.sizes.md};
+  font-size: ${props => props.theme.typography.fontSize.md};
   margin-bottom: ${props => props.theme.spacing.sm};
 `;
 
 const ProgressPercentage = styled.div`
-  color: ${props => props.theme.colors.text.secondary};
-  font-size: ${props => props.theme.typography.sizes.sm};
+  color: ${props => props.theme.colors.text.light};
+  font-size: ${props => props.theme.typography.fontSize.sm};
   font-family: monospace;
 `;
 
@@ -97,8 +97,8 @@ const Step = styled.div<{ active?: boolean; completed?: boolean }>`
   gap: ${props => props.theme.spacing.sm};
   color: ${props => {
     if (props.completed) return props.theme.colors.status.success;
-    if (props.active) return props.theme.colors.primary.main;
-    return props.theme.colors.text.secondary;
+    if (props.active) return props.theme.colors.primary.neonCarrot;
+    return props.theme.colors.text.light;
   }};
   
   &::before {
@@ -108,13 +108,13 @@ const Step = styled.div<{ active?: boolean; completed?: boolean }>`
     border-radius: 50%;
     background: ${props => {
       if (props.completed) return props.theme.colors.status.success;
-      if (props.active) return props.theme.colors.primary.main;
-      return props.theme.colors.background.secondary;
+      if (props.active) return props.theme.colors.primary.neonCarrot;
+      return props.theme.colors.surface.dark;
     }};
     border: 2px solid ${props => {
       if (props.completed) return props.theme.colors.status.success;
-      if (props.active) return props.theme.colors.primary.main;
-      return props.theme.colors.text.secondary;
+      if (props.active) return props.theme.colors.primary.neonCarrot;
+      return props.theme.colors.text.light;
     }};
   }
 `;
@@ -122,10 +122,10 @@ const Step = styled.div<{ active?: boolean; completed?: boolean }>`
 const StepConnector = styled.div<{ completed?: boolean }>`
   flex: 1;
   height: 2px;
-  background: ${props => 
-    props.completed 
-      ? props.theme.colors.status.success 
-      : props.theme.colors.background.secondary
+  background: ${props =>
+    props.completed
+      ? props.theme.colors.status.success
+      : props.theme.colors.surface.dark
   };
   margin: 0 ${props => props.theme.spacing.sm};
 `;

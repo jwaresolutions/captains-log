@@ -6,37 +6,37 @@ interface LCARSEstimateDisplayProps {
   estimatedDate?: string
   daysRemaining?: number
   isComplete?: boolean
-  color?: 'orange' | 'purple' | 'blue' | 'green'
+  color?: 'neonCarrot' | 'lilac' | 'anakiwa' | 'success'
   size?: 'sm' | 'md' | 'lg'
   className?: string
 }
 
 const displayColors = {
-  orange: css`
+  neonCarrot: css`
     .estimate-value {
-      color: ${props => props.theme.colors.primary.orange};
+      color: ${props => props.theme.colors.primary.neonCarrot};
     }
     .estimate-border {
-      border-color: ${props => props.theme.colors.primary.orange};
+      border-color: ${props => props.theme.colors.primary.neonCarrot};
     }
   `,
-  purple: css`
+  lilac: css`
     .estimate-value {
-      color: ${props => props.theme.colors.primary.purple};
+      color: ${props => props.theme.colors.primary.lilac};
     }
     .estimate-border {
-      border-color: ${props => props.theme.colors.primary.purple};
+      border-color: ${props => props.theme.colors.primary.lilac};
     }
   `,
-  blue: css`
+  anakiwa: css`
     .estimate-value {
-      color: ${props => props.theme.colors.primary.blue};
+      color: ${props => props.theme.colors.primary.anakiwa};
     }
     .estimate-border {
-      border-color: ${props => props.theme.colors.primary.blue};
+      border-color: ${props => props.theme.colors.primary.anakiwa};
     }
   `,
-  green: css`
+  success: css`
     .estimate-value {
       color: ${props => props.theme.colors.status.success};
     }
@@ -95,10 +95,10 @@ const StyledEstimateDisplay = styled.div<{
   border-radius: ${props => props.theme.borderRadius.lg};
   text-align: center;
   position: relative;
-  
+
   ${props => displayColors[props.color]}
   ${props => displaySizes[props.size]}
-  
+
   ${props => props.isComplete && css`
     .estimate-value {
       color: ${props => props.theme.colors.status.success};
@@ -106,7 +106,7 @@ const StyledEstimateDisplay = styled.div<{
     .estimate-border {
       border-color: ${props => props.theme.colors.status.success};
     }
-    
+
     &::after {
       content: '✓ COMPLETE';
       position: absolute;
@@ -149,7 +149,7 @@ export const LCARSEstimateDisplay: React.FC<LCARSEstimateDisplayProps> = ({
   estimatedDate,
   daysRemaining,
   isComplete = false,
-  color = 'orange',
+  color = 'neonCarrot',
   size = 'md',
   className,
 }) => {
@@ -179,16 +179,16 @@ export const LCARSEstimateDisplay: React.FC<LCARSEstimateDisplayProps> = ({
   }
 
   return (
-    <StyledEstimateDisplay 
-      color={color} 
-      size={size} 
+    <StyledEstimateDisplay
+      color={color}
+      size={size}
       isComplete={isComplete}
       className={`estimate-border ${className || ''}`}
     >
       <EstimateTitle className="estimate-title">
         {title}
       </EstimateTitle>
-      
+
       {isComplete ? (
         <>
           <EstimateValue className="estimate-value">
@@ -210,7 +210,7 @@ export const LCARSEstimateDisplay: React.FC<LCARSEstimateDisplayProps> = ({
               </EstimateSubtitle>
             </>
           )}
-          
+
           {daysRemaining !== undefined && (
             <>
               <EstimateValue className="estimate-value">

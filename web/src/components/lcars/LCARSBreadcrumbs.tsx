@@ -8,10 +8,10 @@ const BreadcrumbContainer = styled.div`
   gap: ${props => props.theme.spacing.sm};
   padding: ${props => props.theme.spacing.sm} ${props => props.theme.spacing.md};
   background-color: ${props => props.theme.colors.surface.medium};
-  border-bottom: 1px solid ${props => props.theme.colors.primary.blue};
+  border-bottom: 1px solid ${props => props.theme.colors.primary.anakiwa};
   font-family: ${props => props.theme.typography.fontFamily.primary};
   font-size: ${props => props.theme.typography.fontSize.sm};
-  
+
   @media (max-width: 768px) {
     padding: ${props => props.theme.spacing.xs} ${props => props.theme.spacing.sm};
     font-size: ${props => props.theme.typography.fontSize.xs};
@@ -21,9 +21,9 @@ const BreadcrumbContainer = styled.div`
 const BreadcrumbItem = styled.button<{ $isLast?: boolean }>`
   background: none;
   border: none;
-  color: ${props => props.$isLast 
-    ? props.theme.colors.primary.orange 
-    : props.theme.colors.primary.blue
+  color: ${props => props.$isLast
+    ? props.theme.colors.primary.neonCarrot
+    : props.theme.colors.primary.anakiwa
   };
   font-family: inherit;
   font-size: inherit;
@@ -32,11 +32,11 @@ const BreadcrumbItem = styled.button<{ $isLast?: boolean }>`
   letter-spacing: 1px;
   cursor: ${props => props.$isLast ? 'default' : 'pointer'};
   padding: 0;
-  
+
   &:hover:not(:disabled) {
-    color: ${props => props.theme.colors.primary.orangeLight};
+    color: ${props => props.theme.colors.primary.goldenTanoi};
   }
-  
+
   &:disabled {
     cursor: default;
   }
@@ -94,14 +94,14 @@ export const LCARSBreadcrumbs: React.FC = () => {
     let currentPath = ''
     pathSegments.forEach((segment) => {
       currentPath += `/${segment}`
-      
+
       // Skip if this is the current page and we're at root
       if (currentPath === '/' && location.pathname === '/') {
         return
       }
 
       const label = routeLabels[currentPath] || segment.charAt(0).toUpperCase() + segment.slice(1)
-      
+
       breadcrumbs.push({
         label,
         path: currentPath,

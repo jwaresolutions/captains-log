@@ -83,7 +83,7 @@ export class ErrorBoundary extends Component<Props, State> {
     });
 
     // Log error to external service in production
-    if (process.env.NODE_ENV === 'production') {
+    if (import.meta.env.PROD) {
       // TODO: Send to error reporting service
       console.error('Production error:', {
         error: error.message,
@@ -137,7 +137,7 @@ export class ErrorBoundary extends Component<Props, State> {
               </LCARSButton>
             </ButtonContainer>
 
-            {process.env.NODE_ENV === 'development' && this.state.error && (
+            {import.meta.env.DEV && this.state.error && (
               <ErrorDetails>
                 <summary>Error Details (Development)</summary>
                 <pre>
@@ -191,7 +191,7 @@ export function useErrorHandler() {
     
     // In a real app, you might want to show a toast notification
     // or send the error to an error reporting service
-    if (process.env.NODE_ENV === 'production') {
+    if (import.meta.env.PROD) {
       // TODO: Send to error reporting service
       console.error('Production async error:', {
         error: error.message,

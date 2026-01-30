@@ -41,7 +41,7 @@ const TopSection = styled.div`
 const HeaderLogo = styled.img`
   height: 40px;
   width: auto;
-  filter: drop-shadow(0 0 5px ${props => props.theme.colors.primary.orange}40);
+  filter: drop-shadow(0 0 5px ${props => props.theme.colors.primary.neonCarrot}40);
 `
 
 const StatusGrid = styled.div`
@@ -102,13 +102,13 @@ const ProgressBar = styled.div<{ progress: number }>`
   border-radius: ${props => props.theme.borderRadius.pill};
   overflow: hidden;
   margin-top: ${props => props.theme.spacing.sm};
-  
+
   &::after {
     content: '';
     display: block;
     width: ${props => Math.min(props.progress, 100)}%;
     height: 100%;
-    background-color: ${props => props.theme.colors.primary.orange};
+    background-color: ${props => props.theme.colors.primary.neonCarrot};
     transition: width ${props => props.theme.animation.normal} ease;
   }
 `
@@ -151,33 +151,33 @@ export const Dashboard: React.FC = () => {
 
   return (
     <DashboardContainer>
-      <LCARSColumn width="250px" position="left">
-        <LCARSElbow position="top-left" size="md" />
-        <LCARSBar height="20px" />
-        
+      <LCARSColumn width="250px">
+        <LCARSElbow position="top-left" size={60} />
+        <LCARSBar height={20} colors={['neonCarrot']} />
+
         <LCARSPanel title="System Status" variant="primary">
-          <LCARSDataDisplay 
-            label="Interface Status" 
-            value="ONLINE" 
-            color="green" 
+          <LCARSDataDisplay
+            label="Interface Status"
+            value="ONLINE"
+            valueColor="success"
             size="sm"
           />
-          <LCARSDataDisplay 
-            label="Active Boats" 
-            value={boatsLoading ? "..." : activeBoats.length.toString()} 
-            color="orange" 
+          <LCARSDataDisplay
+            label="Active Boats"
+            value={boatsLoading ? "..." : activeBoats.length.toString()}
+            valueColor="neonCarrot"
             size="sm"
           />
-          <LCARSDataDisplay 
-            label="Total Trips" 
-            value={tripsLoading ? "..." : totalTrips.toString()} 
-            color="blue" 
+          <LCARSDataDisplay
+            label="Total Trips"
+            value={tripsLoading ? "..." : totalTrips.toString()}
+            valueColor="anakiwa"
             size="sm"
           />
         </LCARSPanel>
 
-        <LCARSBar height="20px" color="purple" />
-        
+        <LCARSBar height={20} colors={['lilac']} />
+
         <QuickActions>
           <LCARSButton size="sm" variant="primary">
             New Trip
@@ -186,13 +186,13 @@ export const Dashboard: React.FC = () => {
             Add Boat
           </LCARSButton>
         </QuickActions>
-        
-        <LCARSElbow position="bottom-left" size="md" />
+
+        <LCARSElbow position="bottom-left" size={60} color="neonCarrot" />
       </LCARSColumn>
 
       <MainContent>
         <TopSection>
-          <LCARSElbow position="top-right" size="lg" />
+          <LCARSElbow position="top-right" size={120} color="lilac" />
           <LCARSBar width="100%" />
           <HeaderLogo 
             src="/assets/captains-log-logo.png" 
@@ -212,23 +212,23 @@ export const Dashboard: React.FC = () => {
         <StatusGrid>
           <LCARSPanel title="Fleet Status" variant="accent">
             {boatsLoading ? (
-              <LCARSDataDisplay label="Loading" value="..." color="blue" />
+              <LCARSDataDisplay label="Loading" value="..." valueColor="anakiwa" />
             ) : (
               <>
-                <LCARSDataDisplay 
-                  label="Total Vessels" 
-                  value={boats?.length || 0} 
-                  color="blue" 
+                <LCARSDataDisplay
+                  label="Total Vessels"
+                  value={boats?.length || 0}
+                  valueColor="anakiwa"
                 />
-                <LCARSDataDisplay 
-                  label="Active Vessels" 
-                  value={activeBoats.length} 
-                  color="green" 
+                <LCARSDataDisplay
+                  label="Active Vessels"
+                  value={activeBoats.length}
+                  valueColor="success"
                 />
-                <LCARSDataDisplay 
-                  label="Inactive Vessels" 
-                  value={(boats?.length || 0) - activeBoats.length} 
-                  color="orange" 
+                <LCARSDataDisplay
+                  label="Inactive Vessels"
+                  value={(boats?.length || 0) - activeBoats.length}
+                  valueColor="neonCarrot"
                 />
               </>
             )}
@@ -236,18 +236,18 @@ export const Dashboard: React.FC = () => {
 
           <LCARSPanel title="License Progress" variant="secondary">
             {licenseLoading ? (
-              <LCARSDataDisplay label="Loading" value="..." color="purple" />
+              <LCARSDataDisplay label="Loading" value="..." valueColor="lilac" />
             ) : licenseProgress ? (
               <>
-                <LCARSDataDisplay 
-                  label="Sea Time Days" 
-                  value={licenseProgress.totalSeaTimeDays} 
-                  color="purple" 
+                <LCARSDataDisplay
+                  label="Sea Time Days"
+                  value={licenseProgress.totalSeaTimeDays}
+                  valueColor="lilac"
                 />
-                <LCARSDataDisplay 
-                  label="Days (3 Years)" 
-                  value={licenseProgress.seaTimeDaysLast3Years} 
-                  color="purple" 
+                <LCARSDataDisplay
+                  label="Days (3 Years)"
+                  value={licenseProgress.seaTimeDaysLast3Years}
+                  valueColor="lilac"
                 />
                 <div>
                   <ProgressBar progress={calculateProgress(licenseProgress.totalSeaTimeDays, 360)} />
@@ -258,7 +258,7 @@ export const Dashboard: React.FC = () => {
                 </div>
               </>
             ) : (
-              <LCARSDataDisplay label="Status" value="Disabled" color="orange" />
+              <LCARSDataDisplay label="Status" value="Disabled" valueColor="neonCarrot" />
             )}
           </LCARSPanel>
         </StatusGrid>
@@ -266,7 +266,7 @@ export const Dashboard: React.FC = () => {
         <RecentSection>
           <LCARSPanel title="Recent Trips" variant="primary">
             {tripsLoading ? (
-              <LCARSDataDisplay label="Loading" value="..." color="orange" />
+              <LCARSDataDisplay label="Loading" value="..." valueColor="neonCarrot" />
             ) : recentTrips.length > 0 ? (
               recentTrips.map((trip) => (
                 <TripItem key={trip.id}>
@@ -276,12 +276,12 @@ export const Dashboard: React.FC = () => {
                       {formatDuration(trip.statistics?.durationSeconds || 0)} • {trip.waterType}
                     </TripDetails>
                   </TripInfo>
-                  <LCARSDataDisplay 
-                    label="Distance" 
-                    value={Math.round((trip.statistics?.distanceMeters || 0) / 1852)} 
-                    unit="nm" 
-                    size="sm" 
-                    color="orange"
+                  <LCARSDataDisplay
+                    label="Distance"
+                    value={Math.round((trip.statistics?.distanceMeters || 0) / 1852)}
+                    unit="nm"
+                    size="sm"
+                    valueColor="neonCarrot"
                   />
                 </TripItem>
               ))
@@ -300,8 +300,8 @@ export const Dashboard: React.FC = () => {
         </RecentSection>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <LCARSElbow position="bottom-right" size="lg" />
-          <LCARSBar width="100%" color="blue" />
+          <LCARSElbow position="bottom-right" size={80} />
+          <LCARSBar width="100%" colors={['anakiwa']} />
         </div>
       </MainContent>
     </DashboardContainer>

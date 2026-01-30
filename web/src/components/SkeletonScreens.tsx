@@ -183,7 +183,9 @@ export const TripDetailSkeleton: React.FC = () => {
 export const DashboardSkeleton: React.FC = () => {
   return (
     <SkeletonContainer>
-      <Skeleton width="200px" height="32px" style={{ marginBottom: '20px' }} />
+      <div style={{ marginBottom: '20px' }}>
+        <Skeleton width="200px" height="32px" />
+      </div>
       
       {/* Stats cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '30px' }}>
@@ -191,7 +193,9 @@ export const DashboardSkeleton: React.FC = () => {
           <LCARSPanel key={i}>
             <SkeletonCard>
               <Skeleton width="120px" height="16px" />
-              <Skeleton width="80px" height="24px" style={{ marginTop: '8px' }} />
+              <div style={{ marginTop: '8px' }}>
+                <Skeleton width="80px" height="24px" />
+              </div>
             </SkeletonCard>
           </LCARSPanel>
         ))}

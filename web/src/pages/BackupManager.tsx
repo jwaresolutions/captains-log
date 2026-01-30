@@ -48,9 +48,9 @@ const StatusMessage = styled.div<{ $type: 'success' | 'error' | 'info' }>`
         `
       case 'info':
         return `
-          background: ${props.theme.colors.primary.blue}20;
-          color: ${props.theme.colors.primary.blue};
-          border: 1px solid ${props.theme.colors.primary.blue};
+          background: ${props.theme.colors.primary.anakiwa}20;
+          color: ${props.theme.colors.primary.anakiwa};
+          border: 1px solid ${props.theme.colors.primary.anakiwa};
         `
     }
   }}
@@ -64,14 +64,14 @@ const BackupList = styled.div`
 
 const BackupItem = styled.div`
   background: ${props => props.theme.colors.surface.dark};
-  border: 1px solid ${props => props.theme.colors.primary.blue};
+  border: 1px solid ${props => props.theme.colors.primary.anakiwa};
   padding: ${props => props.theme.spacing.md};
   display: flex;
   justify-content: space-between;
   align-items: center;
-  
+
   &:hover {
-    border-color: ${props => props.theme.colors.primary.orange};
+    border-color: ${props => props.theme.colors.primary.neonCarrot};
   }
 `
 
@@ -252,12 +252,12 @@ export const BackupManager: React.FC = () => {
             <LCARSDataDisplay
               label="Total Backups"
               value={backups.length.toString()}
-              color="blue"
+              valueColor="anakiwa"
             />
             <LCARSDataDisplay
               label="Total Size"
               value={formatFileSize(backups.reduce((sum, backup) => sum + backup.size, 0))}
-              color="purple"
+              valueColor="lilac"
             />
             <LCARSDataDisplay
               label="Latest Backup"
@@ -265,7 +265,7 @@ export const BackupManager: React.FC = () => {
                 ? formatDate(backups[0].createdAt)
                 : 'None'
               }
-              color="orange"
+              valueColor="neonCarrot"
             />
           </div>
 

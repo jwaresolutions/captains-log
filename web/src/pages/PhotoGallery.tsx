@@ -32,14 +32,14 @@ const PhotoGrid = styled.div`
 
 const PhotoCard = styled.div`
   background: ${props => props.theme.colors.surface.dark};
-  border: 2px solid ${props => props.theme.colors.primary.blue};
+  border: 2px solid ${props => props.theme.colors.primary.anakiwa};
   border-radius: ${props => props.theme.borderRadius.sm};
   overflow: hidden;
   cursor: pointer;
   transition: all ${props => props.theme.animation.normal} ease;
-  
+
   &:hover {
-    border-color: ${props => props.theme.colors.primary.orange};
+    border-color: ${props => props.theme.colors.primary.neonCarrot};
     transform: translateY(-2px);
     box-shadow: ${props => props.theme.shadows.glow};
   }
@@ -75,7 +75,7 @@ const PhotoMeta = styled.div`
 `
 
 const PhotoType = styled.span<{ $type: 'trip' }>`
-  background: ${props => props.theme.colors.primary.blue};
+  background: ${props => props.theme.colors.primary.anakiwa};
   color: ${props => props.theme.colors.text.primary};
   padding: 2px 6px;
   border-radius: 2px;
@@ -111,12 +111,12 @@ const LightboxImage = styled.img`
   max-width: 100%;
   max-height: 80vh;
   object-fit: contain;
-  border: 2px solid ${props => props.theme.colors.primary.orange};
+  border: 2px solid ${props => props.theme.colors.primary.neonCarrot};
 `
 
 const LightboxInfo = styled.div`
   background: ${props => props.theme.colors.surface.dark};
-  border: 2px solid ${props => props.theme.colors.primary.blue};
+  border: 2px solid ${props => props.theme.colors.primary.anakiwa};
   padding: ${props => props.theme.spacing.md};
   border-radius: ${props => props.theme.borderRadius.sm};
   color: ${props => props.theme.colors.text.primary};
@@ -240,22 +240,22 @@ export const PhotoGallery: React.FC = () => {
         <LCARSDataDisplay
           label="Total Photos"
           value={photos.length.toString()}
-          color="orange"
+          valueColor="neonCarrot"
         />
         <LCARSDataDisplay
           label="Trip Photos"
           value={tripPhotos.length.toString()}
-          color="blue"
+          valueColor="anakiwa"
         />
         <LCARSDataDisplay
           label="Maintenance Photos"
           value="0"
-          color="purple"
+          valueColor="lilac"
         />
         <LCARSDataDisplay
           label="Total Size"
           value={formatFileSize(photos.reduce((sum, photo) => sum + (photo.sizeBytes || 0), 0))}
-          color="blue"
+          valueColor="anakiwa"
         />
       </StatsPanel>
 

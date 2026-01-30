@@ -30,7 +30,7 @@ const MonthNavigation = styled.div`
 `
 
 const MonthTitle = styled.h2`
-  color: ${props => props.theme.colors.primary.orange};
+  color: ${props => props.theme.colors.primary.neonCarrot};
   font-size: ${props => props.theme.typography.fontSize.xl};
   font-weight: ${props => props.theme.typography.fontWeight.bold};
   text-transform: uppercase;
@@ -44,12 +44,12 @@ const CalendarGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 1px;
-  background-color: ${props => props.theme.colors.primary.blue};
-  border: 2px solid ${props => props.theme.colors.primary.blue};
+  background-color: ${props => props.theme.colors.primary.anakiwa};
+  border: 2px solid ${props => props.theme.colors.primary.anakiwa};
 `
 
 const CalendarHeader = styled.div`
-  background-color: ${props => props.theme.colors.primary.blue};
+  background-color: ${props => props.theme.colors.primary.anakiwa};
   color: ${props => props.theme.colors.text.primary};
   padding: ${props => props.theme.spacing.sm};
   text-align: center;
@@ -77,20 +77,20 @@ const CalendarDay = styled.div<{
   `}
   
   ${props => props.$isToday && `
-    border: 2px solid ${props.theme.colors.primary.orange};
-    background-color: ${props.theme.colors.primary.orange}10;
+    border: 2px solid ${props.theme.colors.primary.neonCarrot};
+    background-color: ${props.theme.colors.primary.neonCarrot}10;
   `}
-  
+
   ${props => props.$hasEvents && `
-    border-left: 4px solid ${props.theme.colors.primary.purple};
+    border-left: 4px solid ${props.theme.colors.primary.lilac};
   `}
 `
 
 const DayNumber = styled.div<{ $isToday: boolean }>`
   font-weight: ${props => props.theme.typography.fontWeight.bold};
   font-size: ${props => props.theme.typography.fontSize.sm};
-  color: ${props => props.$isToday 
-    ? props.theme.colors.primary.orange 
+  color: ${props => props.$isToday
+    ? props.theme.colors.primary.neonCarrot
     : props.theme.colors.text.primary
   };
   margin-bottom: ${props => props.theme.spacing.xs};
@@ -104,9 +104,9 @@ const EventList = styled.div`
 `
 
 const EventItem = styled.div<{ $type: 'trip' | 'maintenance' }>`
-  background-color: ${props => props.$type === 'trip' 
-    ? props.theme.colors.primary.blue 
-    : props.theme.colors.primary.purple
+  background-color: ${props => props.$type === 'trip'
+    ? props.theme.colors.primary.anakiwa
+    : props.theme.colors.primary.lilac
   };
   color: ${props => props.theme.colors.text.primary};
   padding: 2px 4px;
@@ -116,7 +116,7 @@ const EventItem = styled.div<{ $type: 'trip' | 'maintenance' }>`
   overflow: hidden;
   white-space: nowrap;
   cursor: pointer;
-  
+
   &:hover {
     opacity: 0.8;
   }
@@ -287,17 +287,17 @@ export const Calendar: React.FC = () => {
         <LCARSDataDisplay
           label="Current Month Trips"
           value={currentMonthTrips.length.toString()}
-          color="blue"
+          valueColor="anakiwa"
         />
         <LCARSDataDisplay
           label="Upcoming Maintenance"
           value={currentMonthMaintenance.length.toString()}
-          color="purple"
+          valueColor="lilac"
         />
         <LCARSDataDisplay
           label="Total Events"
           value={(currentMonthTrips.length + currentMonthMaintenance.length).toString()}
-          color="orange"
+          valueColor="neonCarrot"
         />
       </StatsPanel>
 

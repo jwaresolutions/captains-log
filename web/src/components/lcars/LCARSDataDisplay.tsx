@@ -6,7 +6,9 @@ interface LCARSDataDisplayProps {
   value: string | number
   unit?: string
   size?: 'sm' | 'md' | 'lg'
-  color?: 'orange' | 'purple' | 'blue' | 'green'
+  valueColor?: 'neonCarrot' | 'lilac' | 'anakiwa' | 'mariner' | 'success'
+  showIndicator?: boolean
+  indicatorColor?: 'neonCarrot' | 'lilac' | 'anakiwa' | 'success' | 'error'
   className?: string
 }
 
@@ -46,68 +48,79 @@ const displaySizes = {
   `,
 }
 
-const displayColors = {
-  orange: css`
-    .data-value {
-      color: ${props => props.theme.colors.primary.orange};
-    }
+const valueColors = {
+  neonCarrot: css`
+    color: ${props => props.theme.colors.primary.neonCarrot};
   `,
-  purple: css`
-    .data-value {
-      color: ${props => props.theme.colors.primary.purple};
-    }
+  lilac: css`
+    color: ${props => props.theme.colors.primary.lilac};
   `,
-  blue: css`
-    .data-value {
-      color: ${props => props.theme.colors.primary.blue};
-    }
+  anakiwa: css`
+    color: ${props => props.theme.colors.primary.anakiwa};
   `,
-  green: css`
-    .data-value {
-      color: ${props => props.theme.colors.status.success};
-    }
+  mariner: css`
+    color: ${props => props.theme.colors.primary.mariner};
   `,
+  success: css`
+    color: ${props => props.theme.colors.status.success};
+  `,
+}
+
+const indicatorColors = {
+  neonCarrot: '#FF9933',
+  lilac: '#CC99CC',
+  anakiwa: '#99CCFF',
+  success: '#55FF55',
+  error: '#FF5555',
 }
 
 const StyledDataDisplay = styled.div<{
   size: keyof typeof displaySizes
-  color: keyof typeof displayColors
 }>`
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: ${props => props.theme.spacing.xs};
-  padding: ${props => props.theme.spacing.sm};
-  background-color: ${props => props.theme.colors.surface.dark};
-  border: 1px solid ${props => props.theme.colors.surface.light};
-  border-radius: ${props => props.theme.borderRadius.sm};
-  
+  background-color: transparent;
+
   ${props => displaySizes[props.size]}
-  ${props => displayColors[props.color]}
 `
 
 const DataLabel = styled.div`
   font-family: ${props => props.theme.typography.fontFamily.primary};
-  font-weight: ${props => props.theme.typography.fontWeight.bold};
+  font-weight: ${props => props.theme.typography.fontWeight.normal};
   text-transform: uppercase;
-  letter-spacing: 1px;
-  color: ${props => props.theme.colors.text.secondary};
+  letter-spacing: ${props => props.theme.typography.letterSpacing.wide};
+  color: ${props => props.theme.colors.primary.lilac};
+  opacity: 0.8;
 `
 
 const DataValueContainer = styled.div`
   display: flex;
-  align-items: baseline;
-  gap: ${props => props.theme.spacing.xs};
+  align-items: center;
+  gap: ${props => props.theme.spacing.sm};
 `
 
-const DataValue = styled.div`
-  font-family: ${props => props.theme.typography.fontFamily.monospace};
+const Indicator = styled.div<{ color: string }>`
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: ${props => props.color};
+  box-shadow: 0 0 8px ${props => props.color};
+  flex-shrink: 0;
+`
+
+const DataValue = styled.div<{ valueColor: keyof typeof valueColors }>`
+  font-family: ${props => props.theme.typography.fontFamily.primary};
   font-weight: ${props => props.theme.typography.fontWeight.bold};
   line-height: ${props => props.theme.typography.lineHeight.tight};
+
+  ${props => valueColors[props.valueColor]}
 `
 
 const DataUnit = styled.div`
   font-family: ${props => props.theme.typography.fontFamily.primary};
+  font-weight: ${props => props.theme.typography.fontWeight.normal};
   color: ${props => props.theme.colors.text.muted};
   text-transform: uppercase;
 `
@@ -117,16 +130,21 @@ export const LCARSDataDisplay: React.FC<LCARSDataDisplayProps> = ({
   value,
   unit,
   size = 'md',
-  color = 'orange',
+  valueColor = 'neonCarrot',
+  showIndicator = false,
+  indicatorColor = 'neonCarrot',
   className,
 }) => {
   return (
-    <StyledDataDisplay size={size} color={color} className={className}>
+    <StyledDataDisplay size={size} className={className}>
       <DataLabel className="data-label">
         {label}
       </DataLabel>
       <DataValueContainer>
-        <DataValue className="data-value">
+        {showIndicator && (
+          <Indicator color={indicatorColors[indicatorColor]} />
+        )}
+        <DataValue className="data-value" valueColor={valueColor}>
           {value}
         </DataValue>
         {unit && (

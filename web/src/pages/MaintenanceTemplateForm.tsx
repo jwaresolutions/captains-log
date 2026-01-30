@@ -45,11 +45,11 @@ const FormSection = styled.div`
   padding: 20px;
   background-color: ${props => props.theme.colors.background}40;
   border-radius: 4px;
-  border-left: 4px solid ${props => props.theme.colors.primary.orange};
+  border-left: 4px solid ${props => props.theme.colors.primary.neonCarrot};
 `
 
 const SectionTitle = styled.h3`
-  color: ${props => props.theme.colors.primary.orange};
+  color: ${props => props.theme.colors.primary.neonCarrot};
   margin: 0 0 10px 0;
   font-size: 16px;
   text-transform: uppercase;
@@ -71,7 +71,7 @@ const FormLabel = styled.label`
 const FormInput = styled.input`
   background-color: ${props => props.theme.colors.background};
   color: ${props => props.theme.colors.text.primary};
-  border: 2px solid ${props => props.theme.colors.primary.orange};
+  border: 2px solid ${props => props.theme.colors.primary.neonCarrot};
   padding: 8px 12px;
   border-radius: 4px;
   font-family: inherit;
@@ -79,14 +79,14 @@ const FormInput = styled.input`
 
   &:focus {
     outline: none;
-    border-color: ${props => props.theme.colors.primary.blue};
+    border-color: ${props => props.theme.colors.primary.anakiwa};
   }
 `
 
 const FormSelect = styled.select`
   background-color: ${props => props.theme.colors.background};
   color: ${props => props.theme.colors.text.primary};
-  border: 2px solid ${props => props.theme.colors.primary.orange};
+  border: 2px solid ${props => props.theme.colors.primary.neonCarrot};
   padding: 8px 12px;
   border-radius: 4px;
   font-family: inherit;
@@ -94,14 +94,14 @@ const FormSelect = styled.select`
 
   &:focus {
     outline: none;
-    border-color: ${props => props.theme.colors.primary.blue};
+    border-color: ${props => props.theme.colors.primary.anakiwa};
   }
 `
 
 const FormTextarea = styled.textarea`
   background-color: ${props => props.theme.colors.background};
   color: ${props => props.theme.colors.text.primary};
-  border: 2px solid ${props => props.theme.colors.primary.orange};
+  border: 2px solid ${props => props.theme.colors.primary.neonCarrot};
   padding: 8px 12px;
   border-radius: 4px;
   font-family: inherit;
@@ -111,7 +111,7 @@ const FormTextarea = styled.textarea`
 
   &:focus {
     outline: none;
-    border-color: ${props => props.theme.colors.primary.blue};
+    border-color: ${props => props.theme.colors.primary.anakiwa};
   }
 `
 
@@ -131,7 +131,7 @@ const ActionBar = styled.div`
   gap: 10px;
   justify-content: flex-end;
   padding-top: 20px;
-  border-top: 1px solid ${props => props.theme.colors.primary.orange}40;
+  border-top: 1px solid ${props => props.theme.colors.primary.neonCarrot}40;
 `
 
 const LoadingContainer = styled.div`
@@ -139,7 +139,7 @@ const LoadingContainer = styled.div`
   align-items: center;
   justify-content: center;
   height: 200px;
-  color: ${props => props.theme.colors.primary.orange};
+  color: ${props => props.theme.colors.primary.neonCarrot};
   font-size: 18px;
 `
 

@@ -34,7 +34,7 @@ const FilterGroup = styled.div`
 `
 
 const FilterLabel = styled.label`
-  color: ${props => props.theme.colors.primary.orange};
+  color: ${props => props.theme.colors.primary.neonCarrot};
   font-weight: ${props => props.theme.typography.fontWeight.bold};
   text-transform: uppercase;
   font-size: ${props => props.theme.typography.fontSize.sm};
@@ -43,15 +43,15 @@ const FilterLabel = styled.label`
 
 const FilterSelect = styled.select`
   background-color: ${props => props.theme.colors.surface.dark};
-  border: 2px solid ${props => props.theme.colors.primary.blue};
+  border: 2px solid ${props => props.theme.colors.primary.anakiwa};
   color: ${props => props.theme.colors.text.primary};
   padding: ${props => props.theme.spacing.sm};
   border-radius: ${props => props.theme.borderRadius.md};
   font-family: ${props => props.theme.typography.fontFamily.primary};
-  
+
   &:focus {
     outline: none;
-    border-color: ${props => props.theme.colors.primary.orange};
+    border-color: ${props => props.theme.colors.primary.neonCarrot};
     box-shadow: 0 0 10px rgba(255, 153, 102, 0.3);
   }
   
@@ -69,14 +69,14 @@ const TodoListsGrid = styled.div`
 
 const TodoListCard = styled.div`
   background-color: ${props => props.theme.colors.surface.dark};
-  border: 2px solid ${props => props.theme.colors.primary.purple};
+  border: 2px solid ${props => props.theme.colors.primary.lilac};
   border-radius: ${props => props.theme.borderRadius.lg};
   padding: ${props => props.theme.spacing.md};
   cursor: pointer;
   transition: all ${props => props.theme.animation.normal} ease;
-  
+
   &:hover {
-    border-color: ${props => props.theme.colors.primary.orange};
+    border-color: ${props => props.theme.colors.primary.neonCarrot};
     box-shadow: ${props => props.theme.shadows.glow};
   }
 `
@@ -99,8 +99,8 @@ const ListTitle = styled.h3`
 const ListType = styled.span<{ type: string }>`
   background-color: ${props => {
     switch (props.type) {
-      case 'boat': return props.theme.colors.primary.blue
-      default: return props.theme.colors.primary.orange
+      case 'boat': return props.theme.colors.primary.anakiwa
+      default: return props.theme.colors.primary.neonCarrot
     }
   }};
   color: ${props => props.theme.colors.text.inverse};
@@ -121,19 +121,19 @@ const ListActions = styled.div`
 
 const ActionButton = styled.button`
   background: none;
-  border: 1px solid ${props => props.theme.colors.primary.blue};
-  color: ${props => props.theme.colors.primary.blue};
+  border: 1px solid ${props => props.theme.colors.primary.anakiwa};
+  color: ${props => props.theme.colors.primary.anakiwa};
   padding: ${props => props.theme.spacing.xs};
   border-radius: ${props => props.theme.borderRadius.sm};
   cursor: pointer;
   font-size: ${props => props.theme.typography.fontSize.xs};
   transition: all ${props => props.theme.animation.fast} ease;
-  
+
   &:hover {
-    border-color: ${props => props.theme.colors.primary.orange};
-    color: ${props => props.theme.colors.primary.orange};
+    border-color: ${props => props.theme.colors.primary.neonCarrot};
+    color: ${props => props.theme.colors.primary.neonCarrot};
   }
-  
+
   &.danger:hover {
     border-color: ${props => props.theme.colors.status.error};
     color: ${props => props.theme.colors.status.error};
@@ -158,7 +158,7 @@ const ProgressBar = styled.div`
 `
 
 const ProgressFill = styled.div<{ percentage: number }>`
-  background-color: ${props => props.theme.colors.primary.orange};
+  background-color: ${props => props.theme.colors.primary.neonCarrot};
   height: 100%;
   width: ${props => props.percentage}%;
   transition: width ${props => props.theme.animation.normal} ease;
@@ -171,8 +171,8 @@ const RecentItems = styled.div`
 `
 
 const RecentItem = styled.div<{ completed: boolean }>`
-  color: ${props => props.completed 
-    ? props.theme.colors.text.muted 
+  color: ${props => props.completed
+    ? props.theme.colors.text.muted
     : props.theme.colors.text.secondary};
   font-size: ${props => props.theme.typography.fontSize.sm};
   text-decoration: ${props => props.completed ? 'line-through' : 'none'};
@@ -180,13 +180,13 @@ const RecentItem = styled.div<{ completed: boolean }>`
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  
+
   &::before {
     content: '${props => props.completed ? '✓' : '○'}';
     margin-right: ${props => props.theme.spacing.xs};
-    color: ${props => props.completed 
-      ? props.theme.colors.status.success 
-      : props.theme.colors.primary.blue};
+    color: ${props => props.completed
+      ? props.theme.colors.status.success
+      : props.theme.colors.primary.anakiwa};
   }
 `
 
@@ -211,7 +211,7 @@ const EmptyState = styled.div`
     font-size: ${props => props.theme.typography.fontSize.lg};
     font-weight: ${props => props.theme.typography.fontWeight.bold};
     margin-bottom: ${props => props.theme.spacing.sm};
-    color: ${props => props.theme.colors.primary.orange};
+    color: ${props => props.theme.colors.primary.neonCarrot};
   }
 `
 

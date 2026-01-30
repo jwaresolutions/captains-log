@@ -36,7 +36,7 @@ const FormGroup = styled.div`
 `
 
 const FormLabel = styled.label`
-  color: ${props => props.theme.colors.primary.orange};
+  color: ${props => props.theme.colors.primary.neonCarrot};
   font-weight: ${props => props.theme.typography.fontWeight.bold};
   text-transform: uppercase;
   font-size: ${props => props.theme.typography.fontSize.sm};
@@ -45,19 +45,19 @@ const FormLabel = styled.label`
 
 const FormSelect = styled.select`
   background-color: ${props => props.theme.colors.surface.dark};
-  border: 2px solid ${props => props.theme.colors.primary.blue};
+  border: 2px solid ${props => props.theme.colors.primary.anakiwa};
   color: ${props => props.theme.colors.text.primary};
   padding: ${props => props.theme.spacing.sm};
   border-radius: ${props => props.theme.borderRadius.md};
   font-family: ${props => props.theme.typography.fontFamily.primary};
   font-size: ${props => props.theme.typography.fontSize.md};
-  
+
   &:focus {
     outline: none;
-    border-color: ${props => props.theme.colors.primary.orange};
+    border-color: ${props => props.theme.colors.primary.neonCarrot};
     box-shadow: 0 0 10px rgba(255, 153, 102, 0.3);
   }
-  
+
   option {
     background-color: ${props => props.theme.colors.surface.dark};
     color: ${props => props.theme.colors.text.primary};
@@ -66,7 +66,7 @@ const FormSelect = styled.select`
 
 const FormTextarea = styled.textarea`
   background-color: ${props => props.theme.colors.surface.dark};
-  border: 2px solid ${props => props.theme.colors.primary.blue};
+  border: 2px solid ${props => props.theme.colors.primary.anakiwa};
   color: ${props => props.theme.colors.text.primary};
   padding: ${props => props.theme.spacing.md};
   border-radius: ${props => props.theme.borderRadius.md};
@@ -75,13 +75,13 @@ const FormTextarea = styled.textarea`
   line-height: ${props => props.theme.typography.lineHeight.normal};
   min-height: 200px;
   resize: vertical;
-  
+
   &:focus {
     outline: none;
-    border-color: ${props => props.theme.colors.primary.orange};
+    border-color: ${props => props.theme.colors.primary.neonCarrot};
     box-shadow: 0 0 10px rgba(255, 153, 102, 0.3);
   }
-  
+
   &::placeholder {
     color: ${props => props.theme.colors.text.muted};
   }
@@ -95,18 +95,18 @@ const TagsSection = styled.div`
 
 const TagInput = styled.input`
   background-color: ${props => props.theme.colors.surface.dark};
-  border: 2px solid ${props => props.theme.colors.primary.blue};
+  border: 2px solid ${props => props.theme.colors.primary.anakiwa};
   color: ${props => props.theme.colors.text.primary};
   padding: ${props => props.theme.spacing.sm};
   border-radius: ${props => props.theme.borderRadius.md};
   font-family: ${props => props.theme.typography.fontFamily.primary};
-  
+
   &:focus {
     outline: none;
-    border-color: ${props => props.theme.colors.primary.orange};
+    border-color: ${props => props.theme.colors.primary.neonCarrot};
     box-shadow: 0 0 10px rgba(255, 153, 102, 0.3);
   }
-  
+
   &::placeholder {
     color: ${props => props.theme.colors.text.muted};
   }
@@ -119,7 +119,7 @@ const TagsList = styled.div`
 `
 
 const Tag = styled.span`
-  background-color: ${props => props.theme.colors.primary.purple};
+  background-color: ${props => props.theme.colors.primary.lilac};
   color: ${props => props.theme.colors.text.primary};
   padding: ${props => props.theme.spacing.xs} ${props => props.theme.spacing.sm};
   border-radius: ${props => props.theme.borderRadius.pill};
@@ -127,7 +127,7 @@ const Tag = styled.span`
   display: flex;
   align-items: center;
   gap: ${props => props.theme.spacing.xs};
-  
+
   .remove-tag {
     background: none;
     border: none;
@@ -135,7 +135,7 @@ const Tag = styled.span`
     cursor: pointer;
     font-size: ${props => props.theme.typography.fontSize.sm};
     padding: 0;
-    
+
     &:hover {
       color: ${props => props.theme.colors.status.error};
     }
@@ -151,18 +151,18 @@ const SuggestedTags = styled.div`
 
 const SuggestedTag = styled.button`
   background: none;
-  border: 1px solid ${props => props.theme.colors.primary.blue};
-  color: ${props => props.theme.colors.primary.blue};
+  border: 1px solid ${props => props.theme.colors.primary.anakiwa};
+  color: ${props => props.theme.colors.primary.anakiwa};
   padding: ${props => props.theme.spacing.xs} ${props => props.theme.spacing.sm};
   border-radius: ${props => props.theme.borderRadius.pill};
   font-size: ${props => props.theme.typography.fontSize.xs};
   cursor: pointer;
   transition: all ${props => props.theme.animation.fast} ease;
-  
+
   &:hover {
-    border-color: ${props => props.theme.colors.primary.orange};
-    color: ${props => props.theme.colors.primary.orange};
-    background-color: ${props => props.theme.colors.primary.orange}20;
+    border-color: ${props => props.theme.colors.primary.neonCarrot};
+    color: ${props => props.theme.colors.primary.neonCarrot};
+    background-color: ${props => props.theme.colors.primary.neonCarrot}20;
   }
 `
 

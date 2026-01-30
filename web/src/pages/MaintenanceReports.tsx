@@ -67,9 +67,9 @@ const TableRow = styled.div`
   border: 1px solid ${props => props.theme.colors.surface.light};
   border-radius: ${props => props.theme.borderRadius.sm};
   align-items: center;
-  
+
   &.header {
-    background-color: ${props => props.theme.colors.primary.orange};
+    background-color: ${props => props.theme.colors.primary.neonCarrot};
     color: ${props => props.theme.colors.text.inverse};
     font-weight: ${props => props.theme.typography.fontWeight.bold};
     text-transform: uppercase;
@@ -199,7 +199,7 @@ export const MaintenanceReports: React.FC<MaintenanceReportsProps> = () => {
           <LCARSDataDisplay 
             label="System Status" 
             value="Loading Maintenance Data..." 
-            color="orange" 
+            valueColor="neonCarrot" 
             size="lg"
           />
         </LoadingContainer>
@@ -249,25 +249,25 @@ export const MaintenanceReports: React.FC<MaintenanceReportsProps> = () => {
           <LCARSDataDisplay
             label="Active Templates"
             value={stats.activeTemplates}
-            color="orange"
+            valueColor="neonCarrot"
             size="lg"
           />
           <LCARSDataDisplay
             label="Upcoming Tasks"
             value={stats.upcomingCount}
-            color="blue"
+            valueColor="anakiwa"
             size="lg"
           />
           <LCARSDataDisplay
             label="Overdue Tasks"
             value={stats.overdueCount}
-            color={stats.overdueCount > 0 ? 'orange' : 'green'}
+            valueColor={stats.overdueCount > 0 ? 'neonCarrot' : 'success'}
             size="lg"
           />
           <LCARSDataDisplay
             label="Completed This Month"
             value={stats.completedThisMonth}
-            color="green"
+            valueColor="success"
             size="lg"
           />
         </StatsGrid>
@@ -279,19 +279,19 @@ export const MaintenanceReports: React.FC<MaintenanceReportsProps> = () => {
           <LCARSDataDisplay
             label="Cost This Month"
             value={`$${stats.totalCostThisMonth.toFixed(2)}`}
-            color="purple"
+            valueColor="lilac"
             size="lg"
           />
           <LCARSDataDisplay
             label="Average Cost Per Task"
             value={`$${stats.averageCost.toFixed(2)}`}
-            color="purple"
+            valueColor="lilac"
             size="lg"
           />
           <LCARSDataDisplay
             label="Completion Rate"
             value={`${stats.completionRate.toFixed(1)}%`}
-            color="blue"
+            valueColor="anakiwa"
             size="lg"
           />
         </StatsGrid>
@@ -305,7 +305,7 @@ export const MaintenanceReports: React.FC<MaintenanceReportsProps> = () => {
             current={stats.activeTemplates}
             target={stats.totalTemplates}
             unit="templates"
-            color="orange"
+            color="neonCarrot"
             size="md"
             showPercentage={true}
           />
@@ -317,7 +317,7 @@ export const MaintenanceReports: React.FC<MaintenanceReportsProps> = () => {
             current={stats.completionRate}
             target={100}
             unit="%"
-            color="purple"
+            color="lilac"
             size="md"
             showPercentage={false}
           />

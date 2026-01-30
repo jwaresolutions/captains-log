@@ -44,7 +44,7 @@ const LoadingScreen = styled.div`
   background-color: ${props => props.theme.colors.background};
   
   .loading-text {
-    color: ${props => props.theme.colors.primary.orange};
+    color: ${props => props.theme.colors.primary.neonCarrot};
     font-size: 24px;
     font-weight: bold;
     text-transform: uppercase;

@@ -14,7 +14,7 @@ const OfflineContainer = styled.div<{ $show: boolean }>`
 
 const OfflineBanner = styled.div`
   background: ${props => props.theme.colors.status.warning};
-  color: ${props => props.theme.colors.background.primary};
+  color: ${props => props.theme.colors.background};
   padding: ${props => props.theme.spacing.sm} ${props => props.theme.spacing.md};
   text-align: center;
   font-weight: bold;
@@ -26,15 +26,15 @@ const OfflineBanner = styled.div`
 
 const RetryButton = styled.button`
   background: transparent;
-  border: 1px solid ${props => props.theme.colors.background.primary};
-  color: ${props => props.theme.colors.background.primary};
+  border: 1px solid ${props => props.theme.colors.background};
+  color: ${props => props.theme.colors.background};
   padding: 4px 12px;
   border-radius: 4px;
   cursor: pointer;
   font-size: 12px;
-  
+
   &:hover {
-    background: ${props => props.theme.colors.background.primary}20;
+    background: ${props => props.theme.colors.background}20;
   }
 `;
 
@@ -62,7 +62,7 @@ const ConnectionStatus = styled.div<{ $isOnline: boolean }>`
     height: 8px;
     border-radius: 50%;
     background: currentColor;
-    animation: ${props => props.isOnline ? 'none' : 'pulse 2s infinite'};
+    animation: ${props => props.$isOnline ? 'none' : 'pulse 2s infinite'};
   }
   
   @keyframes pulse {

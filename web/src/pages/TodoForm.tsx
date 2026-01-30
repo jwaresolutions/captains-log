@@ -39,7 +39,7 @@ const FormGroup = styled.div`
 `
 
 const FormLabel = styled.label`
-  color: ${props => props.theme.colors.primary.orange};
+  color: ${props => props.theme.colors.primary.neonCarrot};
   font-weight: ${props => props.theme.typography.fontWeight.bold};
   text-transform: uppercase;
   font-size: ${props => props.theme.typography.fontSize.sm};
@@ -48,19 +48,19 @@ const FormLabel = styled.label`
 
 const FormInput = styled.input`
   background-color: ${props => props.theme.colors.surface.dark};
-  border: 2px solid ${props => props.theme.colors.primary.blue};
+  border: 2px solid ${props => props.theme.colors.primary.anakiwa};
   color: ${props => props.theme.colors.text.primary};
   padding: ${props => props.theme.spacing.sm};
   border-radius: ${props => props.theme.borderRadius.md};
   font-family: ${props => props.theme.typography.fontFamily.primary};
   font-size: ${props => props.theme.typography.fontSize.md};
-  
+
   &:focus {
     outline: none;
-    border-color: ${props => props.theme.colors.primary.orange};
+    border-color: ${props => props.theme.colors.primary.neonCarrot};
     box-shadow: 0 0 10px rgba(255, 153, 102, 0.3);
   }
-  
+
   &::placeholder {
     color: ${props => props.theme.colors.text.muted};
   }
@@ -68,19 +68,19 @@ const FormInput = styled.input`
 
 const FormSelect = styled.select`
   background-color: ${props => props.theme.colors.surface.dark};
-  border: 2px solid ${props => props.theme.colors.primary.blue};
+  border: 2px solid ${props => props.theme.colors.primary.anakiwa};
   color: ${props => props.theme.colors.text.primary};
   padding: ${props => props.theme.spacing.sm};
   border-radius: ${props => props.theme.borderRadius.md};
   font-family: ${props => props.theme.typography.fontFamily.primary};
   font-size: ${props => props.theme.typography.fontSize.md};
-  
+
   &:focus {
     outline: none;
-    border-color: ${props => props.theme.colors.primary.orange};
+    border-color: ${props => props.theme.colors.primary.neonCarrot};
     box-shadow: 0 0 10px rgba(255, 153, 102, 0.3);
   }
-  
+
   option {
     background-color: ${props => props.theme.colors.surface.dark};
     color: ${props => props.theme.colors.text.primary};
@@ -94,7 +94,7 @@ const TypeDescription = styled.div`
   padding: ${props => props.theme.spacing.sm};
   background-color: ${props => props.theme.colors.surface.medium};
   border-radius: ${props => props.theme.borderRadius.sm};
-  border-left: 4px solid ${props => props.theme.colors.primary.blue};
+  border-left: 4px solid ${props => props.theme.colors.primary.anakiwa};
 `
 
 const ActionButtons = styled.div`

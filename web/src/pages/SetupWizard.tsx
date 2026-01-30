@@ -28,7 +28,7 @@ const LogoContainer = styled.div`
 const Logo = styled.img`
   max-width: 200px;
   height: auto;
-  filter: drop-shadow(0 0 10px ${props => props.theme.colors.primary.orange}40);
+  filter: drop-shadow(0 0 10px ${props => props.theme.colors.primary.neonCarrot}40);
 `
 
 const SetupForm = styled.form`
@@ -52,7 +52,7 @@ const Label = styled.label`
 
 const Input = styled.input`
   background-color: ${props => props.theme.colors.surface.dark};
-  border: 2px solid ${props => props.theme.colors.primary.orange};
+  border: 2px solid ${props => props.theme.colors.primary.neonCarrot};
   border-radius: ${props => props.theme.borderRadius.sm};
   padding: ${props => props.theme.spacing.md};
   color: ${props => props.theme.colors.text.primary};
@@ -60,7 +60,7 @@ const Input = styled.input`
 
   &:focus {
     outline: none;
-    border-color: ${props => props.theme.colors.primary.orangeLight};
+    border-color: ${props => props.theme.colors.primary.tanoi};
     box-shadow: ${props => props.theme.shadows.glow};
   }
 `

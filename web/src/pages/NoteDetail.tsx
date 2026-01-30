@@ -42,7 +42,7 @@ const MetadataItem = styled.div`
 `
 
 const MetadataLabel = styled.span`
-  color: ${props => props.theme.colors.primary.orange};
+  color: ${props => props.theme.colors.primary.neonCarrot};
   font-weight: ${props => props.theme.typography.fontWeight.bold};
   text-transform: uppercase;
   font-size: ${props => props.theme.typography.fontSize.sm};
@@ -57,9 +57,9 @@ const MetadataValue = styled.span`
 const NoteType = styled.span<{ type: string }>`
   background-color: ${props => {
     switch (props.type) {
-      case 'boat': return props.theme.colors.primary.blue
-      case 'trip': return props.theme.colors.primary.purple
-      default: return props.theme.colors.primary.orange
+      case 'boat': return props.theme.colors.primary.anakiwa
+      case 'trip': return props.theme.colors.primary.lilac
+      default: return props.theme.colors.primary.neonCarrot
     }
   }};
   color: ${props => props.theme.colors.text.inverse};
@@ -74,7 +74,7 @@ const NoteType = styled.span<{ type: string }>`
 
 const NoteContent = styled.div`
   background-color: ${props => props.theme.colors.surface.dark};
-  border: 2px solid ${props => props.theme.colors.primary.blue};
+  border: 2px solid ${props => props.theme.colors.primary.anakiwa};
   border-radius: ${props => props.theme.borderRadius.md};
   padding: ${props => props.theme.spacing.lg};
   color: ${props => props.theme.colors.text.primary};
@@ -90,7 +90,7 @@ const TagsList = styled.div`
 `
 
 const Tag = styled.span`
-  background-color: ${props => props.theme.colors.primary.purple};
+  background-color: ${props => props.theme.colors.primary.lilac};
   color: ${props => props.theme.colors.text.primary};
   padding: ${props => props.theme.spacing.xs} ${props => props.theme.spacing.sm};
   border-radius: ${props => props.theme.borderRadius.pill};

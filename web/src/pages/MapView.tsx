@@ -55,14 +55,14 @@ const MapPanel = styled(LCARSPanel)`
   .leaflet-control-container {
     .leaflet-control {
       background-color: ${props => props.theme.colors.surface.medium};
-      border: 1px solid ${props => props.theme.colors.primary.orange};
-      
+      border: 1px solid ${props => props.theme.colors.primary.neonCarrot};
+
       a {
         color: ${props => props.theme.colors.text.primary};
         background-color: ${props => props.theme.colors.surface.medium};
-        
+
         &:hover {
-          background-color: ${props => props.theme.colors.primary.orange};
+          background-color: ${props => props.theme.colors.primary.neonCarrot};
           color: ${props => props.theme.colors.text.inverse};
         }
       }
@@ -89,11 +89,11 @@ const LocationItem = styled.div`
   padding: ${props => props.theme.spacing.sm};
   background-color: ${props => props.theme.colors.surface.medium};
   border-radius: ${props => props.theme.borderRadius.sm};
-  border-left: 3px solid ${props => props.theme.colors.primary.blue};
-  
+  border-left: 3px solid ${props => props.theme.colors.primary.anakiwa};
+
   .location-name {
     font-weight: ${props => props.theme.typography.fontWeight.bold};
-    color: ${props => props.theme.colors.primary.blue};
+    color: ${props => props.theme.colors.primary.anakiwa};
     margin-bottom: ${props => props.theme.spacing.xs};
   }
   
@@ -124,15 +124,15 @@ const NewLocationForm = styled.div`
   input, select, textarea {
     padding: ${props => props.theme.spacing.sm};
     background-color: ${props => props.theme.colors.surface.medium};
-    border: 1px solid ${props => props.theme.colors.primary.orange};
+    border: 1px solid ${props => props.theme.colors.primary.neonCarrot};
     border-radius: ${props => props.theme.borderRadius.sm};
     color: ${props => props.theme.colors.text.primary};
     font-family: ${props => props.theme.typography.fontFamily.primary};
-    
+
     &:focus {
       outline: none;
-      border-color: ${props => props.theme.colors.primary.orangeLight};
-      box-shadow: 0 0 0 2px ${props => props.theme.colors.primary.orange}20;
+      border-color: ${props => props.theme.colors.primary.tanoi};
+      box-shadow: 0 0 0 2px ${props => props.theme.colors.primary.neonCarrot}20;
     }
   }
   
@@ -157,7 +157,7 @@ const FilterControls = styled.div`
   select {
     padding: ${props => props.theme.spacing.xs} ${props => props.theme.spacing.sm};
     background-color: ${props => props.theme.colors.surface.medium};
-    border: 1px solid ${props => props.theme.colors.primary.blue};
+    border: 1px solid ${props => props.theme.colors.primary.anakiwa};
     border-radius: ${props => props.theme.borderRadius.sm};
     color: ${props => props.theme.colors.text.primary};
     font-family: ${props => props.theme.typography.fontFamily.primary};
@@ -627,7 +627,7 @@ export const MapView: React.FC = () => {
         <LCARSDataDisplay 
           label="System Status" 
           value="Loading chart data..." 
-          color="blue"
+          valueColor="anakiwa"
         />
       )}
     </MapPageContainer>

@@ -67,7 +67,7 @@ export const LicenseProgress: React.FC = () => {
           <LCARSDataDisplay 
             label="System Status" 
             value="Loading Progress Data..." 
-            color="orange" 
+            valueColor="neonCarrot" 
             size="lg"
           />
         </LoadingContainer>
@@ -135,27 +135,27 @@ export const LicenseProgress: React.FC = () => {
           <LCARSDataDisplay
             label="Total Sea Time Days"
             value={totalSeaTimeDays}
-            color="orange"
+            valueColor="neonCarrot"
             size="lg"
           />
           <LCARSDataDisplay
             label="Days (Last 3 Years)"
             value={seaTimeDaysLast3Years}
-            color="purple"
+            valueColor="lilac"
             size="lg"
           />
           <LCARSDataDisplay
             label="Total Hours"
             value={totalHours.toFixed(1)}
             unit="hrs"
-            color="blue"
+            valueColor="anakiwa"
             size="lg"
           />
           <LCARSDataDisplay
             label="Average Hours/Day"
             value={totalSeaTimeDays > 0 ? (totalHours / totalSeaTimeDays).toFixed(1) : '0.0'}
             unit="hrs"
-            color="green"
+            valueColor="success"
             size="lg"
           />
         </StatsGrid>
@@ -169,7 +169,7 @@ export const LicenseProgress: React.FC = () => {
             current={totalSeaTimeDays}
             target={360}
             unit="days"
-            color="orange"
+            color="neonCarrot"
             size="lg"
             showPercentage={true}
           />
@@ -181,7 +181,7 @@ export const LicenseProgress: React.FC = () => {
             current={seaTimeDaysLast3Years}
             target={90}
             unit="days"
-            color="purple"
+            color="lilac"
             size="lg"
             showPercentage={true}
           />
@@ -196,7 +196,7 @@ export const LicenseProgress: React.FC = () => {
             estimatedDate={!goal360Achieved ? estimatedCompletionDate : undefined}
             daysRemaining={!goal360Achieved ? daysToGoal360 : undefined}
             isComplete={goal360Achieved}
-            color="orange"
+            color="neonCarrot"
             size="md"
           />
           
@@ -204,7 +204,7 @@ export const LicenseProgress: React.FC = () => {
             title="90-Day (3 Years) Goal"
             daysRemaining={!goal90Achieved ? daysToGoal90 : undefined}
             isComplete={goal90Achieved}
-            color="purple"
+            color="lilac"
             size="md"
           />
           
@@ -213,7 +213,7 @@ export const LicenseProgress: React.FC = () => {
               title="License Eligibility"
               estimatedDate={estimatedCompletionDate}
               isComplete={bothGoalsAchieved}
-              color="blue"
+              color="anakiwa"
               size="md"
             />
           )}
@@ -226,25 +226,25 @@ export const LicenseProgress: React.FC = () => {
           <LCARSDataDisplay
             label="Total Sea Time"
             value="360 Days"
-            color="orange"
+            valueColor="neonCarrot"
             size="md"
           />
           <LCARSDataDisplay
             label="Recent Experience"
             value="90 Days in 3 Years"
-            color="purple"
+            valueColor="lilac"
             size="md"
           />
           <LCARSDataDisplay
             label="Minimum Per Day"
             value="4 Hours"
-            color="blue"
+            valueColor="anakiwa"
             size="md"
           />
           <LCARSDataDisplay
             label="Additional Requirements"
             value="Medical, Drug Test, Course"
-            color="green"
+            valueColor="success"
             size="md"
           />
         </StatsGrid>

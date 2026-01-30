@@ -54,19 +54,19 @@ const FormLabel = styled.label`
 
 const FormInput = styled.input`
   background-color: ${props => props.theme.colors.surface.medium};
-  border: 1px solid ${props => props.theme.colors.primary.orange};
+  border: 1px solid ${props => props.theme.colors.primary.neonCarrot};
   border-radius: ${props => props.theme.borderRadius.sm};
   color: ${props => props.theme.colors.text.primary};
   padding: ${props => props.theme.spacing.sm};
   font-family: ${props => props.theme.typography.fontFamily.primary};
   font-size: ${props => props.theme.typography.fontSize.md};
-  
+
   &:focus {
     outline: none;
-    border-color: ${props => props.theme.colors.primary.orangeLight};
+    border-color: ${props => props.theme.colors.primary.tanoi};
     box-shadow: 0 0 0 2px rgba(255, 153, 102, 0.2);
   }
-  
+
   &:disabled {
     background-color: ${props => props.theme.colors.surface.dark};
     color: ${props => props.theme.colors.text.muted};
@@ -76,23 +76,23 @@ const FormInput = styled.input`
 
 const FormSelect = styled.select`
   background-color: ${props => props.theme.colors.surface.medium};
-  border: 1px solid ${props => props.theme.colors.primary.orange};
+  border: 1px solid ${props => props.theme.colors.primary.neonCarrot};
   border-radius: ${props => props.theme.borderRadius.sm};
   color: ${props => props.theme.colors.text.primary};
   padding: ${props => props.theme.spacing.sm};
   font-family: ${props => props.theme.typography.fontFamily.primary};
   font-size: ${props => props.theme.typography.fontSize.md};
-  
+
   &:focus {
     outline: none;
-    border-color: ${props => props.theme.colors.primary.orangeLight};
+    border-color: ${props => props.theme.colors.primary.tanoi};
     box-shadow: 0 0 0 2px rgba(255, 153, 102, 0.2);
   }
 `
 
 const FormTextarea = styled.textarea`
   background-color: ${props => props.theme.colors.surface.medium};
-  border: 1px solid ${props => props.theme.colors.primary.orange};
+  border: 1px solid ${props => props.theme.colors.primary.neonCarrot};
   border-radius: ${props => props.theme.borderRadius.sm};
   color: ${props => props.theme.colors.text.primary};
   padding: ${props => props.theme.spacing.sm};
@@ -100,10 +100,10 @@ const FormTextarea = styled.textarea`
   font-size: ${props => props.theme.typography.fontSize.md};
   resize: vertical;
   min-height: 100px;
-  
+
   &:focus {
     outline: none;
-    border-color: ${props => props.theme.colors.primary.orangeLight};
+    border-color: ${props => props.theme.colors.primary.tanoi};
     box-shadow: 0 0 0 2px rgba(255, 153, 102, 0.2);
   }
 `
@@ -118,7 +118,7 @@ const ActionButtons = styled.div`
 const LoadingState = styled.div`
   text-align: center;
   padding: ${props => props.theme.spacing.xxl};
-  color: ${props => props.theme.colors.primary.orange};
+  color: ${props => props.theme.colors.primary.neonCarrot};
   font-size: ${props => props.theme.typography.fontSize.lg};
   text-transform: uppercase;
   letter-spacing: 2px;

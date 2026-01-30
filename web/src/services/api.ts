@@ -157,15 +157,15 @@ class ApiService {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         return await requestFn()
-      } catch (error) {
+      } catch (error: any) {
         lastError = error
-        
+
         // Don't retry on client errors (4xx) except 408 (timeout) and 429 (rate limit)
-        if (error.code && error.code.startsWith('4') && 
+        if (error.code && error.code.startsWith('4') &&
             error.code !== '408' && error.code !== '429') {
           throw error
         }
-        
+
         if (attempt < maxRetries) {
           await new Promise(resolve => setTimeout(resolve, delay * attempt))
         }

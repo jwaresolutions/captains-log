@@ -44,20 +44,20 @@ const Spinner = styled.div<{ size?: 'sm' | 'md' | 'lg' }>`
       default: return '40px';
     }
   }};
-  border: 3px solid ${props => props.theme.colors.primary.main}40;
-  border-top: 3px solid ${props => props.theme.colors.primary.main};
+  border: 3px solid ${props => props.theme.colors.primary.neonCarrot}40;
+  border-top: 3px solid ${props => props.theme.colors.primary.neonCarrot};
   border-radius: 50%;
   animation: ${spin} 1s linear infinite;
 `;
 
 const LoadingText = styled.div<{ size?: 'sm' | 'md' | 'lg' }>`
   margin-left: ${props => props.theme.spacing.md};
-  color: ${props => props.theme.colors.primary.main};
+  color: ${props => props.theme.colors.primary.neonCarrot};
   font-size: ${props => {
     switch (props.size) {
-      case 'sm': return props.theme.typography.sizes.sm;
-      case 'lg': return props.theme.typography.sizes.lg;
-      default: return props.theme.typography.sizes.md;
+      case 'sm': return props.theme.typography.fontSize.sm;
+      case 'lg': return props.theme.typography.fontSize.lg;
+      default: return props.theme.typography.fontSize.md;
     }
   }};
   animation: ${pulse} 2s ease-in-out infinite;
@@ -66,7 +66,7 @@ const LoadingText = styled.div<{ size?: 'sm' | 'md' | 'lg' }>`
 const LCARSLoadingBar = styled.div`
   width: 200px;
   height: 20px;
-  background: ${props => props.theme.colors.background.secondary};
+  background: ${props => props.theme.colors.surface.dark};
   border-radius: 10px;
   overflow: hidden;
   position: relative;
@@ -81,7 +81,7 @@ const LCARSLoadingBar = styled.div`
     background: linear-gradient(
       90deg,
       transparent,
-      ${props => props.theme.colors.primary.main},
+      ${props => props.theme.colors.primary.neonCarrot},
       transparent
     );
     animation: ${keyframes`
@@ -127,9 +127,9 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
 const SkeletonBase = styled.div`
   background: linear-gradient(
     90deg,
-    ${props => props.theme.colors.background.secondary} 25%,
-    ${props => props.theme.colors.background.tertiary} 50%,
-    ${props => props.theme.colors.background.secondary} 75%
+    ${props => props.theme.colors.surface.dark} 25%,
+    ${props => props.theme.colors.surface.medium} 50%,
+    ${props => props.theme.colors.surface.dark} 75%
   );
   background-size: 200% 100%;
   animation: ${keyframes`

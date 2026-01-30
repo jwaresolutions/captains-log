@@ -48,7 +48,7 @@ const InfoSection = styled(LCARSPanel)`
 `
 
 const SectionTitle = styled.h3`
-  color: ${props => props.theme.colors.primary.orange};
+  color: ${props => props.theme.colors.primary.neonCarrot};
   margin: 0 0 15px 0;
   font-size: 16px;
   text-transform: uppercase;
@@ -83,8 +83,8 @@ const StatusBadge = styled.span<{ status: 'due' | 'overdue' | 'completed' | 'upc
     switch (props.status) {
       case 'completed': return '#44ff44'
       case 'overdue': return '#ff4444'
-      case 'due': return props.theme.colors.primary.orange
-      case 'upcoming': return props.theme.colors.primary.blue
+      case 'due': return props.theme.colors.primary.neonCarrot
+      case 'upcoming': return props.theme.colors.primary.anakiwa
       default: return props.theme.colors.text.secondary
     }
   }};
@@ -98,7 +98,7 @@ const CompletionForm = styled.form`
   background-color: ${props => props.theme.colors.background}40;
   padding: 20px;
   border-radius: 4px;
-  border-left: 4px solid ${props => props.theme.colors.primary.orange};
+  border-left: 4px solid ${props => props.theme.colors.primary.neonCarrot};
 `
 
 const FormRow = styled.div`
@@ -116,7 +116,7 @@ const FormLabel = styled.label`
 const FormInput = styled.input`
   background-color: ${props => props.theme.colors.background};
   color: ${props => props.theme.colors.text.primary};
-  border: 2px solid ${props => props.theme.colors.primary.orange};
+  border: 2px solid ${props => props.theme.colors.primary.neonCarrot};
   padding: 8px 12px;
   border-radius: 4px;
   font-family: inherit;
@@ -126,7 +126,7 @@ const FormInput = styled.input`
 const FormTextarea = styled.textarea`
   background-color: ${props => props.theme.colors.background};
   color: ${props => props.theme.colors.text.primary};
-  border: 2px solid ${props => props.theme.colors.primary.orange};
+  border: 2px solid ${props => props.theme.colors.primary.neonCarrot};
   padding: 8px 12px;
   border-radius: 4px;
   font-family: inherit;
@@ -140,7 +140,7 @@ const LoadingContainer = styled.div`
   align-items: center;
   justify-content: center;
   height: 200px;
-  color: ${props => props.theme.colors.primary.orange};
+  color: ${props => props.theme.colors.primary.neonCarrot};
   font-size: 18px;
 `
 
@@ -153,7 +153,7 @@ const Description = styled.div`
   background-color: ${props => props.theme.colors.background}40;
   padding: 15px;
   border-radius: 4px;
-  border-left: 4px solid ${props => props.theme.colors.primary.purple};
+  border-left: 4px solid ${props => props.theme.colors.primary.lilac};
   margin-bottom: 20px;
   line-height: 1.5;
 `

@@ -32,7 +32,7 @@ const TabContainer = styled.div`
 `
 
 const TabButton = styled(LCARSButton)<{ active: boolean }>`
-  background-color: ${props => props.active ? props.theme.colors.primary.orange : props.theme.colors.primary.purple};
+  background-color: ${props => props.active ? props.theme.colors.primary.neonCarrot : props.theme.colors.primary.lilac};
   opacity: ${props => props.active ? 1 : 0.7};
 `
 
@@ -54,7 +54,7 @@ const ItemCard = styled(LCARSPanel)`
   transition: all 0.2s ease;
 
   &:hover {
-    background-color: ${props => props.theme.colors.primary.purple}20;
+    background-color: ${props => props.theme.colors.primary.lilac}20;
   }
 `
 
@@ -66,7 +66,7 @@ const ItemHeader = styled.div`
 `
 
 const ItemTitle = styled.h3`
-  color: ${props => props.theme.colors.primary.orange};
+  color: ${props => props.theme.colors.primary.neonCarrot};
   margin: 0;
   font-size: 18px;
   flex: 1;
@@ -88,9 +88,9 @@ const StatusBadge = styled.span<{ status: 'active' | 'inactive' | 'due' | 'overd
   text-transform: uppercase;
   background-color: ${props => {
     switch (props.status) {
-      case 'active': return props.theme.colors.primary.blue
+      case 'active': return props.theme.colors.primary.anakiwa
       case 'inactive': return props.theme.colors.text.secondary
-      case 'due': return props.theme.colors.primary.orange
+      case 'due': return props.theme.colors.primary.neonCarrot
       case 'overdue': return '#ff4444'
       case 'completed': return '#44ff44'
       default: return props.theme.colors.text.secondary
@@ -109,7 +109,7 @@ const FilterContainer = styled.div`
 const Select = styled.select`
   background-color: ${props => props.theme.colors.background};
   color: ${props => props.theme.colors.text.primary};
-  border: 2px solid ${props => props.theme.colors.primary.orange};
+  border: 2px solid ${props => props.theme.colors.primary.neonCarrot};
   padding: 8px 12px;
   border-radius: 4px;
   font-family: inherit;

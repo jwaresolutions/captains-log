@@ -12,9 +12,9 @@ interface LCARSAlertProps {
 
 const alertTypes = {
   info: css`
-    background-color: ${props => props.theme.colors.primary.blue};
-    border-color: ${props => props.theme.colors.primary.blueLight};
-    color: ${props => props.theme.colors.text.primary};
+    background-color: ${props => props.theme.colors.primary.anakiwa};
+    border-color: #AAD6FF;
+    color: ${props => props.theme.colors.text.inverse};
   `,
   success: css`
     background-color: ${props => props.theme.colors.status.success};
@@ -29,7 +29,7 @@ const alertTypes = {
   error: css`
     background-color: ${props => props.theme.colors.status.error};
     border-color: #FF8888;
-    color: ${props => props.theme.colors.text.primary};
+    color: ${props => props.theme.colors.text.inverse};
   `,
 }
 
@@ -49,9 +49,9 @@ const StyledAlert = styled.div.withConfig({
   font-weight: ${props => props.theme.typography.fontWeight.bold};
   text-transform: uppercase;
   letter-spacing: 1px;
-  
+
   ${props => alertTypes[props.type]}
-  
+
   ${props => props.blink && css`
     animation: lcars-blink 1s infinite;
   `}
@@ -83,11 +83,11 @@ const DismissButton = styled.button`
   padding: ${props => props.theme.spacing.xs};
   border-radius: ${props => props.theme.borderRadius.sm};
   transition: background-color ${props => props.theme.animation.fast} ease;
-  
+
   &:hover {
     background-color: rgba(255, 255, 255, 0.1);
   }
-  
+
   &:focus {
     outline: 2px solid rgba(255, 255, 255, 0.5);
     outline-offset: 2px;

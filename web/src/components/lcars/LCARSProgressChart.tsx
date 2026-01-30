@@ -6,50 +6,50 @@ interface LCARSProgressChartProps {
   current: number
   target: number
   unit?: string
-  color?: 'orange' | 'purple' | 'blue' | 'green'
+  color?: 'neonCarrot' | 'lilac' | 'anakiwa' | 'success'
   size?: 'sm' | 'md' | 'lg'
   showPercentage?: boolean
   className?: string
 }
 
 const chartColors = {
-  orange: css`
+  neonCarrot: css`
     .progress-fill {
-      background: linear-gradient(90deg, 
-        ${props => props.theme.colors.primary.orange} 0%, 
-        ${props => props.theme.colors.primary.orangeLight} 100%
+      background: linear-gradient(90deg,
+        ${props => props.theme.colors.primary.neonCarrot} 0%,
+        ${props => props.theme.colors.primary.goldenTanoi} 100%
       );
     }
     .progress-text {
-      color: ${props => props.theme.colors.primary.orange};
+      color: ${props => props.theme.colors.primary.neonCarrot};
     }
   `,
-  purple: css`
+  lilac: css`
     .progress-fill {
-      background: linear-gradient(90deg, 
-        ${props => props.theme.colors.primary.purple} 0%, 
-        ${props => props.theme.colors.primary.purpleLight} 100%
+      background: linear-gradient(90deg,
+        ${props => props.theme.colors.primary.lilac} 0%,
+        #DDA6DD 100%
       );
     }
     .progress-text {
-      color: ${props => props.theme.colors.primary.purple};
+      color: ${props => props.theme.colors.primary.lilac};
     }
   `,
-  blue: css`
+  anakiwa: css`
     .progress-fill {
-      background: linear-gradient(90deg, 
-        ${props => props.theme.colors.primary.blue} 0%, 
-        ${props => props.theme.colors.primary.blueLight} 100%
+      background: linear-gradient(90deg,
+        ${props => props.theme.colors.primary.anakiwa} 0%,
+        #AAD6FF 100%
       );
     }
     .progress-text {
-      color: ${props => props.theme.colors.primary.blue};
+      color: ${props => props.theme.colors.primary.anakiwa};
     }
   `,
-  green: css`
+  success: css`
     .progress-fill {
-      background: linear-gradient(90deg, 
-        ${props => props.theme.colors.status.success} 0%, 
+      background: linear-gradient(90deg,
+        ${props => props.theme.colors.status.success} 0%,
         #88FF88 100%
       );
     }
@@ -131,7 +131,7 @@ const ProgressFill = styled.div<{ progress: number }>`
   transition: width 0.5s ease-in-out;
   border-radius: ${props => props.theme.borderRadius.pill};
   position: relative;
-  
+
   &::after {
     content: '';
     position: absolute;
@@ -161,7 +161,7 @@ export const LCARSProgressChart: React.FC<LCARSProgressChartProps> = ({
   current,
   target,
   unit = '',
-  color = 'orange',
+  color = 'neonCarrot',
   size = 'md',
   showPercentage = true,
   className,
@@ -175,14 +175,14 @@ export const LCARSProgressChart: React.FC<LCARSProgressChartProps> = ({
       <ChartTitle className="chart-title">
         {title}
       </ChartTitle>
-      
+
       <ProgressBarContainer>
-        <ProgressFill 
-          className="progress-fill" 
+        <ProgressFill
+          className="progress-fill"
           progress={progress}
         />
       </ProgressBarContainer>
-      
+
       <ProgressStats className="progress-stats">
         <div>
           <StatValue className="progress-text">
@@ -190,7 +190,7 @@ export const LCARSProgressChart: React.FC<LCARSProgressChartProps> = ({
           </StatValue>
           {unit && ` ${unit}`} / {target}{unit && ` ${unit}`}
         </div>
-        
+
         {showPercentage && (
           <div className="progress-text">
             <StatValue>

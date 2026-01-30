@@ -31,12 +31,12 @@ const InfoSection = styled(LCARSPanel)`
 `
 
 const SectionTitle = styled.h3`
-  color: ${props => props.theme.colors.primary.orange};
+  color: ${props => props.theme.colors.primary.neonCarrot};
   font-family: ${props => props.theme.typography.fontFamily.primary};
   font-size: 1.2rem;
   margin: 0 0 20px 0;
   text-transform: uppercase;
-  border-bottom: 2px solid ${props => props.theme.colors.primary.orange};
+  border-bottom: 2px solid ${props => props.theme.colors.primary.neonCarrot};
   padding-bottom: 10px;
 `
 
@@ -52,16 +52,16 @@ const StatusBadge = styled.div<{ $type: 'active' | 'enabled' | 'disabled' }>`
   text-align: center;
   border: 2px solid ${props => {
     switch (props.$type) {
-      case 'active': return props.theme.colors.primary.orange
-      case 'enabled': return props.theme.colors.primary.blue
+      case 'active': return props.theme.colors.primary.neonCarrot
+      case 'enabled': return props.theme.colors.primary.anakiwa
       case 'disabled': return props.theme.colors.interactive.disabled
       default: return props.theme.colors.interactive.disabled
     }
   }};
   background: ${props => {
     switch (props.$type) {
-      case 'active': return `${props.theme.colors.primary.orange}20`
-      case 'enabled': return `${props.theme.colors.primary.blue}15`
+      case 'active': return `${props.theme.colors.primary.neonCarrot}20`
+      case 'enabled': return `${props.theme.colors.primary.anakiwa}15`
       case 'disabled': return `${props.theme.colors.interactive.disabled}15`
       default: return `${props.theme.colors.interactive.disabled}15`
     }
@@ -115,15 +115,15 @@ const Label = styled.label`
 const Input = styled.input`
   padding: 12px 15px;
   background: ${props => props.theme.colors.background};
-  border: 2px solid ${props => props.theme.colors.primary.blue};
+  border: 2px solid ${props => props.theme.colors.primary.anakiwa};
   color: ${props => props.theme.colors.text.primary};
   font-family: ${props => props.theme.typography.fontFamily.primary};
   font-size: 1rem;
 
   &:focus {
     outline: none;
-    border-color: ${props => props.theme.colors.primary.orange};
-    box-shadow: 0 0 10px ${props => props.theme.colors.primary.orange}40;
+    border-color: ${props => props.theme.colors.primary.neonCarrot};
+    box-shadow: 0 0 10px ${props => props.theme.colors.primary.neonCarrot}40;
   }
 
   &:disabled {
@@ -251,7 +251,7 @@ export const BoatDetail: React.FC = () => {
         <LCARSDataDisplay
           label="STATUS"
           value="LOADING VESSEL DATA..."
-          color="blue"
+          valueColor="anakiwa"
         />
       </Container>
     )
@@ -285,10 +285,10 @@ export const BoatDetail: React.FC = () => {
         <HeaderContainer>
           <HeaderTitle>
             <LCARSHeader>VESSEL DETAILS</LCARSHeader>
-            <LCARSDataDisplay 
-              label="VESSEL NAME" 
-              value={boat.name} 
-              color="orange" 
+            <LCARSDataDisplay
+              label="VESSEL NAME"
+              value={boat.name}
+              valueColor="neonCarrot"
               size="sm"
             />
           </HeaderTitle>
@@ -342,28 +342,28 @@ export const BoatDetail: React.FC = () => {
               </EditForm>
             ) : (
               <>
-                <LCARSDataDisplay 
-                  label="VESSEL NAME" 
-                  value={boat.name} 
-                  color="orange" 
+                <LCARSDataDisplay
+                  label="VESSEL NAME"
+                  value={boat.name}
+                  valueColor="neonCarrot"
                 />
-                
-                <LCARSDataDisplay 
-                  label="VESSEL ID" 
-                  value={boat.id} 
-                  color="blue" 
+
+                <LCARSDataDisplay
+                  label="VESSEL ID"
+                  value={boat.id}
+                  valueColor="anakiwa"
                 />
-                
-                <LCARSDataDisplay 
-                  label="REGISTERED" 
-                  value={new Date(boat.createdAt).toLocaleString()} 
-                  color="blue" 
+
+                <LCARSDataDisplay
+                  label="REGISTERED"
+                  value={new Date(boat.createdAt).toLocaleString()}
+                  valueColor="anakiwa"
                 />
-                
-                <LCARSDataDisplay 
-                  label="LAST UPDATED" 
-                  value={new Date(boat.updatedAt).toLocaleString()} 
-                  color="blue" 
+
+                <LCARSDataDisplay
+                  label="LAST UPDATED"
+                  value={new Date(boat.updatedAt).toLocaleString()}
+                  valueColor="anakiwa"
                 />
               </>
             )}
@@ -417,33 +417,33 @@ export const BoatDetail: React.FC = () => {
           <SectionTitle>Usage Statistics</SectionTitle>
           
           <StatsGrid>
-            <LCARSDataDisplay 
-              label="TOTAL TRIPS" 
-              value={tripCount.toString()} 
-              color="blue" 
+            <LCARSDataDisplay
+              label="TOTAL TRIPS"
+              value={tripCount.toString()}
+              valueColor="anakiwa"
             />
-            
-            <LCARSDataDisplay 
-              label="TOTAL HOURS" 
+
+            <LCARSDataDisplay
+              label="TOTAL HOURS"
               value={`${(totalHours / 3600).toFixed(1)}`}
               unit="hrs"
-              color="blue" 
+              valueColor="anakiwa"
             />
-            
-            <LCARSDataDisplay 
-              label="TOTAL DISTANCE" 
+
+            <LCARSDataDisplay
+              label="TOTAL DISTANCE"
               value={`${(totalDistance * 0.000539957).toFixed(1)}`}
               unit="nm"
-              color="blue" 
+              valueColor="anakiwa"
             />
-            
-            <LCARSDataDisplay 
-              label="LAST TRIP" 
-              value={trips && trips.length > 0 
-                ? new Date(trips[0].startTime).toLocaleDateString() 
+
+            <LCARSDataDisplay
+              label="LAST TRIP"
+              value={trips && trips.length > 0
+                ? new Date(trips[0].startTime).toLocaleDateString()
                 : 'NO TRIPS'
-              } 
-              color="blue" 
+              }
+              valueColor="anakiwa"
             />
           </StatsGrid>
         </StatsSection>

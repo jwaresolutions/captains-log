@@ -4,37 +4,46 @@ import styled, { css } from 'styled-components'
 interface LCARSPanelProps {
   children: React.ReactNode
   title?: string
-  variant?: 'primary' | 'secondary' | 'accent'
+  variant?: 'primary' | 'secondary' | 'accent' | 'info'
   padding?: 'none' | 'sm' | 'md' | 'lg'
   className?: string
 }
 
 const panelVariants = {
   primary: css`
-    border: 2px solid ${props => props.theme.colors.primary.orange};
-    background-color: ${props => props.theme.colors.surface.dark};
-    
     .panel-header {
-      background-color: ${props => props.theme.colors.primary.orange};
-      color: ${props => props.theme.colors.text.inverse};
+      background-color: ${props => props.theme.colors.primary.neonCarrot};
+    }
+
+    .panel-content {
+      border-color: ${props => props.theme.colors.primary.neonCarrot};
     }
   `,
   secondary: css`
-    border: 2px solid ${props => props.theme.colors.primary.purple};
-    background-color: ${props => props.theme.colors.surface.dark};
-    
     .panel-header {
-      background-color: ${props => props.theme.colors.primary.purple};
-      color: ${props => props.theme.colors.text.primary};
+      background-color: ${props => props.theme.colors.primary.lilac};
+    }
+
+    .panel-content {
+      border-color: ${props => props.theme.colors.primary.lilac};
     }
   `,
   accent: css`
-    border: 2px solid ${props => props.theme.colors.primary.blue};
-    background-color: ${props => props.theme.colors.surface.dark};
-    
     .panel-header {
-      background-color: ${props => props.theme.colors.primary.blue};
-      color: ${props => props.theme.colors.text.primary};
+      background-color: ${props => props.theme.colors.primary.anakiwa};
+    }
+
+    .panel-content {
+      border-color: ${props => props.theme.colors.primary.anakiwa};
+    }
+  `,
+  info: css`
+    .panel-header {
+      background-color: ${props => props.theme.colors.primary.mariner};
+    }
+
+    .panel-content {
+      border-color: ${props => props.theme.colors.primary.mariner};
     }
   `,
 }
@@ -54,23 +63,34 @@ const paddingVariants = {
   `,
 }
 
-const StyledPanel = styled.div<{ variant: keyof typeof panelVariants; padding: keyof typeof paddingVariants }>`
-  border-radius: ${props => props.theme.borderRadius.lg};
-  overflow: hidden;
-  
+const StyledPanel = styled.div<{ variant: keyof typeof panelVariants }>`
+  display: flex;
+  flex-direction: column;
+
   ${props => panelVariants[props.variant]}
 `
 
 const PanelHeader = styled.div`
-  padding: ${props => props.theme.spacing.sm} ${props => props.theme.spacing.md};
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 ${props => props.theme.spacing.md};
+  border-radius: ${props => props.theme.lcars.buttonRadius};
+  font-family: ${props => props.theme.typography.fontFamily.primary};
   font-weight: ${props => props.theme.typography.fontWeight.bold};
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: ${props => props.theme.typography.letterSpacing.normal};
   font-size: ${props => props.theme.typography.fontSize.sm};
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: ${props => props.theme.colors.text.inverse};
 `
 
 const PanelContent = styled.div<{ padding: keyof typeof paddingVariants }>`
+  background-color: ${props => props.theme.colors.background};
+  border: 1px solid;
+  border-top: none;
+  flex: 1;
+
   ${props => paddingVariants[props.padding]}
 `
 
@@ -82,13 +102,13 @@ export const LCARSPanel: React.FC<LCARSPanelProps> = ({
   className,
 }) => {
   return (
-    <StyledPanel variant={variant} padding={padding} className={className}>
+    <StyledPanel variant={variant} className={className}>
       {title && (
         <PanelHeader className="panel-header">
           {title}
         </PanelHeader>
       )}
-      <PanelContent padding={padding}>
+      <PanelContent padding={padding} className="panel-content">
         {children}
       </PanelContent>
     </StyledPanel>

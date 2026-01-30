@@ -1,12 +1,11 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
-import { 
-  LCARSLayout, 
-  LCARSHeader, 
-  LCARSPanel, 
-  LCARSButton, 
-  LCARSAlert 
+import {
+  LCARSHeader,
+  LCARSPanel,
+  LCARSButton,
+  LCARSAlert
 } from '../components/lcars'
 import { useCreateBoat } from '../hooks/useBoats'
 
@@ -44,7 +43,7 @@ const Label = styled.label`
 const Input = styled.input`
   padding: 15px 20px;
   background: ${props => props.theme.colors.background};
-  border: 2px solid ${props => props.theme.colors.primary.blue};
+  border: 2px solid ${props => props.theme.colors.primary.anakiwa};
   color: ${props => props.theme.colors.text.primary};
   font-family: ${props => props.theme.typography.fontFamily.primary};
   font-size: 1.1rem;
@@ -52,8 +51,8 @@ const Input = styled.input`
 
   &:focus {
     outline: none;
-    border-color: ${props => props.theme.colors.primary.orange};
-    box-shadow: 0 0 15px ${props => props.theme.colors.primary.orange}40;
+    border-color: ${props => props.theme.colors.primary.neonCarrot};
+    box-shadow: 0 0 15px ${props => props.theme.colors.primary.neonCarrot}40;
   }
 
   &:disabled {
@@ -71,7 +70,7 @@ const Input = styled.input`
 const TextArea = styled.textarea`
   padding: 15px 20px;
   background: ${props => props.theme.colors.background};
-  border: 2px solid ${props => props.theme.colors.primary.blue};
+  border: 2px solid ${props => props.theme.colors.primary.anakiwa};
   color: ${props => props.theme.colors.text.primary};
   font-family: ${props => props.theme.typography.fontFamily.primary};
   font-size: 1rem;
@@ -81,8 +80,8 @@ const TextArea = styled.textarea`
 
   &:focus {
     outline: none;
-    border-color: ${props => props.theme.colors.primary.orange};
-    box-shadow: 0 0 15px ${props => props.theme.colors.primary.orange}40;
+    border-color: ${props => props.theme.colors.primary.neonCarrot};
+    box-shadow: 0 0 15px ${props => props.theme.colors.primary.neonCarrot}40;
   }
 
   &:disabled {
@@ -110,7 +109,7 @@ const FormActions = styled.div`
   justify-content: flex-end;
   margin-top: 30px;
   padding-top: 20px;
-  border-top: 2px solid ${props => props.theme.colors.primary.blue};
+  border-top: 2px solid ${props => props.theme.colors.primary.anakiwa};
 `
 
 const BackButton = styled(LCARSButton)`
@@ -118,7 +117,7 @@ const BackButton = styled(LCARSButton)`
 `
 
 const RequiredIndicator = styled.span`
-  color: ${props => props.theme.colors.primary.orange};
+  color: ${props => props.theme.colors.primary.neonCarrot};
   margin-left: 5px;
 `
 

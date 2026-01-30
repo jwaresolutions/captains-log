@@ -1,15 +1,13 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
-import { 
-  LCARSLayout, 
-  LCARSHeader, 
-  LCARSPanel, 
-  LCARSButton, 
-  LCARSDataDisplay,
-  LCARSAlert 
+import {
+  LCARSHeader,
+  LCARSPanel,
+  LCARSButton,
+  LCARSDataDisplay
 } from '../components/lcars'
-import { LoadingSpinner, Skeleton } from '../components/LoadingSpinner'
+import { Skeleton } from '../components/LoadingSpinner'
 import { ErrorMessage } from '../components/ErrorMessage'
 import { useBoats, useToggleBoatStatus, useSetActiveBoat } from '../hooks/useBoats'
 import { useOptimisticList } from '../hooks/useOptimisticUpdates'
@@ -28,14 +26,14 @@ const BoatGrid = styled.div`
 
 const BoatCard = styled.div<{ $isActive?: boolean; $isEnabled?: boolean }>`
   padding: 20px;
-  border: 2px solid ${props => 
-    props.$isActive ? props.theme.colors.primary.orange : 
-    props.$isEnabled ? props.theme.colors.primary.blue : 
+  border: 2px solid ${props =>
+    props.$isActive ? props.theme.colors.primary.neonCarrot :
+    props.$isEnabled ? props.theme.colors.primary.anakiwa :
     props.theme.colors.interactive.disabled
   };
-  background: ${props => 
-    props.$isActive ? `${props.theme.colors.primary.orange}15` : 
-    props.$isEnabled ? `${props.theme.colors.primary.blue}10` : 
+  background: ${props =>
+    props.$isActive ? `${props.theme.colors.primary.neonCarrot}15` :
+    props.$isEnabled ? `${props.theme.colors.primary.anakiwa}10` :
     `${props.theme.colors.interactive.disabled}10`
   };
   cursor: pointer;
@@ -43,13 +41,13 @@ const BoatCard = styled.div<{ $isActive?: boolean; $isEnabled?: boolean }>`
   border-radius: ${props => props.theme.borderRadius.lg};
 
   &:hover {
-    border-color: ${props => props.theme.colors.primary.orange};
-    background: ${props => props.theme.colors.primary.orange}20;
+    border-color: ${props => props.theme.colors.primary.neonCarrot};
+    background: ${props => props.theme.colors.primary.neonCarrot}20;
   }
 `
 
 const BoatName = styled.h3`
-  color: ${props => props.theme.colors.primary.orange};
+  color: ${props => props.theme.colors.primary.neonCarrot};
   font-family: ${props => props.theme.typography.fontFamily.primary};
   font-size: 1.4rem;
   margin: 0 0 15px 0;
@@ -71,8 +69,8 @@ const StatusBadge = styled.span<{ $type: 'active' | 'enabled' | 'disabled' }>`
   text-transform: uppercase;
   background: ${props => {
     switch (props.$type) {
-      case 'active': return props.theme.colors.primary.orange
-      case 'enabled': return props.theme.colors.primary.blue
+      case 'active': return props.theme.colors.primary.neonCarrot
+      case 'enabled': return props.theme.colors.primary.anakiwa
       case 'disabled': return props.theme.colors.interactive.disabled
       default: return props.theme.colors.interactive.disabled
     }
@@ -106,7 +104,7 @@ const EmptyState = styled.div`
 const EmptyStateIcon = styled.div`
   font-size: 4rem;
   margin-bottom: 20px;
-  color: ${props => props.theme.colors.primary.blue};
+  color: ${props => props.theme.colors.primary.anakiwa};
 `
 
 const HeaderContainer = styled.div`
@@ -219,18 +217,18 @@ export const BoatList: React.FC = () => {
         <HeaderContainer>
           <HeaderTitle>
             <LCARSHeader>BOAT MANAGEMENT</LCARSHeader>
-            <LCARSDataDisplay 
-              label="VESSELS REGISTERED" 
-              value={boats?.length || 0} 
-              color="blue" 
+            <LCARSDataDisplay
+              label="VESSELS REGISTERED"
+              value={boats?.length || 0}
+              valueColor="anakiwa"
               size="sm"
             />
           </HeaderTitle>
           <HeaderActions>
-            <LCARSDataDisplay 
-              label="ACTIVE VESSEL" 
-              value={activeBoat?.name || 'NONE SELECTED'} 
-              color={activeBoat ? 'orange' : 'blue'} 
+            <LCARSDataDisplay
+              label="ACTIVE VESSEL"
+              value={activeBoat?.name || 'NONE SELECTED'}
+              valueColor={activeBoat ? 'neonCarrot' : 'anakiwa'}
             />
             <LCARSButton 
               variant="primary" 
@@ -275,17 +273,17 @@ export const BoatList: React.FC = () => {
                   </StatusBadge>
                 </BoatStatus>
 
-                <LCARSDataDisplay 
-                  label="VESSEL ID" 
-                  value={boat.id.slice(0, 8).toUpperCase()} 
-                  color="blue" 
+                <LCARSDataDisplay
+                  label="VESSEL ID"
+                  value={boat.id.slice(0, 8).toUpperCase()}
+                  valueColor="anakiwa"
                   size="sm"
                 />
 
-                <LCARSDataDisplay 
-                  label="REGISTERED" 
-                  value={new Date(boat.createdAt).toLocaleDateString()} 
-                  color="blue" 
+                <LCARSDataDisplay
+                  label="REGISTERED"
+                  value={new Date(boat.createdAt).toLocaleDateString()}
+                  valueColor="anakiwa"
                   size="sm"
                 />
 
@@ -320,15 +318,15 @@ export const BoatList: React.FC = () => {
 
         {boats && boats.length > 0 && (
           <div style={{ marginTop: '30px', display: 'flex', gap: '20px' }}>
-            <LCARSDataDisplay 
-              label="ENABLED VESSELS" 
-              value={enabledBoats.length.toString()} 
-              color="blue" 
+            <LCARSDataDisplay
+              label="ENABLED VESSELS"
+              value={enabledBoats.length.toString()}
+              valueColor="anakiwa"
             />
-            <LCARSDataDisplay 
-              label="DISABLED VESSELS" 
-              value={disabledBoats.length.toString()} 
-              color="purple" 
+            <LCARSDataDisplay
+              label="DISABLED VESSELS"
+              value={disabledBoats.length.toString()}
+              valueColor="lilac"
             />
           </div>
         )}

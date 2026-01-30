@@ -34,7 +34,7 @@ const FormGroup = styled.div`
 `
 
 const Label = styled.label`
-  color: ${props => props.theme.colors.primary.blue};
+  color: ${props => props.theme.colors.primary.anakiwa};
   font-weight: ${props => props.theme.typography.fontWeight.bold};
   text-transform: uppercase;
   font-size: ${props => props.theme.typography.fontSize.sm};
@@ -43,17 +43,17 @@ const Label = styled.label`
 
 const Input = styled.input`
   background: ${props => props.theme.colors.surface.dark};
-  border: 2px solid ${props => props.theme.colors.primary.blue};
+  border: 2px solid ${props => props.theme.colors.primary.anakiwa};
   color: ${props => props.theme.colors.text.primary};
   padding: ${props => props.theme.spacing.sm};
   font-family: ${props => props.theme.typography.fontFamily.primary};
   font-size: ${props => props.theme.typography.fontSize.md};
-  
+
   &:focus {
     outline: none;
-    border-color: ${props => props.theme.colors.primary.orange};
+    border-color: ${props => props.theme.colors.primary.neonCarrot};
   }
-  
+
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -83,9 +83,9 @@ const StatusMessage = styled.div<{ $type: 'success' | 'error' | 'info' }>`
         `
       case 'info':
         return `
-          background: ${props.theme.colors.primary.blue}20;
-          color: ${props.theme.colors.primary.blue};
-          border: 1px solid ${props.theme.colors.primary.blue};
+          background: ${props.theme.colors.primary.anakiwa}20;
+          color: ${props.theme.colors.primary.anakiwa};
+          border: 1px solid ${props.theme.colors.primary.anakiwa};
         `
     }
   }}
@@ -99,7 +99,7 @@ const UserInfoGrid = styled.div`
 `
 
 const InfoLabel = styled.div`
-  color: ${props => props.theme.colors.primary.blue};
+  color: ${props => props.theme.colors.primary.anakiwa};
   font-weight: bold;
   text-transform: uppercase;
   font-size: ${props => props.theme.typography.fontSize.sm};
@@ -318,22 +318,22 @@ export const Settings: React.FC = () => {
           <LCARSDataDisplay
             label="Interface Version"
             value="LCARS v1.0"
-            color="blue"
+            valueColor="anakiwa"
           />
           <LCARSDataDisplay
             label="System Status"
             value="Operational"
-            color="green"
+            valueColor="success"
           />
           <LCARSDataDisplay
             label="API Endpoint"
             value={import.meta.env.VITE_API_BASE_URL || 'http://localhost:8585/api/v1'}
-            color="blue"
+            valueColor="anakiwa"
           />
           <LCARSDataDisplay
             label="Authentication"
             value="JWT Token-based"
-            color="purple"
+            valueColor="lilac"
           />
         </div>
       </LCARSPanel>

@@ -47,7 +47,7 @@ const InfoSection = styled(LCARSPanel)`
 `
 
 const SectionTitle = styled.h3`
-  color: ${props => props.theme.colors.primary.orange};
+  color: ${props => props.theme.colors.primary.neonCarrot};
   margin: 0 0 15px 0;
   font-size: 16px;
   text-transform: uppercase;
@@ -78,7 +78,7 @@ const StatusBadge = styled.span<{ active: boolean }>`
   font-size: 12px;
   font-weight: bold;
   text-transform: uppercase;
-  background-color: ${props => props.active ? props.theme.colors.primary.blue : props.theme.colors.text.secondary};
+  background-color: ${props => props.active ? props.theme.colors.primary.anakiwa : props.theme.colors.text.secondary};
   color: ${props => props.theme.colors.background};
 `
 
@@ -86,7 +86,7 @@ const Description = styled.div`
   background-color: ${props => props.theme.colors.background}40;
   padding: 15px;
   border-radius: 4px;
-  border-left: 4px solid ${props => props.theme.colors.primary.orange};
+  border-left: 4px solid ${props => props.theme.colors.primary.neonCarrot};
   margin-bottom: 20px;
   line-height: 1.5;
 `
@@ -96,7 +96,7 @@ const LoadingContainer = styled.div`
   align-items: center;
   justify-content: center;
   height: 200px;
-  color: ${props => props.theme.colors.primary.orange};
+  color: ${props => props.theme.colors.primary.neonCarrot};
   font-size: 18px;
 `
 

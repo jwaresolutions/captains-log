@@ -19,9 +19,12 @@ export function useOptimisticUpdate<T>(queryKey: string[]) {
       
       // Store the previous data for rollback
       const previousData = queryClient.getQueryData<T>(queryKey);
-      
+
       // Optimistically update the cache
-      queryClient.setQueryData<T>(queryKey, updateFn);
+      queryClient.setQueryData<T>(queryKey, (oldData) => {
+        if (oldData === undefined) return oldData;
+        return updateFn(oldData);
+      });
 
       try {
         // Perform the actual mutation
@@ -172,7 +175,7 @@ export function useDebouncedOperation<T extends any[]>(
   delay: number = 500
 ) {
   const [isLoading, setIsLoading] = useState(false);
-  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
+  const [timeoutId, setTimeoutId] = useState<ReturnType<typeof setTimeout> | null>(null);
 
   const debouncedOperation = useCallback(
     (...args: T) => {

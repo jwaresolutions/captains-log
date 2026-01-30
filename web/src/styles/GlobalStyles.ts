@@ -1,10 +1,10 @@
 import { createGlobalStyle } from 'styled-components'
 
 export const GlobalStyles = createGlobalStyle`
-  /* Import Antonio font from Google Fonts */
-  @import url('https://fonts.googleapis.com/css2?family=Antonio:wght@400;700&display=swap');
+  /* Import Antonio font from Google Fonts - full weight range for LCARS */
+  @import url('https://fonts.googleapis.com/css2?family=Antonio:wght@100;200;300;400;500;600;700&display=swap');
 
-  /* CSS Reset and Base Styles */
+  /* CSS Reset */
   *, *::before, *::after {
     box-sizing: border-box;
   }
@@ -18,12 +18,15 @@ export const GlobalStyles = createGlobalStyle`
     height: 100%;
   }
 
+  /* Body - Authentic LCARS styling */
   body {
-    font-family: ${props => props.theme.typography.fontFamily.primary};
-    font-size: ${props => props.theme.typography.fontSize.md};
-    line-height: ${props => props.theme.typography.lineHeight.normal};
-    color: ${props => props.theme.colors.text.primary};
-    background-color: ${props => props.theme.colors.background};
+    font-family: 'Antonio', sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+    color: #FF9933;
+    background-color: #000000;
+    text-transform: uppercase;
+    letter-spacing: 1px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -32,98 +35,185 @@ export const GlobalStyles = createGlobalStyle`
     min-height: 100vh;
   }
 
-  /* LCARS-specific global styles */
+  /* Headings - LCARS style */
   h1, h2, h3, h4, h5, h6 {
-    font-weight: ${props => props.theme.typography.fontWeight.bold};
+    font-family: 'Antonio', sans-serif;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    color: ${props => props.theme.colors.primary.orange};
+    letter-spacing: 1.5px;
+    color: #FF9933;
   }
 
   h1 {
-    font-size: ${props => props.theme.typography.fontSize.xxxl};
+    font-size: 2.5rem;
+    letter-spacing: 2px;
   }
 
   h2 {
-    font-size: ${props => props.theme.typography.fontSize.xxl};
+    font-size: 2rem;
   }
 
   h3 {
-    font-size: ${props => props.theme.typography.fontSize.xl};
+    font-size: 1.75rem;
   }
 
   h4 {
-    font-size: ${props => props.theme.typography.fontSize.lg};
+    font-size: 1.5rem;
   }
 
   h5, h6 {
-    font-size: ${props => props.theme.typography.fontSize.md};
+    font-size: 1.25rem;
   }
 
   /* Button reset */
   button {
-    font-family: inherit;
+    font-family: 'Antonio', sans-serif;
     font-size: inherit;
+    text-transform: uppercase;
     border: none;
     background: none;
     cursor: pointer;
     color: inherit;
   }
 
-  /* Input reset */
+  /* Form inputs - LCARS style */
   input, textarea, select {
-    font-family: inherit;
+    font-family: 'Antonio', sans-serif;
     font-size: inherit;
-    color: inherit;
-    background-color: ${props => props.theme.colors.surface.dark};
-    border: 2px solid ${props => props.theme.colors.primary.orange};
-    border-radius: ${props => props.theme.borderRadius.sm};
-    padding: ${props => props.theme.spacing.sm} ${props => props.theme.spacing.md};
-    
+    text-transform: uppercase;
+    color: #FFCC99;
+    background-color: #0A0A0A;
+    border: 2px solid #664466;
+    border-radius: 0;
+    padding: 8px 16px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
     &:focus {
       outline: none;
-      border-color: ${props => props.theme.colors.primary.orangeLight};
-      box-shadow: ${props => props.theme.shadows.glow};
+      border-color: #FF9933;
+      box-shadow: 0 0 8px rgba(255, 153, 51, 0.4);
     }
-    
+
     &::placeholder {
-      color: ${props => props.theme.colors.text.muted};
+      color: #664466;
+      text-transform: uppercase;
     }
   }
 
-  /* Link styles */
+  /* Links - LCARS blue */
   a {
-    color: ${props => props.theme.colors.primary.blue};
+    color: #99CCFF;
     text-decoration: none;
-    
+    transition: color 0.2s ease;
+
     &:hover {
-      color: ${props => props.theme.colors.primary.blueLight};
-      text-decoration: underline;
+      color: #FFCC99;
     }
   }
 
-  /* Scrollbar styling for LCARS theme */
+  /* Scrollbar - LCARS flat design */
   ::-webkit-scrollbar {
-    width: 12px;
+    width: 10px;
   }
 
   ::-webkit-scrollbar-track {
-    background: ${props => props.theme.colors.surface.dark};
+    background: #0A0A0A;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: ${props => props.theme.colors.primary.orange};
-    border-radius: ${props => props.theme.borderRadius.pill};
-    
+    background: #664466;
+    border-radius: 0;
+
     &:hover {
-      background: ${props => props.theme.colors.primary.orangeLight};
+      background: #CC99CC;
     }
   }
 
   /* Selection styling */
   ::selection {
-    background-color: ${props => props.theme.colors.primary.orange};
-    color: ${props => props.theme.colors.text.inverse};
+    background-color: #FF9933;
+    color: #000000;
+  }
+
+  ::-moz-selection {
+    background-color: #FF9933;
+    color: #000000;
+  }
+
+  /* LCARS Animations */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideIn {
+    from {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes lcars-blink {
+    0%, 50% {
+      opacity: 1;
+    }
+    51%, 100% {
+      opacity: 0.3;
+    }
+  }
+
+  @keyframes lcars-sweep {
+    0% {
+      background-position: -100% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  @keyframes lcars-pulse {
+    0%, 100% {
+      box-shadow: 0 0 4px rgba(255, 153, 51, 0.4);
+    }
+    50% {
+      box-shadow: 0 0 12px rgba(255, 153, 51, 0.8);
+    }
+  }
+
+  /* Animation utility classes */
+  .fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  .slide-in {
+    animation: slideIn 0.4s ease-out;
+  }
+
+  .lcars-blink {
+    animation: lcars-blink 1s infinite;
+  }
+
+  .lcars-sweep {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 153, 51, 0.3) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: lcars-sweep 2s linear infinite;
+  }
+
+  .lcars-pulse {
+    animation: lcars-pulse 2s ease-in-out infinite;
   }
 
   /* Utility classes */
@@ -151,65 +241,37 @@ export const GlobalStyles = createGlobalStyle`
     text-align: right;
   }
 
-  .font-mono {
-    font-family: ${props => props.theme.typography.fontFamily.monospace};
-  }
-
-  /* Animation classes */
-  .fade-in {
-    animation: fadeIn ${props => props.theme.animation.normal} ease-in-out;
-  }
-
-  .slide-in-right {
-    animation: slideInRight ${props => props.theme.animation.normal} ease-out;
-  }
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-
-  @keyframes slideInRight {
-    from {
-      transform: translateX(100%);
-      opacity: 0;
-    }
-    to {
-      transform: translateX(0);
-      opacity: 1;
-    }
-  }
-
-  /* LCARS blink animation for alerts */
-  @keyframes lcars-blink {
-    0%, 50% {
-      opacity: 1;
-    }
-    51%, 100% {
-      opacity: 0.3;
-    }
-  }
-
-  .lcars-blink {
-    animation: lcars-blink 1s infinite;
-  }
-
-  /* Responsive utilities */
-  @media (max-width: ${props => props.theme.breakpoints.sm}) {
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
     body {
-      font-size: ${props => props.theme.typography.fontSize.sm};
+      font-size: 13px;
     }
-    
+
     h1 {
-      font-size: ${props => props.theme.typography.fontSize.xxl};
+      font-size: 2rem;
     }
-    
+
     h2 {
-      font-size: ${props => props.theme.typography.fontSize.xl};
+      font-size: 1.75rem;
+    }
+
+    h3 {
+      font-size: 1.5rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    body {
+      font-size: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+    }
+
+    h2 {
+      font-size: 1.5rem;
     }
   }
 `

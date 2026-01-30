@@ -27,35 +27,35 @@ const ReportCard = styled.div`
   gap: ${props => props.theme.spacing.md};
   padding: ${props => props.theme.spacing.lg};
   background-color: ${props => props.theme.colors.surface.dark};
-  border: 2px solid ${props => props.theme.colors.primary.orange};
+  border: 2px solid ${props => props.theme.colors.primary.neonCarrot};
   border-radius: ${props => props.theme.borderRadius.lg};
   cursor: pointer;
   transition: all 0.3s ease;
-  
+
   &:hover {
-    border-color: ${props => props.theme.colors.primary.orangeLight};
+    border-color: ${props => props.theme.colors.primary.tanoi};
     background-color: ${props => props.theme.colors.surface.medium};
   }
-  
+
   &.secondary {
-    border-color: ${props => props.theme.colors.primary.purple};
-    
+    border-color: ${props => props.theme.colors.primary.lilac};
+
     &:hover {
-      border-color: ${props => props.theme.colors.primary.purpleLight};
+      border-color: ${props => props.theme.colors.primary.lilac};
     }
   }
 `
 
 const ReportTitle = styled.h2`
-  color: ${props => props.theme.colors.primary.orange};
+  color: ${props => props.theme.colors.primary.neonCarrot};
   font-size: ${props => props.theme.typography.fontSize.xl};
   font-weight: ${props => props.theme.typography.fontWeight.bold};
   text-transform: uppercase;
   letter-spacing: 2px;
   margin: 0;
-  
+
   .secondary & {
-    color: ${props => props.theme.colors.primary.purple};
+    color: ${props => props.theme.colors.primary.lilac};
   }
 `
 
@@ -78,16 +78,16 @@ const ReportFeatures = styled.ul`
 const ReportFeature = styled.li`
   color: ${props => props.theme.colors.text.muted};
   font-size: ${props => props.theme.typography.fontSize.sm};
-  
+
   &::before {
     content: '▶';
-    color: ${props => props.theme.colors.primary.orange};
+    color: ${props => props.theme.colors.primary.neonCarrot};
     margin-right: ${props => props.theme.spacing.sm};
     font-size: 0.8em;
   }
-  
+
   .secondary &::before {
-    color: ${props => props.theme.colors.primary.purple};
+    color: ${props => props.theme.colors.primary.lilac};
   }
 `
 

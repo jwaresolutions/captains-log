@@ -49,16 +49,16 @@ const MapContainer_Styled = styled(MapContainer)`
     .leaflet-top.leaflet-left {
       .leaflet-control-zoom {
         background-color: ${props => props.theme.colors.surface.dark};
-        border: 1px solid ${props => props.theme.colors.primary.orange};
+        border: 1px solid ${props => props.theme.colors.primary.neonCarrot};
         border-radius: ${props => props.theme.borderRadius.sm};
-        
+
         a {
           background-color: ${props => props.theme.colors.surface.medium};
           color: ${props => props.theme.colors.text.primary};
           border: none;
-          
+
           &:hover {
-            background-color: ${props => props.theme.colors.primary.orange};
+            background-color: ${props => props.theme.colors.primary.neonCarrot};
             color: ${props => props.theme.colors.text.inverse};
           }
         }
@@ -76,7 +76,7 @@ const StatsGrid = styled.div`
 const StatCard = styled.div`
   text-align: center;
   background-color: ${props => props.theme.colors.surface.medium};
-  border: 1px solid ${props => props.theme.colors.primary.blue};
+  border: 1px solid ${props => props.theme.colors.primary.anakiwa};
   border-radius: ${props => props.theme.borderRadius.md};
   padding: ${props => props.theme.spacing.md};
 `
@@ -84,7 +84,7 @@ const StatCard = styled.div`
 const StatValue = styled.div`
   font-size: ${props => props.theme.typography.fontSize.xxl};
   font-weight: ${props => props.theme.typography.fontWeight.bold};
-  color: ${props => props.theme.colors.primary.blue};
+  color: ${props => props.theme.colors.primary.anakiwa};
   font-family: ${props => props.theme.typography.fontFamily.monospace};
   margin-bottom: ${props => props.theme.spacing.xs};
 `
@@ -135,7 +135,7 @@ const ManualDataGrid = styled.div`
 
 const ManualDataCard = styled.div`
   background-color: ${props => props.theme.colors.surface.medium};
-  border: 1px solid ${props => props.theme.colors.primary.purple};
+  border: 1px solid ${props => props.theme.colors.primary.lilac};
   border-radius: ${props => props.theme.borderRadius.md};
   padding: ${props => props.theme.spacing.md};
   text-align: center;
@@ -144,7 +144,7 @@ const ManualDataCard = styled.div`
 const ManualDataValue = styled.div`
   font-size: ${props => props.theme.typography.fontSize.lg};
   font-weight: ${props => props.theme.typography.fontWeight.bold};
-  color: ${props => props.theme.colors.primary.purple};
+  color: ${props => props.theme.colors.primary.lilac};
   font-family: ${props => props.theme.typography.fontFamily.monospace};
   margin-bottom: ${props => props.theme.spacing.xs};
 `
@@ -164,7 +164,7 @@ const StopPointsList = styled.div`
 
 const StopPointCard = styled.div`
   background-color: ${props => props.theme.colors.surface.medium};
-  border: 1px solid ${props => props.theme.colors.primary.blue};
+  border: 1px solid ${props => props.theme.colors.primary.anakiwa};
   border-radius: ${props => props.theme.borderRadius.md};
   padding: ${props => props.theme.spacing.md};
 `
@@ -178,7 +178,7 @@ const StopPointHeader = styled.div`
 
 const StopPointTitle = styled.div`
   font-weight: ${props => props.theme.typography.fontWeight.bold};
-  color: ${props => props.theme.colors.primary.blue};
+  color: ${props => props.theme.colors.primary.anakiwa};
   text-transform: uppercase;
   letter-spacing: 1px;
 `
@@ -197,7 +197,7 @@ const StopPointCoords = styled.div`
 const LoadingState = styled.div`
   text-align: center;
   padding: ${props => props.theme.spacing.xxl};
-  color: ${props => props.theme.colors.primary.orange};
+  color: ${props => props.theme.colors.primary.neonCarrot};
   font-size: ${props => props.theme.typography.fontSize.lg};
   text-transform: uppercase;
   letter-spacing: 2px;

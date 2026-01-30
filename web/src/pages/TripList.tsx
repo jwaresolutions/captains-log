@@ -41,30 +41,30 @@ const FilterLabel = styled.label`
 
 const FilterSelect = styled.select`
   background-color: ${props => props.theme.colors.surface.medium};
-  border: 1px solid ${props => props.theme.colors.primary.orange};
+  border: 1px solid ${props => props.theme.colors.primary.neonCarrot};
   border-radius: ${props => props.theme.borderRadius.sm};
   color: ${props => props.theme.colors.text.primary};
   padding: ${props => props.theme.spacing.sm};
   font-family: ${props => props.theme.typography.fontFamily.primary};
-  
+
   &:focus {
     outline: none;
-    border-color: ${props => props.theme.colors.primary.orangeLight};
+    border-color: ${props => props.theme.colors.primary.tanoi};
     box-shadow: 0 0 0 2px rgba(255, 153, 102, 0.2);
   }
 `
 
 const FilterInput = styled.input`
   background-color: ${props => props.theme.colors.surface.medium};
-  border: 1px solid ${props => props.theme.colors.primary.orange};
+  border: 1px solid ${props => props.theme.colors.primary.neonCarrot};
   border-radius: ${props => props.theme.borderRadius.sm};
   color: ${props => props.theme.colors.text.primary};
   padding: ${props => props.theme.spacing.sm};
   font-family: ${props => props.theme.typography.fontFamily.primary};
-  
+
   &:focus {
     outline: none;
-    border-color: ${props => props.theme.colors.primary.orangeLight};
+    border-color: ${props => props.theme.colors.primary.tanoi};
     box-shadow: 0 0 0 2px rgba(255, 153, 102, 0.2);
   }
 `
@@ -100,7 +100,7 @@ const TripInfo = styled.div`
 const TripTitle = styled.h3`
   margin: 0;
   font-size: ${props => props.theme.typography.fontSize.lg};
-  color: ${props => props.theme.colors.primary.orange};
+  color: ${props => props.theme.colors.primary.neonCarrot};
   text-transform: uppercase;
   letter-spacing: 1px;
 `
@@ -123,7 +123,7 @@ const TripStats = styled.div`
 const StatValue = styled.div`
   font-size: ${props => props.theme.typography.fontSize.lg};
   font-weight: ${props => props.theme.typography.fontWeight.bold};
-  color: ${props => props.theme.colors.primary.blue};
+  color: ${props => props.theme.colors.primary.anakiwa};
   font-family: ${props => props.theme.typography.fontFamily.monospace};
 `
 
@@ -142,7 +142,7 @@ const EmptyState = styled.div`
   .empty-title {
     font-size: ${props => props.theme.typography.fontSize.xl};
     margin-bottom: ${props => props.theme.spacing.md};
-    color: ${props => props.theme.colors.primary.orange};
+    color: ${props => props.theme.colors.primary.neonCarrot};
   }
   
   .empty-message {
@@ -154,7 +154,7 @@ const EmptyState = styled.div`
 const LoadingState = styled.div`
   text-align: center;
   padding: ${props => props.theme.spacing.xxl};
-  color: ${props => props.theme.colors.primary.orange};
+  color: ${props => props.theme.colors.primary.neonCarrot};
   font-size: ${props => props.theme.typography.fontSize.lg};
   text-transform: uppercase;
   letter-spacing: 2px;

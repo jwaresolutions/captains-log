@@ -4,8 +4,10 @@ import styled, { css } from 'styled-components'
 interface LCARSHeaderProps {
   children: React.ReactNode
   level?: 1 | 2 | 3 | 4 | 5 | 6
-  color?: 'orange' | 'purple' | 'blue'
+  color?: 'neonCarrot' | 'tanoi' | 'lilac' | 'anakiwa' | 'mariner'
   align?: 'left' | 'center' | 'right'
+  withBar?: boolean
+  barColor?: 'neonCarrot' | 'tanoi' | 'lilac' | 'anakiwa'
   className?: string
 }
 
@@ -31,14 +33,20 @@ const headerLevels = {
 }
 
 const headerColors = {
-  orange: css`
-    color: ${props => props.theme.colors.primary.orange};
+  neonCarrot: css`
+    color: ${props => props.theme.colors.primary.neonCarrot};
   `,
-  purple: css`
-    color: ${props => props.theme.colors.primary.purple};
+  tanoi: css`
+    color: ${props => props.theme.colors.primary.tanoi};
   `,
-  blue: css`
-    color: ${props => props.theme.colors.primary.blue};
+  lilac: css`
+    color: ${props => props.theme.colors.primary.lilac};
+  `,
+  anakiwa: css`
+    color: ${props => props.theme.colors.primary.anakiwa};
+  `,
+  mariner: css`
+    color: ${props => props.theme.colors.primary.mariner};
   `,
 }
 
@@ -54,6 +62,19 @@ const headerAlignments = {
   `,
 }
 
+const barColors = {
+  neonCarrot: '#FF9933',
+  tanoi: '#FFCC99',
+  lilac: '#CC99CC',
+  anakiwa: '#99CCFF',
+}
+
+const HeaderContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${props => props.theme.spacing.sm};
+`
+
 const StyledHeader = styled.div<{
   level: keyof typeof headerLevels
   color: keyof typeof headerColors
@@ -65,22 +86,31 @@ const StyledHeader = styled.div<{
   letter-spacing: 2px;
   line-height: ${props => props.theme.typography.lineHeight.tight};
   margin: 0;
-  
+
   ${props => headerLevels[props.level]}
   ${props => headerColors[props.color]}
   ${props => headerAlignments[props.align]}
 `
 
+const DecorativeBar = styled.div<{ color: string }>`
+  width: 100%;
+  height: 4px;
+  background-color: ${props => props.color};
+  border-radius: 0;
+`
+
 export const LCARSHeader: React.FC<LCARSHeaderProps> = ({
   children,
   level = 1,
-  color = 'orange',
+  color = 'neonCarrot',
   align = 'left',
+  withBar = false,
+  barColor = 'neonCarrot',
   className,
 }) => {
   const HeaderTag = `h${level}` as keyof JSX.IntrinsicElements
 
-  return (
+  const header = (
     <StyledHeader
       as={HeaderTag}
       level={level}
@@ -91,4 +121,15 @@ export const LCARSHeader: React.FC<LCARSHeaderProps> = ({
       {children}
     </StyledHeader>
   )
+
+  if (withBar) {
+    return (
+      <HeaderContainer>
+        {header}
+        <DecorativeBar color={barColors[barColor]} />
+      </HeaderContainer>
+    )
+  }
+
+  return header
 }

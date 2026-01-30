@@ -41,13 +41,13 @@ const ErrorIcon = styled.div`
 
 const ErrorTitle = styled.div`
   font-weight: bold;
-  font-size: ${props => props.theme.typography.sizes.lg};
+  font-size: ${props => props.theme.typography.fontSize.lg};
   color: ${props => props.theme.colors.status.error};
   margin-bottom: ${props => props.theme.spacing.sm};
 `;
 
 const ErrorDescription = styled.div`
-  color: ${props => props.theme.colors.text.secondary};
+  color: ${props => props.theme.colors.text.light};
   margin-bottom: ${props => props.theme.spacing.md};
   line-height: 1.5;
 `;
@@ -60,7 +60,7 @@ const ErrorActions = styled.div`
 `;
 
 const ErrorCode = styled.code`
-  background: ${props => props.theme.colors.background.secondary};
+  background: ${props => props.theme.colors.surface.dark};
   padding: 2px 6px;
   border-radius: 3px;
   font-family: monospace;

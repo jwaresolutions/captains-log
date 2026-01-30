@@ -60,22 +60,22 @@ const NotificationItem = styled.div<{
   padding: 16px;
   border-left: 4px solid ${props => {
     switch (props.type) {
-      case 'maintenance': return props.theme.colors.primary.orange;
+      case 'maintenance': return props.theme.colors.primary.neonCarrot;
       case 'warning': return props.theme.colors.status.warning;
       case 'error': return props.theme.colors.status.error;
-      default: return props.theme.colors.primary.blue;
+      default: return props.theme.colors.primary.anakiwa;
     }
   }};
-  background: ${props => props.isRead 
-    ? props.theme.colors.background.secondary 
-    : props.theme.colors.background.primary
+  background: ${props => props.isRead
+    ? props.theme.colors.surface.dark
+    : props.theme.colors.background
   };
   opacity: ${props => props.isRead ? 0.7 : 1};
   cursor: pointer;
   transition: all 0.2s ease;
-  
+
   &:hover {
-    background: ${props => props.theme.colors.background.tertiary};
+    background: ${props => props.theme.colors.surface.medium};
   }
 `;
 
@@ -94,13 +94,13 @@ const NotificationTitle = styled.div`
 
 const NotificationTime = styled.div`
   font-size: 12px;
-  color: ${props => props.theme.colors.text.secondary};
+  color: ${props => props.theme.colors.text.light};
   white-space: nowrap;
   margin-left: 8px;
 `;
 
 const NotificationMessage = styled.div`
-  color: ${props => props.theme.colors.text.secondary};
+  color: ${props => props.theme.colors.text.light};
   font-size: 13px;
   line-height: 1.4;
 `;
@@ -137,8 +137,8 @@ const NotificationBadge = styled.div<{ count: number }>`
 const NotificationToggle = styled.button<{ $hasUnread: boolean }>`
   position: relative;
   background: transparent;
-  border: 2px solid ${props => props.theme.colors.primary.blue};
-  color: ${props => props.theme.colors.primary.blue};
+  border: 2px solid ${props => props.theme.colors.primary.anakiwa};
+  color: ${props => props.theme.colors.primary.anakiwa};
   padding: 8px 12px;
   cursor: pointer;
   font-family: ${props => props.theme.typography.fontFamily.primary};
@@ -146,10 +146,10 @@ const NotificationToggle = styled.button<{ $hasUnread: boolean }>`
   font-weight: bold;
   text-transform: uppercase;
   transition: all 0.3s ease;
-  
+
   &:hover {
-    border-color: ${props => props.theme.colors.primary.orange};
-    color: ${props => props.theme.colors.primary.orange};
+    border-color: ${props => props.theme.colors.primary.neonCarrot};
+    color: ${props => props.theme.colors.primary.neonCarrot};
   }
   
   ${props => props.$hasUnread && `
@@ -163,7 +163,7 @@ const NotificationToggle = styled.button<{ $hasUnread: boolean }>`
 const EmptyState = styled.div`
   text-align: center;
   padding: 32px 16px;
-  color: ${props => props.theme.colors.text.secondary};
+  color: ${props => props.theme.colors.text.light};
 `;
 
 interface NotificationPanelProps {
@@ -335,10 +335,9 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({ className 
                           <LCARSButton 
                             size="sm" 
                             variant="primary"
-                            onClick={(e) => {
-                              e.stopPropagation();
+                            onClick={() => {
                               // Navigate to the related entity
-                              const path = notification.entityType === 'maintenance' 
+                              const path = notification.entityType === 'maintenance'
                                 ? `/maintenance/events/${notification.entityId}`
                                 : `/${notification.entityType}/${notification.entityId}`;
                               window.location.href = path;
