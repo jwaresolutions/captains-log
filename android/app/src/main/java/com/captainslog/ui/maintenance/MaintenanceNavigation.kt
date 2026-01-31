@@ -4,20 +4,51 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.captainslog.ui.components.BreadcrumbItem
 import com.captainslog.viewmodel.BoatViewModel
 import com.captainslog.viewmodel.MaintenanceTemplateViewModel
 
 @Composable
 fun MaintenanceNavigation(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onBreadcrumbChanged: (List<BreadcrumbItem>, (() -> Unit)?) -> Unit = { _, _ -> }
 ) {
     val context = LocalContext.current
     val maintenanceViewModel: MaintenanceTemplateViewModel = viewModel { MaintenanceTemplateViewModel(context) }
     val boatViewModel: BoatViewModel = viewModel { BoatViewModel(context.applicationContext as android.app.Application) }
-    
+
     var currentScreen by remember { mutableStateOf(MaintenanceScreen.List) }
     var selectedTemplateId by remember { mutableStateOf<String?>(null) }
     var selectedEventId by remember { mutableStateOf<String?>(null) }
+
+    // Report breadcrumbs on screen change
+    // Report breadcrumbs on screen change
+    LaunchedEffect(currentScreen) {
+        val crumbs = when (currentScreen) {
+            MaintenanceScreen.List -> emptyList()
+            MaintenanceScreen.TemplateDetail -> listOf(
+                BreadcrumbItem("Template Details")
+            )
+            MaintenanceScreen.EventDetail -> listOf(
+                BreadcrumbItem("Event Details")
+            )
+            MaintenanceScreen.CreateTemplate -> listOf(
+                BreadcrumbItem("Create Template")
+            )
+            MaintenanceScreen.EditTemplate -> listOf(
+                BreadcrumbItem("Template Details", onClick = { currentScreen = MaintenanceScreen.TemplateDetail }),
+                BreadcrumbItem("Edit")
+            )
+            MaintenanceScreen.CompleteEvent -> listOf(
+                BreadcrumbItem("Event Details", onClick = { currentScreen = MaintenanceScreen.EventDetail }),
+                BreadcrumbItem("Complete")
+            )
+        }
+        val backToRoot: (() -> Unit)? = if (currentScreen != MaintenanceScreen.List) {
+            { currentScreen = MaintenanceScreen.List }
+        } else null
+        onBreadcrumbChanged(crumbs, backToRoot)
+    }
 
     when (currentScreen) {
         MaintenanceScreen.List -> {
@@ -41,7 +72,7 @@ fun MaintenanceNavigation(
                 viewModel = maintenanceViewModel
             )
         }
-        
+
         MaintenanceScreen.TemplateDetail -> {
             selectedTemplateId?.let { templateId ->
                 MaintenanceTemplateDetailScreen(
@@ -59,7 +90,7 @@ fun MaintenanceNavigation(
                 )
             }
         }
-        
+
         MaintenanceScreen.EventDetail -> {
             selectedEventId?.let { eventId ->
                 MaintenanceEventDetailScreen(
@@ -81,7 +112,7 @@ fun MaintenanceNavigation(
                 )
             }
         }
-        
+
         MaintenanceScreen.CreateTemplate -> {
             MaintenanceTemplateFormScreen(
                 templateId = null,
@@ -93,7 +124,7 @@ fun MaintenanceNavigation(
                 boatViewModel = boatViewModel
             )
         }
-        
+
         MaintenanceScreen.EditTemplate -> {
             selectedTemplateId?.let { templateId ->
                 MaintenanceTemplateFormScreen(
@@ -107,7 +138,7 @@ fun MaintenanceNavigation(
                 )
             }
         }
-        
+
         MaintenanceScreen.CompleteEvent -> {
             selectedEventId?.let { eventId ->
                 MaintenanceEventCompletionScreen(

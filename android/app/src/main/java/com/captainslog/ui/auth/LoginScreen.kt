@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.windowInsetsPadding
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
@@ -64,26 +65,45 @@ fun LoginScreen(
             modifier = Modifier.padding(bottom = 32.dp)
         )
 
-        // Server URL field
-        OutlinedTextField(
-            value = uiState.serverUrl,
-            onValueChange = { viewModel.updateServerUrl(it) },
-            label = { Text("Server URL") },
-            placeholder = { Text("https://captainslog.jware.dev") },
+        // Server URL dropdown
+        val serverOptions = listOf("http://10.0.0.145:8585", "https://boat.jware.dev")
+        var serverDropdownExpanded by remember { mutableStateOf(false) }
+
+        ExposedDropdownMenuBox(
+            expanded = serverDropdownExpanded,
+            onExpandedChange = { if (!uiState.isLoading) serverDropdownExpanded = it },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp),
-            singleLine = true,
-            enabled = !uiState.isLoading,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Uri,
-                imeAction = ImeAction.Next
-            ),
-            keyboardActions = KeyboardActions(
-                onNext = { focusManager.moveFocus(FocusDirection.Down) }
-            ),
-            isError = uiState.error != null
-        )
+                .padding(bottom = 16.dp)
+        ) {
+            OutlinedTextField(
+                value = uiState.serverUrl,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Server URL") },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = serverDropdownExpanded) },
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth(),
+                singleLine = true,
+                enabled = !uiState.isLoading,
+                isError = uiState.error != null
+            )
+            ExposedDropdownMenu(
+                expanded = serverDropdownExpanded,
+                onDismissRequest = { serverDropdownExpanded = false }
+            ) {
+                serverOptions.forEach { url ->
+                    DropdownMenuItem(
+                        text = { Text(url) },
+                        onClick = {
+                            viewModel.updateServerUrl(url)
+                            serverDropdownExpanded = false
+                        }
+                    )
+                }
+            }
+        }
 
         // Username field
         OutlinedTextField(

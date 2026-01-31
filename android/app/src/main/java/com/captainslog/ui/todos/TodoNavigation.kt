@@ -1,39 +1,55 @@
 package com.captainslog.ui.todos
 
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
+import com.captainslog.ui.components.BreadcrumbItem
 
 @Composable
 fun TodoNavigation(
     modifier: Modifier = Modifier,
-    navController: NavHostController = rememberNavController()
+    onBreadcrumbChanged: (List<BreadcrumbItem>, (() -> Unit)?) -> Unit = { _, _ -> }
 ) {
-    NavHost(
-        navController = navController,
-        startDestination = "todo_list"
-    ) {
-        composable("todo_list") {
+    var currentScreen by remember { mutableStateOf<TodoScreen>(TodoScreen.List) }
+    var selectedListId by remember { mutableStateOf<String?>(null) }
+
+    // Report breadcrumbs on screen change
+    LaunchedEffect(currentScreen) {
+        val crumbs = when (currentScreen) {
+            TodoScreen.List -> emptyList()
+            TodoScreen.Detail -> listOf(BreadcrumbItem("List Detail"))
+        }
+        val backToRoot: (() -> Unit)? = if (currentScreen != TodoScreen.List) {
+            { currentScreen = TodoScreen.List; selectedListId = null }
+        } else null
+        onBreadcrumbChanged(crumbs, backToRoot)
+    }
+
+    when (currentScreen) {
+        TodoScreen.List -> {
             TodoListScreen(
                 modifier = modifier,
                 onNavigateToTodoDetail = { listId ->
-                    navController.navigate("todo_detail/$listId")
+                    selectedListId = listId
+                    currentScreen = TodoScreen.Detail
                 }
             )
         }
-        
-        composable("todo_detail/{listId}") { backStackEntry ->
-            val listId = backStackEntry.arguments?.getString("listId") ?: return@composable
-            TodoDetailScreen(
-                modifier = modifier,
-                listId = listId,
-                onNavigateBack = {
-                    navController.popBackStack()
-                }
-            )
+        TodoScreen.Detail -> {
+            selectedListId?.let { listId ->
+                TodoDetailScreen(
+                    modifier = modifier,
+                    listId = listId,
+                    onNavigateBack = {
+                        currentScreen = TodoScreen.List
+                        selectedListId = null
+                    }
+                )
+            }
         }
     }
+}
+
+sealed class TodoScreen {
+    object List : TodoScreen()
+    object Detail : TodoScreen()
 }

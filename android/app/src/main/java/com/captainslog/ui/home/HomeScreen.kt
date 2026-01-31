@@ -1,24 +1,34 @@
 package com.captainslog.ui.home
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.captainslog.R
-import com.captainslog.ui.components.AppTopBar
+import com.captainslog.ui.components.Starfield
 
 /**
- * Home screen displaying the Captain's Log logo and app branding.
- * This serves as the main landing page of the application.
+ * Home screen with animated starfield background and pulsing logo glow effect.
+ * Serves as the main landing page of the application.
  */
 @Composable
 fun HomeScreen(
@@ -27,39 +37,115 @@ fun HomeScreen(
     onTodosClick: () -> Unit = {},
     onSettingsClick: () -> Unit = {}
 ) {
-    Column(
+    // Pulsing glow animation - matches web's 3s ease-in-out infinite
+    val infiniteTransition = rememberInfiniteTransition(label = "logoGlow")
+    val glowAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.4f,
+        targetValue = 0.9f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500, easing = EaseInOut),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "glowAlpha"
+    )
+    val glowRadius by infiniteTransition.animateFloat(
+        initialValue = 20f,
+        targetValue = 50f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500, easing = EaseInOut),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "glowRadius"
+    )
+
+    // Fade-in animation
+    val fadeIn = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        fadeIn.animateTo(1f, animationSpec = tween(1000))
+    }
+
+    Box(
         modifier = modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .background(Color.Black)
+    ) {
+        // Starfield background
+        Starfield(
+            modifier = Modifier.fillMaxSize(),
+            numStars = 150,
+            speed = 2f,
+            opacity = 0.5f
+        )
+
+        // Content overlay
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp)
+                .alpha(fadeIn.value),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Captain's Log Logo
-            Image(
-                painter = painterResource(id = R.drawable.captains_log_logo),
-                contentDescription = "Captain's Log",
+            // Pulsing logo with orange glow (matching web's #FF9933)
+            val glowColor = Color(0xFFFF9933)
+            Box(
                 modifier = Modifier
-                    .height(200.dp)
-                    .padding(bottom = 16.dp)
-            )
-            
+                    .drawBehind {
+                        // Draw glow behind the logo
+                        drawCircle(
+                            brush = Brush.radialGradient(
+                                colors = listOf(
+                                    glowColor.copy(alpha = glowAlpha * 0.6f),
+                                    glowColor.copy(alpha = glowAlpha * 0.2f),
+                                    Color.Transparent
+                                ),
+                                center = Offset(size.width / 2f, size.height / 2f),
+                                radius = glowRadius * 4f
+                            )
+                        )
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.captains_log_logo),
+                    contentDescription = "Captain's Log",
+                    modifier = Modifier
+                        .height(200.dp)
+                        .graphicsLayer {
+                            // Subtle scale pulse
+                            val scale = 1f + (glowAlpha - 0.4f) * 0.02f
+                            scaleX = scale
+                            scaleY = scale
+                        }
+                )
+            }
+
             Spacer(modifier = Modifier.height(32.dp))
-            
-            // App subtitle
+
+            // App subtitle with glow styling
             Text(
                 text = "Captain's Log System",
-                style = MaterialTheme.typography.titleMedium,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface
+                style = TextStyle(
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFFFCC99),
+                    shadow = Shadow(
+                        color = Color(0xFFFF9933).copy(alpha = 0.5f),
+                        offset = Offset.Zero,
+                        blurRadius = 10f
+                    )
+                ),
+                textAlign = TextAlign.Center
             )
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             Text(
                 text = "Navigate using the tabs below to manage your trips, maintenance, and more.",
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = Color(0xFF99CCFF).copy(alpha = 0.8f)
             )
         }
     }
+}

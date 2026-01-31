@@ -24,7 +24,6 @@ import java.util.*
  * Screen displaying list of all notes with filtering and search options.
  * Allows creating new notes, filtering by type, and searching by content.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotesListScreen(
     modifier: Modifier = Modifier,
@@ -71,19 +70,6 @@ fun NotesListScreen(
 
     Scaffold(
         modifier = modifier,
-        topBar = {
-            TopAppBar(
-                title = { Text("Notes") },
-                actions = {
-                    IconButton(onClick = { showSearchBar = !showSearchBar }) {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "Search notes"
-                        )
-                    }
-                }
-            )
-        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onCreateNote
@@ -98,6 +84,21 @@ fun NotesListScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
+            // Search toggle
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
+                IconButton(onClick = { showSearchBar = !showSearchBar }) {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Search notes"
+                    )
+                }
+            }
+
             // Search bar
             if (showSearchBar) {
                 OutlinedTextField(

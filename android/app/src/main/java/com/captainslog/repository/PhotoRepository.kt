@@ -123,7 +123,7 @@ class PhotoRepository(
             connectionManager.initialize()
             
             // Prefer local connection for photo uploads to save bandwidth
-            val apiService = connectionManager.getApiServicePreferLocal()
+            val apiService = connectionManager.getApiService()
 
             val file = File(photo.localPath)
             if (!file.exists()) {

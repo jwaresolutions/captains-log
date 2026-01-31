@@ -26,6 +26,7 @@ import com.captainslog.sync.OfflineStatus
 @Composable
 fun ConnectivityStatusBar(
     isConnected: Boolean,
+    isServerReachable: Boolean,
     connectionType: NetworkMonitor.ConnectionType,
     offlineStatus: OfflineStatus,
     isSyncing: Boolean,
@@ -34,7 +35,7 @@ fun ConnectivityStatusBar(
     modifier: Modifier = Modifier
 ) {
     // Only show the bar when there's something important to display
-    val shouldShow = !isConnected || offlineStatus.hasPendingChanges || isSyncing || hasUnresolvedConflicts
+    val shouldShow = !isConnected || (isConnected && !isServerReachable) || offlineStatus.hasPendingChanges || isSyncing || hasUnresolvedConflicts
     
     AnimatedVisibility(
         visible = shouldShow,
@@ -44,7 +45,7 @@ fun ConnectivityStatusBar(
     ) {
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            color = getStatusBarColor(isConnected, offlineStatus, hasUnresolvedConflicts),
+            color = getStatusBarColor(isConnected, isServerReachable, offlineStatus, hasUnresolvedConflicts),
             shadowElevation = 4.dp
         ) {
             Row(
@@ -60,9 +61,9 @@ fun ConnectivityStatusBar(
                     modifier = Modifier.weight(1f)
                 ) {
                     Icon(
-                        imageVector = getStatusIcon(isConnected, connectionType, isSyncing, hasUnresolvedConflicts),
+                        imageVector = getStatusIcon(isConnected, isServerReachable, connectionType, isSyncing, hasUnresolvedConflicts),
                         contentDescription = null,
-                        tint = getStatusTextColor(isConnected, offlineStatus, hasUnresolvedConflicts),
+                        tint = getStatusTextColor(isConnected, isServerReachable, offlineStatus, hasUnresolvedConflicts),
                         modifier = Modifier.size(20.dp)
                     )
                     
@@ -70,17 +71,17 @@ fun ConnectivityStatusBar(
                     
                     Column {
                         Text(
-                            text = getStatusTitle(isConnected, connectionType, isSyncing, hasUnresolvedConflicts),
+                            text = getStatusTitle(isConnected, isServerReachable, connectionType, isSyncing, hasUnresolvedConflicts),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
-                            color = getStatusTextColor(isConnected, offlineStatus, hasUnresolvedConflicts)
+                            color = getStatusTextColor(isConnected, isServerReachable, offlineStatus, hasUnresolvedConflicts)
                         )
-                        
+
                         if (offlineStatus.hasPendingChanges || hasUnresolvedConflicts) {
                             Text(
                                 text = getStatusSubtitle(offlineStatus, hasUnresolvedConflicts),
                                 fontSize = 12.sp,
-                                color = getStatusTextColor(isConnected, offlineStatus, hasUnresolvedConflicts).copy(alpha = 0.8f)
+                                color = getStatusTextColor(isConnected, isServerReachable, offlineStatus, hasUnresolvedConflicts).copy(alpha = 0.8f)
                             )
                         }
                     }
@@ -91,7 +92,7 @@ fun ConnectivityStatusBar(
                     TextButton(
                         onClick = onSyncConflictClick,
                         colors = ButtonDefaults.textButtonColors(
-                            contentColor = getStatusTextColor(isConnected, offlineStatus, hasUnresolvedConflicts)
+                            contentColor = getStatusTextColor(isConnected, isServerReachable, offlineStatus, hasUnresolvedConflicts)
                         )
                     ) {
                         Text(
@@ -101,13 +102,13 @@ fun ConnectivityStatusBar(
                         )
                     }
                 }
-                
+
                 // Syncing indicator
                 if (isSyncing) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(16.dp),
                         strokeWidth = 2.dp,
-                        color = getStatusTextColor(isConnected, offlineStatus, hasUnresolvedConflicts)
+                        color = getStatusTextColor(isConnected, isServerReachable, offlineStatus, hasUnresolvedConflicts)
                     )
                 }
             }
@@ -120,12 +121,14 @@ fun ConnectivityStatusBar(
  */
 private fun getStatusBarColor(
     isConnected: Boolean,
+    isServerReachable: Boolean,
     offlineStatus: OfflineStatus,
     hasUnresolvedConflicts: Boolean
 ): Color {
     return when {
         hasUnresolvedConflicts -> Color(0xFFFFEBEE) // Light red
         !isConnected -> Color(0xFFFFF3E0) // Light orange
+        !isServerReachable -> Color(0xFFFFF8E1) // Light amber
         offlineStatus.hasPendingChanges -> Color(0xFFE3F2FD) // Light blue
         else -> Color(0xFFE8F5E8) // Light green
     }
@@ -136,12 +139,14 @@ private fun getStatusBarColor(
  */
 private fun getStatusTextColor(
     isConnected: Boolean,
+    isServerReachable: Boolean,
     offlineStatus: OfflineStatus,
     hasUnresolvedConflicts: Boolean
 ): Color {
     return when {
         hasUnresolvedConflicts -> Color(0xFFD32F2F) // Red
         !isConnected -> Color(0xFFE65100) // Orange
+        !isServerReachable -> Color(0xFFF57F17) // Amber
         offlineStatus.hasPendingChanges -> Color(0xFF1976D2) // Blue
         else -> Color(0xFF388E3C) // Green
     }
@@ -152,12 +157,14 @@ private fun getStatusTextColor(
  */
 private fun getStatusIcon(
     isConnected: Boolean,
+    isServerReachable: Boolean,
     connectionType: NetworkMonitor.ConnectionType,
     isSyncing: Boolean,
     hasUnresolvedConflicts: Boolean
 ) = when {
     hasUnresolvedConflicts -> Icons.Default.Warning
     !isConnected -> Icons.Default.CloudOff
+    !isServerReachable -> Icons.Default.CloudOff
     isSyncing -> Icons.Default.Sync
     connectionType == NetworkMonitor.ConnectionType.WIFI -> Icons.Default.Wifi
     connectionType == NetworkMonitor.ConnectionType.MOBILE_DATA -> Icons.Default.SignalCellular4Bar
@@ -169,6 +176,7 @@ private fun getStatusIcon(
  */
 private fun getStatusTitle(
     isConnected: Boolean,
+    isServerReachable: Boolean,
     connectionType: NetworkMonitor.ConnectionType,
     isSyncing: Boolean,
     hasUnresolvedConflicts: Boolean
@@ -176,6 +184,7 @@ private fun getStatusTitle(
     return when {
         hasUnresolvedConflicts -> "Sync Conflicts"
         !isConnected -> "No Internet Connection"
+        !isServerReachable -> "Cannot Reach Server"
         isSyncing -> "Syncing..."
         connectionType == NetworkMonitor.ConnectionType.WIFI -> "Connected via WiFi"
         connectionType == NetworkMonitor.ConnectionType.MOBILE_DATA -> "Connected via Mobile Data"

@@ -114,46 +114,23 @@ class ConnectionManager(private val context: Context) {
     }
 
     /**
-     * Get the appropriate API service based on connection availability
-     * Tries local first with 2-second timeout, falls back to remote
+     * Get the appropriate API service based on connection availability.
+     * Returns local service if configured and on WiFi, otherwise remote.
+     * Actual fallback happens at the call site when the request fails.
      */
-    suspend fun getApiService(): ApiService {
-        // Try local connection first if available
-        if (localApiService != null) {
-            try {
-                // Attempt to use local connection
-                // The timeout is already configured in the OkHttpClient (2 seconds)
-                currentConnectionType = ConnectionType.LOCAL
-                return localApiService!!
-            } catch (e: Exception) {
-                // Local connection failed or timed out, fall back to remote
-                android.util.Log.w("ConnectionManager", "Local connection failed, falling back to remote: ${e.message}")
-                currentConnectionType = ConnectionType.REMOTE
-            }
+    fun getApiService(): ApiService {
+        if (localApiService != null && isOnWiFi()) {
+            currentConnectionType = ConnectionType.LOCAL
+            return localApiService!!
         }
-
-        // Use remote connection
         currentConnectionType = ConnectionType.REMOTE
         return remoteApiService ?: throw IllegalStateException("API service not initialized")
     }
 
     /**
-     * Get API service with preference for local connection when on WiFi
-     * This is useful for photo uploads to save bandwidth
+     * Get the remote API service directly, bypassing local.
      */
-    suspend fun getApiServicePreferLocal(): ApiService {
-        // Only try local if on WiFi
-        if (localApiService != null && isOnWiFi()) {
-            try {
-                currentConnectionType = ConnectionType.LOCAL
-                return localApiService!!
-            } catch (e: Exception) {
-                android.util.Log.w("ConnectionManager", "Local connection failed, falling back to remote: ${e.message}")
-                currentConnectionType = ConnectionType.REMOTE
-            }
-        }
-
-        // Use remote connection
+    fun getRemoteApiService(): ApiService {
         currentConnectionType = ConnectionType.REMOTE
         return remoteApiService ?: throw IllegalStateException("API service not initialized")
     }

@@ -55,11 +55,10 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
             _uiState.update { it.copy(isLoading = true, error = null) }
 
             try {
-                // Update server URL if changed
-                if (_uiState.value.serverUrl != securePreferences.remoteUrl) {
-                    securePreferences.remoteUrl = _uiState.value.serverUrl
-                    connectionManager.initialize()
-                }
+                // Save server URL (ensure trailing slash for Retrofit) and initialize
+                val url = _uiState.value.serverUrl.trimEnd('/')  + "/"
+                securePreferences.remoteUrl = url
+                connectionManager.initialize()
 
                 // Get API service (without auth for login endpoint)
                 val apiService = connectionManager.getApiService()

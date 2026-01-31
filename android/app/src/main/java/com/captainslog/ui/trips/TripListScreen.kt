@@ -107,10 +107,7 @@ fun TripListScreen(
         
         // Floating Action Button
         FloatingActionButton(
-            onClick = { 
-                android.util.Log.d("TripListScreen", "Start New Trip FAB clicked")
-                showStartDialog = true 
-            },
+            onClick = { showStartDialog = true },
             containerColor = if (hasActiveTrip) 
                 MaterialTheme.colorScheme.tertiary 
             else 
@@ -128,14 +125,9 @@ fun TripListScreen(
     
     // Start Trip Dialog
     if (showStartDialog) {
-        android.util.Log.d("TripListScreen", "Showing StartTripDialog")
         StartTripDialog(
-            onDismiss = { 
-                android.util.Log.d("TripListScreen", "Dialog dismissed")
-                showStartDialog = false 
-            },
+            onDismiss = { showStartDialog = false },
             onConfirm = { boatId, waterType, role ->
-                android.util.Log.d("TripListScreen", "Dialog confirmed: boatId=$boatId")
                 onStartNewTrip(boatId, waterType, role)
                 showStartDialog = false
             },
@@ -223,11 +215,11 @@ fun TripListItem(
                 Column(horizontalAlignment = Alignment.End) {
                     TripDetailRow(
                         label = "Water:",
-                        value = trip.waterType.capitalize(Locale.getDefault())
+                        value = trip.waterType.replaceFirstChar { it.uppercase() }
                     )
                     TripDetailRow(
                         label = "Role:",
-                        value = trip.role.capitalize(Locale.getDefault())
+                        value = trip.role.replaceFirstChar { it.uppercase() }
                     )
                 }
             }
@@ -315,7 +307,7 @@ fun ActiveTripCard(
             )
             
             Text(
-                text = "Water: ${trip.waterType.capitalize(Locale.getDefault())} • Role: ${trip.role.capitalize(Locale.getDefault())}",
+                text = "Water: ${trip.waterType.replaceFirstChar { it.uppercase() }} • Role: ${trip.role.replaceFirstChar { it.uppercase() }}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onErrorContainer
             )

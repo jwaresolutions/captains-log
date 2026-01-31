@@ -8,6 +8,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.unit.dp
 import com.captainslog.database.entities.BoatEntity
 import com.captainslog.database.entities.TripEntity
@@ -29,8 +31,6 @@ fun ActiveTripScreen(
     activeBoat: BoatEntity? = null,
     errorMessage: String? = null,
     onErrorDismissed: () -> Unit = {},
-    onForceCleanup: () -> Unit = {},
-    onRefreshState: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var showStartDialog by remember { mutableStateOf(false) }
@@ -64,133 +64,17 @@ fun ActiveTripScreen(
             modifier = modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(24.dp),
+                .padding(24.dp)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
-            // Debug info (ALWAYS visible) - BRIGHT YELLOW BACKGROUND
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = androidx.compose.ui.graphics.Color.Yellow)
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Debug Info:", style = MaterialTheme.typography.titleSmall)
-                    Text("isTracking: $isTracking", style = MaterialTheme.typography.bodySmall)
-                    Text("currentTrip: ${if (currentTrip != null) "Not null (${currentTrip.id})" else "null"}", style = MaterialTheme.typography.bodySmall)
-                    Text("Show stop button: ${isTracking && currentTrip != null}", style = MaterialTheme.typography.bodySmall)
-                    Text("Available boats: ${boats.size}", style = MaterialTheme.typography.bodySmall)
-                    Text("Active boat: ${activeBoat?.name ?: "none"}", style = MaterialTheme.typography.bodySmall)
-                    Text("Error: ${errorMessage ?: "none"}", style = MaterialTheme.typography.bodySmall)
-                    
-                    // More detailed debug info
-                    Text("isTracking type: ${isTracking::class.simpleName}", style = MaterialTheme.typography.bodySmall)
-                    Text("currentTrip type: ${currentTrip?.let { it::class.simpleName } ?: "null"}", style = MaterialTheme.typography.bodySmall)
-                    if (currentTrip != null) {
-                        Text("Trip ID: ${currentTrip.id}", style = MaterialTheme.typography.bodySmall)
-                        Text("Trip start: ${currentTrip.startTime}", style = MaterialTheme.typography.bodySmall)
-                        Text("Trip end: ${currentTrip.endTime ?: "null"}", style = MaterialTheme.typography.bodySmall)
-                    }
-                    
-                    Spacer(modifier = Modifier.height(8.dp))
-                    
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Button(
-                            onClick = {
-                                android.util.Log.d("ActiveTripScreen", "Force cleanup button clicked")
-                                onForceCleanup()
-                            },
-                            modifier = Modifier.weight(1f),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.secondary
-                            )
-                        ) {
-                            Text("Cleanup", style = MaterialTheme.typography.bodySmall)
-                        }
-                        
-                        Button(
-                            onClick = {
-                                android.util.Log.d("ActiveTripScreen", "Manual refresh button clicked")
-                                onRefreshState()
-                            },
-                            modifier = Modifier.weight(1f),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.tertiary
-                            )
-                        ) {
-                            Text("Refresh", style = MaterialTheme.typography.bodySmall)
-                        }
-                        
-                        Button(
-                            onClick = {
-                                android.util.Log.d("ActiveTripScreen", "Force stop button clicked")
-                                onStopTrip()
-                            },
-                            modifier = Modifier.weight(1f),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.error
-                            )
-                        ) {
-                            Text("STOP", style = MaterialTheme.typography.bodySmall)
-                        }
-                    }
-                }
-            }
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            // MAIN CONTENT AREA
             if (isTracking && currentTrip != null) {
-                // Show active trip information WITH STOP BUTTON
+                // Show active trip information with stop button
                 ActiveTripInfo(
                     trip = currentTrip,
                     onStopTrip = onStopTrip
                 )
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                // ALSO SHOW DEBUG CARD WHEN TRIP IS ACTIVE
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = androidx.compose.ui.graphics.Color.Red.copy(alpha = 0.3f))
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text("EMERGENCY CONTROLS:", style = MaterialTheme.typography.titleSmall)
-                        
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Button(
-                                onClick = {
-                                    android.util.Log.d("ActiveTripScreen", "Emergency stop button clicked")
-                                    onStopTrip()
-                                },
-                                modifier = Modifier.weight(1f),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.error
-                                )
-                            ) {
-                                Text("EMERGENCY STOP", style = MaterialTheme.typography.bodySmall)
-                            }
-                            
-                            Button(
-                                onClick = {
-                                    android.util.Log.d("ActiveTripScreen", "Manual refresh button clicked")
-                                    onRefreshState()
-                                },
-                                modifier = Modifier.weight(1f),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.tertiary
-                                )
-                            ) {
-                                Text("Refresh", style = MaterialTheme.typography.bodySmall)
-                            }
-                        }
-                    }
-                }
             } else {
                 // Show start trip button
                 Icon(
@@ -219,10 +103,7 @@ fun ActiveTripScreen(
                 Spacer(modifier = Modifier.height(32.dp))
                 
                 Button(
-                    onClick = { 
-                        android.util.Log.d("ActiveTripScreen", "Start Trip button clicked")
-                        showStartDialog = true 
-                    },
+                    onClick = { showStartDialog = true },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp)
@@ -236,14 +117,9 @@ fun ActiveTripScreen(
     }
     
     if (showStartDialog) {
-        android.util.Log.d("ActiveTripScreen", "Showing StartTripDialog")
         StartTripDialog(
-            onDismiss = { 
-                android.util.Log.d("ActiveTripScreen", "Dialog dismissed")
-                showStartDialog = false 
-            },
+            onDismiss = { showStartDialog = false },
             onConfirm = { boatId, waterType, role ->
-                android.util.Log.d("ActiveTripScreen", "Dialog confirmed: boatId=$boatId")
                 onStartTrip(boatId, waterType, role)
                 showStartDialog = false
             },
@@ -284,10 +160,10 @@ fun ActiveTripInfo(
             InfoRow(label = "Started", value = formatDateTime(trip.startTime))
             Spacer(modifier = Modifier.height(12.dp))
             
-            InfoRow(label = "Water Type", value = trip.waterType.capitalize(Locale.getDefault()))
+            InfoRow(label = "Water Type", value = trip.waterType.replaceFirstChar { it.uppercase() })
             Spacer(modifier = Modifier.height(12.dp))
             
-            InfoRow(label = "Role", value = trip.role.capitalize(Locale.getDefault()))
+            InfoRow(label = "Role", value = trip.role.replaceFirstChar { it.uppercase() })
             Spacer(modifier = Modifier.height(12.dp))
             
             InfoRow(label = "Boat ID", value = trip.boatId)
@@ -298,8 +174,14 @@ fun ActiveTripInfo(
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            // Duration counter
-            val currentTime by remember { mutableStateOf(System.currentTimeMillis()) }
+            // Live duration counter - updates every second
+            var currentTime by remember { mutableStateOf(System.currentTimeMillis()) }
+            LaunchedEffect(Unit) {
+                while (true) {
+                    kotlinx.coroutines.delay(1000)
+                    currentTime = System.currentTimeMillis()
+                }
+            }
             val durationMinutes = (currentTime - trip.startTime.time) / (1000 * 60)
             
             Text(
@@ -310,12 +192,8 @@ fun ActiveTripInfo(
             
             Spacer(modifier = Modifier.height(24.dp))
             
-            // STOP TRIP BUTTON - ALWAYS VISIBLE IN TRIP DETAILS
             Button(
-                onClick = {
-                    android.util.Log.d("ActiveTripInfo", "STOP TRIP button clicked")
-                    onStopTrip()
-                },
+                onClick = onStopTrip,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -448,7 +326,7 @@ fun StartTripDialog(
                         onExpandedChange = { expandedWaterType = it }
                     ) {
                         OutlinedTextField(
-                            value = waterType.capitalize(Locale.getDefault()),
+                            value = waterType.replaceFirstChar { it.uppercase() },
                             onValueChange = {},
                             readOnly = true,
                             label = { Text("Water Type") },
@@ -463,7 +341,7 @@ fun StartTripDialog(
                         ) {
                             waterTypes.forEach { type ->
                                 DropdownMenuItem(
-                                    text = { Text(type.capitalize(Locale.getDefault())) },
+                                    text = { Text(type.replaceFirstChar { it.uppercase() }) },
                                     onClick = {
                                         waterType = type
                                         expandedWaterType = false
@@ -479,7 +357,7 @@ fun StartTripDialog(
                         onExpandedChange = { expandedRole = it }
                     ) {
                         OutlinedTextField(
-                            value = role.capitalize(Locale.getDefault()),
+                            value = role.replaceFirstChar { it.uppercase() },
                             onValueChange = {},
                             readOnly = true,
                             label = { Text("Role") },
@@ -494,7 +372,7 @@ fun StartTripDialog(
                         ) {
                             roles.forEach { r ->
                                 DropdownMenuItem(
-                                    text = { Text(r.capitalize(Locale.getDefault())) },
+                                    text = { Text(r.replaceFirstChar { it.uppercase() }) },
                                     onClick = {
                                         role = r
                                         expandedRole = false

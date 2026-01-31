@@ -134,14 +134,28 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// MainContent composable removed - app now opens directly to MainApp()
-// LoginScreen is still available via Settings -> Server Configuration
-
 @Composable
 fun MainApp() {
+    val context = LocalContext.current
+    val securePrefs = remember { SecurePreferences(context) }
+    var isAuthenticated by remember { mutableStateOf(!securePrefs.jwtToken.isNullOrEmpty()) }
+
+    if (!isAuthenticated) {
+        com.captainslog.ui.auth.LoginScreen(
+            onLoginSuccess = { isAuthenticated = true }
+        )
+        return
+    }
+
+    MainAppContent()
+}
+
+@Composable
+fun MainAppContent() {
     // Get network and sync status
     val networkMonitor = NetworkMonitor.getInstance(LocalContext.current)
     val isConnected by networkMonitor.isConnected.collectAsState()
+    val isServerReachable by networkMonitor.isServerReachable.collectAsState()
     val connectionType by networkMonitor.connectionType.collectAsState()
     
     // Get database and sync services
@@ -197,6 +211,7 @@ fun MainApp() {
         // Connectivity status bar at the top
         ConnectivityStatusBar(
             isConnected = isConnected,
+            isServerReachable = isServerReachable,
             connectionType = connectionType,
             offlineStatus = offlineStatus,
             isSyncing = isSyncing || isComprehensiveSyncing,

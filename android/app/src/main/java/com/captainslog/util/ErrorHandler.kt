@@ -7,6 +7,7 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.io.IOException
+import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import javax.net.ssl.SSLException
@@ -27,7 +28,8 @@ object ErrorHandler {
         showToast: Boolean = true
     ): String {
         val message = when (error) {
-            is UnknownHostException -> "No internet connection available"
+            is UnknownHostException -> "Unable to reach server. Check your connection"
+            is ConnectException -> "Unable to reach server. The server may be unavailable"
             is SocketTimeoutException -> "Connection timed out. Please try again"
             is SSLException -> "Secure connection failed. Please check your network"
             is IOException -> "Network error occurred. Please try again"
@@ -112,7 +114,8 @@ object ErrorHandler {
         showToast: Boolean = false
     ): String {
         val message = when (error) {
-            is UnknownHostException -> "Sync failed: No internet connection"
+            is UnknownHostException -> "Sync failed: Unable to reach server"
+            is ConnectException -> "Sync failed: Server unavailable"
             is SocketTimeoutException -> "Sync failed: Connection timeout"
             else -> "Sync failed: ${error.message ?: "Unknown error"}"
         }
@@ -160,7 +163,8 @@ object ErrorHandler {
             Log.e(TAG, "Coroutine Exception", exception)
             
             val message = when (exception) {
-                is UnknownHostException -> "No internet connection"
+                is UnknownHostException -> "Unable to reach server"
+                is ConnectException -> "Server unavailable"
                 is SocketTimeoutException -> "Connection timeout"
                 is IOException -> "Network error"
                 else -> "An unexpected error occurred"

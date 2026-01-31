@@ -183,16 +183,19 @@ class TripRepository(
             )
         }
 
+        // Sort by timestamp to ensure correct order for distance calculation
+        val sortedPoints = gpsPoints.sortedBy { it.timestamp }
+
         // Calculate duration
-        val startTime = gpsPoints.first().timestamp.time
-        val endTime = gpsPoints.last().timestamp.time
+        val startTime = sortedPoints.first().timestamp.time
+        val endTime = sortedPoints.last().timestamp.time
         val durationSeconds = (endTime - startTime) / 1000
 
         // Calculate distance using Haversine formula
         var totalDistance = 0.0
-        for (i in 1 until gpsPoints.size) {
-            val prev = gpsPoints[i - 1]
-            val curr = gpsPoints[i]
+        for (i in 1 until sortedPoints.size) {
+            val prev = sortedPoints[i - 1]
+            val curr = sortedPoints[i]
             totalDistance += calculateDistance(
                 prev.latitude, prev.longitude,
                 curr.latitude, curr.longitude
@@ -200,7 +203,7 @@ class TripRepository(
         }
 
         // Calculate speeds
-        val speeds = gpsPoints.mapNotNull { it.speed?.toDouble() }
+        val speeds = sortedPoints.mapNotNull { it.speed?.toDouble() }
         val averageSpeed = if (speeds.isNotEmpty()) speeds.average() else 0.0
         val maxSpeed = speeds.maxOrNull() ?: 0.0
 

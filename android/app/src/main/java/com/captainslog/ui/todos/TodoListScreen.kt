@@ -24,7 +24,6 @@ import com.captainslog.viewmodel.TodoViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TodoListScreen(
     modifier: Modifier = Modifier,
@@ -46,11 +45,6 @@ fun TodoListScreen(
 
     Scaffold(
         modifier = modifier,
-        topBar = {
-            TopAppBar(
-                title = { Text("To-Do Lists") }
-            )
-        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showCreateDialog = true }

@@ -6,7 +6,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -90,41 +89,30 @@ fun NoteEditorScreen(
 
     Scaffold(
         modifier = modifier,
-        topBar = {
-            TopAppBar(
-                title = { Text(if (noteId == null) "New Note" else "Edit Note") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    if (noteId == null) {
+                        noteViewModel.createNote(
+                            content = content,
+                            type = noteType,
+                            boatId = selectedBoatId,
+                            tripId = selectedTripId,
+                            tags = tags
+                        )
+                    } else {
+                        noteViewModel.updateNote(
+                            noteId = noteId,
+                            content = content,
+                            tags = tags
+                        )
                     }
                 },
-                actions = {
-                    IconButton(
-                        onClick = {
-                            if (noteId == null) {
-                                noteViewModel.createNote(
-                                    content = content,
-                                    type = noteType,
-                                    boatId = selectedBoatId,
-                                    tripId = selectedTripId,
-                                    tags = tags
-                                )
-                            } else {
-                                noteViewModel.updateNote(
-                                    noteId = noteId,
-                                    content = content,
-                                    tags = tags
-                                )
-                            }
-                        },
-                        enabled = content.isNotBlank() && !isLoading
-                    ) {
-                        Icon(Icons.Default.Check, contentDescription = "Save")
-                    }
-                }
-            )
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+            ) {
+                Icon(Icons.Default.Check, contentDescription = "Save")
+            }
+        }
     ) { paddingValues ->
         Column(
             modifier = Modifier

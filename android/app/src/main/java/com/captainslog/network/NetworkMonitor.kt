@@ -9,6 +9,8 @@ import android.util.Log
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.*
+import com.captainslog.connection.ConnectionManager
 
 /**
  * Monitors network connectivity and provides real-time connection status
@@ -44,9 +46,15 @@ class NetworkMonitor(private val context: Context) {
     
     private val _connectionType = MutableStateFlow(ConnectionType.NONE)
     val connectionType: StateFlow<ConnectionType> = _connectionType.asStateFlow()
-    
+
+    private val _isServerReachable = MutableStateFlow(false)
+    val isServerReachable: StateFlow<Boolean> = _isServerReachable.asStateFlow()
+
     // Callback for connection changes
     var onConnectionChanged: ((Boolean, ConnectionType) -> Unit)? = null
+
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private var serverCheckJob: Job? = null
     
     enum class ConnectionType {
         NONE, WIFI, MOBILE_DATA, ETHERNET, OTHER
@@ -114,8 +122,31 @@ class NetworkMonitor(private val context: Context) {
         
         // Notify callback
         onConnectionChanged?.invoke(hasInternet, connectionType)
-        
+
         Log.d(TAG, "Connection state updated: connected=$hasInternet, type=$connectionType")
+        checkServerReachability()
+    }
+
+    /**
+     * Check if the backend server is reachable by calling the health endpoint.
+     * Only runs when internet connectivity is available.
+     */
+    private fun checkServerReachability() {
+        serverCheckJob?.cancel()
+        if (!_isConnected.value) {
+            _isServerReachable.value = false
+            return
+        }
+        serverCheckJob = scope.launch {
+            try {
+                val connectionManager = ConnectionManager.getInstance(context)
+                val (localOk, remoteOk) = connectionManager.testConnections()
+                _isServerReachable.value = localOk || remoteOk
+            } catch (e: Exception) {
+                Log.w(TAG, "Server reachability check failed", e)
+                _isServerReachable.value = false
+            }
+        }
     }
     
     /**
@@ -126,7 +157,8 @@ class NetworkMonitor(private val context: Context) {
             isConnected = _isConnected.value,
             isOnWiFi = _isOnWiFi.value,
             isOnMobileData = _isOnMobileData.value,
-            connectionType = _connectionType.value
+            connectionType = _connectionType.value,
+            isServerReachable = _isServerReachable.value
         )
     }
     
@@ -149,6 +181,7 @@ class NetworkMonitor(private val context: Context) {
      */
     fun cleanup() {
         try {
+            scope.cancel()
             connectivityManager.unregisterNetworkCallback(networkCallback)
             Log.d(TAG, "Network callback unregistered")
         } catch (e: Exception) {
@@ -164,5 +197,6 @@ data class ConnectionStatus(
     val isConnected: Boolean,
     val isOnWiFi: Boolean,
     val isOnMobileData: Boolean,
-    val connectionType: NetworkMonitor.ConnectionType
+    val connectionType: NetworkMonitor.ConnectionType,
+    val isServerReachable: Boolean
 )

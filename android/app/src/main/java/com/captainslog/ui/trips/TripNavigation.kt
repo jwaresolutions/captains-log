@@ -7,6 +7,7 @@ import com.captainslog.viewmodel.TripTrackingViewModel
 import com.captainslog.viewmodel.BoatViewModel
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
+import com.captainslog.ui.components.BreadcrumbItem
 
 /**
  * Navigation component for trip-related screens.
@@ -16,7 +17,8 @@ import kotlinx.coroutines.launch
 fun TripNavigation(
     modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier,
     viewModel: TripTrackingViewModel = viewModel(),
-    boatViewModel: BoatViewModel = viewModel()
+    boatViewModel: BoatViewModel = viewModel(),
+    onBreadcrumbChanged: (List<BreadcrumbItem>, (() -> Unit)?) -> Unit = { _, _ -> }
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -39,12 +41,23 @@ fun TripNavigation(
     // Navigation state
     var currentScreen by remember { mutableStateOf<TripScreen>(TripScreen.TripList) }
     var selectedTripId by remember { mutableStateOf<String?>(null) }
-    
+
+    // Report breadcrumbs on screen change
+    LaunchedEffect(currentScreen) {
+        val crumbs = when (currentScreen) {
+            TripScreen.TripList -> emptyList()
+            TripScreen.TripDetail -> listOf(BreadcrumbItem("Trip Detail"))
+        }
+        val backToRoot: (() -> Unit)? = if (currentScreen != TripScreen.TripList) {
+            { currentScreen = TripScreen.TripList; selectedTripId = null }
+        } else null
+        onBreadcrumbChanged(crumbs, backToRoot)
+    }
+
     // Auto-navigate to TripDetail when tracking starts
     LaunchedEffect(isTracking, currentTrip) {
         val trip = currentTrip
         if (isTracking && trip != null && currentScreen == TripScreen.TripList) {
-            android.util.Log.d("TripNavigation", "Auto-navigating to TripDetail because trip is active")
             selectedTripId = trip.id
             currentScreen = TripScreen.TripDetail
         }
@@ -67,7 +80,6 @@ fun TripNavigation(
                     currentScreen = TripScreen.TripDetail
                 },
                 onStartNewTrip = { boatId, waterType, role ->
-                    android.util.Log.d("TripNavigation", "onStartTrip called: boatId=$boatId, waterType=$waterType, role=$role")
                     viewModel.startTrip(
                         context = context,
                         boatId = boatId,
@@ -88,18 +100,9 @@ fun TripNavigation(
                 activeBoat = activeBoat,
                 isTracking = isTracking,
                 currentTrip = currentTrip,
-                onForceCleanup = {
-                    android.util.Log.d("TripNavigation", "Force cleanup requested")
-                    viewModel.forceCleanup()
-                },
-                onRefreshState = {
-                    android.util.Log.d("TripNavigation", "Manual refresh requested")
-                    viewModel.refreshState()
-                },
-                onNuclearStop = {
-                    android.util.Log.d("TripNavigation", "NUCLEAR STOP requested")
-                    viewModel.forceStopEverything(context)
-                },
+                onForceCleanup = { viewModel.forceCleanup() },
+                onRefreshState = { viewModel.refreshState() },
+                onNuclearStop = { viewModel.forceStopEverything(context) },
                 modifier = modifier
             )
         }
@@ -129,14 +132,11 @@ fun TripNavigation(
                             selectedTripId = null
                         },
                         onStopTrip = {
-                            android.util.Log.d("TripNavigation", "Stop trip called from TripDetailScreen")
-                            // Use force stop for more aggressive stopping
                             viewModel.forceStopEverything(context)
                             currentScreen = TripScreen.TripList
                             selectedTripId = null
                         },
                         onUpdateManualData = { updatedTrip ->
-                            android.util.Log.d("TripNavigation", "Updating trip data for trip ${updatedTrip.id}")
                             scope.launch {
                                 viewModel.updateTripManualData(updatedTrip)
                             }

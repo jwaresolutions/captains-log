@@ -4,8 +4,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -59,198 +57,182 @@ fun MaintenanceTemplateFormScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(if (templateId == null) "Create Template" else "Edit Template") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState())
+            .windowInsetsPadding(WindowInsets.ime),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // Boat selection
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded }
+        ) {
+            OutlinedTextField(
+                value = boats.find { it.id == selectedBoatId }?.name ?: "Select Boat",
+                onValueChange = { },
+                readOnly = true,
+                label = { Text("Boat") },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .menuAnchor()
+            )
+
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                boats.forEach { boat ->
+                    DropdownMenuItem(
+                        text = { Text(boat.name) },
+                        onClick = {
+                            selectedBoatId = boat.id
+                            expanded = false
+                        }
+                    )
                 }
+            }
+        }
+
+        OutlinedTextField(
+            value = title,
+            onValueChange = { title = it },
+            label = { Text("Title") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        OutlinedTextField(
+            value = description,
+            onValueChange = { description = it },
+            label = { Text("Description") },
+            modifier = Modifier.fillMaxWidth(),
+            minLines = 2
+        )
+
+        OutlinedTextField(
+            value = component,
+            onValueChange = { component = it },
+            label = { Text("Component/System") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            OutlinedTextField(
+                value = estimatedCost,
+                onValueChange = { estimatedCost = it },
+                label = { Text("Estimated Cost") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                modifier = Modifier.weight(1f)
+            )
+
+            OutlinedTextField(
+                value = estimatedTime,
+                onValueChange = { estimatedTime = it },
+                label = { Text("Time (min)") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.weight(1f)
             )
         }
-    ) { paddingValues ->
-        Column(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState())
-                .windowInsetsPadding(WindowInsets.ime),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+
+        Text(
+            text = "Recurrence Schedule",
+            style = MaterialTheme.typography.titleMedium
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // Boat selection
+            Text("Every")
+
+            OutlinedTextField(
+                value = recurrenceInterval,
+                onValueChange = { recurrenceInterval = it },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.width(80.dp)
+            )
+
+            var typeExpanded by remember { mutableStateOf(false) }
             ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = !expanded }
+                expanded = typeExpanded,
+                onExpandedChange = { typeExpanded = !typeExpanded }
             ) {
                 OutlinedTextField(
-                    value = boats.find { it.id == selectedBoatId }?.name ?: "Select Boat",
+                    value = recurrenceType,
                     onValueChange = { },
                     readOnly = true,
-                    label = { Text("Boat") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = typeExpanded) },
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .weight(1f)
                         .menuAnchor()
                 )
-                
+
                 ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
+                    expanded = typeExpanded,
+                    onDismissRequest = { typeExpanded = false }
                 ) {
-                    boats.forEach { boat ->
+                    listOf("days", "weeks", "months", "years", "engine_hours").forEach { type ->
                         DropdownMenuItem(
-                            text = { Text(boat.name) },
+                            text = { Text(type) },
                             onClick = {
-                                selectedBoatId = boat.id
-                                expanded = false
+                                recurrenceType = type
+                                typeExpanded = false
                             }
                         )
                     }
                 }
             }
+        }
 
-            OutlinedTextField(
-                value = title,
-                onValueChange = { title = it },
-                label = { Text("Title") },
-                modifier = Modifier.fillMaxWidth()
-            )
+        Spacer(modifier = Modifier.height(16.dp))
 
-            OutlinedTextField(
-                value = description,
-                onValueChange = { description = it },
-                label = { Text("Description") },
-                modifier = Modifier.fillMaxWidth(),
-                minLines = 2
-            )
+        Button(
+            onClick = {
+                val cost = estimatedCost.toDoubleOrNull()
+                val time = estimatedTime.toIntOrNull()
+                val interval = recurrenceInterval.toIntOrNull() ?: 1
 
-            OutlinedTextField(
-                value = component,
-                onValueChange = { component = it },
-                label = { Text("Component/System") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                OutlinedTextField(
-                    value = estimatedCost,
-                    onValueChange = { estimatedCost = it },
-                    label = { Text("Estimated Cost") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    modifier = Modifier.weight(1f)
-                )
-
-                OutlinedTextField(
-                    value = estimatedTime,
-                    onValueChange = { estimatedTime = it },
-                    label = { Text("Time (min)") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            Text(
-                text = "Recurrence Schedule",
-                style = MaterialTheme.typography.titleMedium
-            )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Every")
-                
-                OutlinedTextField(
-                    value = recurrenceInterval,
-                    onValueChange = { recurrenceInterval = it },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.width(80.dp)
-                )
-
-                var typeExpanded by remember { mutableStateOf(false) }
-                ExposedDropdownMenuBox(
-                    expanded = typeExpanded,
-                    onExpandedChange = { typeExpanded = !typeExpanded }
-                ) {
-                    OutlinedTextField(
-                        value = recurrenceType,
-                        onValueChange = { },
-                        readOnly = true,
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = typeExpanded) },
-                        modifier = Modifier
-                            .weight(1f)
-                            .menuAnchor()
+                if (templateId == null) {
+                    viewModel.createTemplate(
+                        boatId = selectedBoatId,
+                        title = title,
+                        description = description,
+                        component = component,
+                        estimatedCost = cost,
+                        estimatedTime = time,
+                        recurrenceType = recurrenceType,
+                        recurrenceInterval = interval
                     )
-                    
-                    ExposedDropdownMenu(
-                        expanded = typeExpanded,
-                        onDismissRequest = { typeExpanded = false }
-                    ) {
-                        listOf("days", "weeks", "months", "years", "engine_hours").forEach { type ->
-                            DropdownMenuItem(
-                                text = { Text(type) },
-                                onClick = {
-                                    recurrenceType = type
-                                    typeExpanded = false
-                                }
+                } else {
+                    template?.let { tmpl ->
+                        viewModel.updateTemplate(
+                            tmpl.copy(
+                                boatId = selectedBoatId,
+                                title = title,
+                                description = description,
+                                component = component,
+                                estimatedCost = cost,
+                                estimatedTime = time,
+                                recurrenceType = recurrenceType,
+                                recurrenceInterval = interval
                             )
-                        }
+                        )
                     }
                 }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Button(
-                onClick = {
-                    val cost = estimatedCost.toDoubleOrNull()
-                    val time = estimatedTime.toIntOrNull()
-                    val interval = recurrenceInterval.toIntOrNull() ?: 1
-
-                    if (templateId == null) {
-                        // Create new template
-                        viewModel.createTemplate(
-                            boatId = selectedBoatId,
-                            title = title,
-                            description = description,
-                            component = component,
-                            estimatedCost = cost,
-                            estimatedTime = time,
-                            recurrenceType = recurrenceType,
-                            recurrenceInterval = interval
-                        )
-                    } else {
-                        // Update existing template
-                        template?.let { tmpl ->
-                            viewModel.updateTemplate(
-                                tmpl.copy(
-                                    boatId = selectedBoatId,
-                                    title = title,
-                                    description = description,
-                                    component = component,
-                                    estimatedCost = cost,
-                                    estimatedTime = time,
-                                    recurrenceType = recurrenceType,
-                                    recurrenceInterval = interval
-                                )
-                            )
-                        }
-                    }
-                    onNavigateBack()
-                },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = selectedBoatId.isNotEmpty() && title.isNotEmpty() && 
-                         description.isNotEmpty() && component.isNotEmpty()
-            ) {
-                Text(if (templateId == null) "Create Template" else "Update Template")
-            }
+                onNavigateBack()
+            },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = selectedBoatId.isNotEmpty() && title.isNotEmpty() &&
+                     description.isNotEmpty() && component.isNotEmpty()
+        ) {
+            Text(if (templateId == null) "Create Template" else "Update Template")
         }
     }
 }

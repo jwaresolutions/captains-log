@@ -2,6 +2,7 @@ package com.captainslog.ui.notes
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import com.captainslog.ui.components.BreadcrumbItem
 
 /**
  * Navigation component for the Notes section.
@@ -9,13 +10,26 @@ import androidx.compose.ui.Modifier
  */
 @Composable
 fun NotesNavigation(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onBreadcrumbChanged: (List<BreadcrumbItem>, (() -> Unit)?) -> Unit = { _, _ -> }
 ) {
     var currentScreen by remember { mutableStateOf(NotesScreen.List) }
     var editingNoteId by remember { mutableStateOf<String?>(null) }
     var createNoteType by remember { mutableStateOf("general") }
     var createBoatId by remember { mutableStateOf<String?>(null) }
     var createTripId by remember { mutableStateOf<String?>(null) }
+
+    // Report breadcrumbs on screen change
+    LaunchedEffect(currentScreen) {
+        val crumbs = when (currentScreen) {
+            NotesScreen.List -> emptyList()
+            NotesScreen.Editor -> listOf(BreadcrumbItem("Editor"))
+        }
+        val backToRoot: (() -> Unit)? = if (currentScreen != NotesScreen.List) {
+            { currentScreen = NotesScreen.List }
+        } else null
+        onBreadcrumbChanged(crumbs, backToRoot)
+    }
 
     when (currentScreen) {
         NotesScreen.List -> {
