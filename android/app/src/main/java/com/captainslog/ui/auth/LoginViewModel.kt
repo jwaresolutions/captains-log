@@ -20,7 +20,8 @@ data class LoginUiState(
     val serverUrl: String = "",
     val isLoading: Boolean = false,
     val error: String? = null,
-    val hasStoredToken: Boolean = false
+    val hasStoredToken: Boolean = false,
+    val saveUsername: Boolean = false
 ) {
     val canLogin: Boolean
         get() = username.isNotBlank() && password.isNotBlank() && serverUrl.isNotBlank()
@@ -32,11 +33,27 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(
         LoginUiState(
+            username = if (securePreferences.saveUsername) securePreferences.username ?: "" else "",
             serverUrl = securePreferences.remoteUrl ?: BuildConfig.DEFAULT_SERVER_URL,
-            hasStoredToken = securePreferences.jwtToken != null
+            hasStoredToken = securePreferences.jwtToken != null,
+            saveUsername = securePreferences.saveUsername
         )
     )
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
+
+    /**
+     * Re-read state from preferences. Called when LoginScreen appears
+     * to pick up changes made by logout from a different ViewModel instance.
+     */
+    fun refreshState() {
+        _uiState.value = LoginUiState(
+            username = if (securePreferences.saveUsername) securePreferences.username ?: "" else "",
+            password = "",
+            serverUrl = securePreferences.remoteUrl ?: BuildConfig.DEFAULT_SERVER_URL,
+            hasStoredToken = securePreferences.jwtToken != null,
+            saveUsername = securePreferences.saveUsername
+        )
+    }
 
     fun updateUsername(username: String) {
         _uiState.update { it.copy(username = username, error = null) }
@@ -48,6 +65,11 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
     fun updateServerUrl(serverUrl: String) {
         _uiState.update { it.copy(serverUrl = serverUrl, error = null) }
+    }
+
+    fun updateSaveUsername(save: Boolean) {
+        securePreferences.saveUsername = save
+        _uiState.update { it.copy(saveUsername = save) }
     }
 
     fun login(onSuccess: () -> Unit) {
@@ -161,8 +183,19 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
             } finally {
                 // Clear local session regardless of API call result
                 securePreferences.jwtToken = null
-                securePreferences.username = null
-                
+                if (!securePreferences.saveUsername) {
+                    securePreferences.username = null
+                }
+
+                // Reset UI state for login screen
+                _uiState.value = LoginUiState(
+                    username = if (securePreferences.saveUsername) securePreferences.username ?: "" else "",
+                    password = "",
+                    serverUrl = securePreferences.remoteUrl ?: BuildConfig.DEFAULT_SERVER_URL,
+                    hasStoredToken = false,
+                    saveUsername = securePreferences.saveUsername
+                )
+
                 // Reinitialize connection manager
                 connectionManager.initialize()
             }

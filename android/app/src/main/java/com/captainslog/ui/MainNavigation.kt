@@ -31,7 +31,7 @@ import com.captainslog.ui.trips.TripNavigation
  * All tabs are always visible. Top bar shows breadcrumb trail.
  */
 @Composable
-fun MainNavigation() {
+fun MainNavigation(onSignOut: () -> Unit = {}) {
     var selectedTab by remember { mutableStateOf(NavigationTab.Home) }
 
     // Track current screen (including top bar actions)
@@ -70,7 +70,6 @@ fun MainNavigation() {
     // Main navigation with integrated top bar actions
     Scaffold(
         topBar = {
-            val isOnNonTabScreen = currentScreen !is CurrentScreen.Tab
             com.captainslog.ui.components.AppTopBar(
                 breadcrumbs = breadcrumbs,
                 onNotesClick = {
@@ -89,17 +88,6 @@ fun MainNavigation() {
                 notesActive = currentScreen == CurrentScreen.Notes,
                 todosActive = currentScreen == CurrentScreen.Todos,
                 settingsActive = currentScreen == CurrentScreen.Settings,
-                onBackClick = if (nestedBreadcrumbs.isNotEmpty() && childBackHandler != null) {
-                    {
-                        childBackHandler?.invoke()
-                    }
-                } else if (isOnNonTabScreen) {
-                    {
-                        nestedBreadcrumbs = emptyList()
-                        childBackHandler = null
-                        currentScreen = CurrentScreen.Tab(selectedTab)
-                    }
-                } else null,
                 onTitleClick = {
                     nestedBreadcrumbs = emptyList()
                     childBackHandler = null
@@ -213,6 +201,11 @@ fun MainNavigation() {
                     onTodosClick = {
                         nestedBreadcrumbs = emptyList()
                         currentScreen = CurrentScreen.Todos
+                    },
+                    onSignOut = onSignOut,
+                    onBreadcrumbChanged = { crumbs, backToRoot ->
+                        nestedBreadcrumbs = crumbs
+                        childBackHandler = backToRoot
                     }
                 )
             }

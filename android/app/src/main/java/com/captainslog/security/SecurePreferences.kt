@@ -26,6 +26,7 @@ class SecurePreferences(context: Context) {
         private const val KEY_LOCAL_CERT_PIN = "local_cert_pin"
         private const val KEY_REMOTE_CERT_PIN = "remote_cert_pin"
         private const val KEY_SETUP_COMPLETE = "setup_complete"
+        private const val KEY_SAVE_USERNAME = "save_username"
     }
 
     var jwtToken: String?
@@ -55,6 +56,10 @@ class SecurePreferences(context: Context) {
     var isSetupComplete: Boolean
         get() = sharedPreferences.getBoolean(KEY_SETUP_COMPLETE, false)
         set(value) = sharedPreferences.edit().putBoolean(KEY_SETUP_COMPLETE, value).apply()
+
+    var saveUsername: Boolean
+        get() = sharedPreferences.getBoolean(KEY_SAVE_USERNAME, false)
+        set(value) = sharedPreferences.edit().putBoolean(KEY_SAVE_USERNAME, value).apply()
 
     fun clear() {
         sharedPreferences.edit().clear().apply()

@@ -12,7 +12,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -38,21 +37,10 @@ fun AppTopBar(
     notesActive: Boolean = false,
     todosActive: Boolean = false,
     settingsActive: Boolean = false,
-    onBackClick: (() -> Unit)? = null,
     onTitleClick: (() -> Unit)? = null
 ) {
     TopAppBar(
-        navigationIcon = {
-            if (onBackClick != null) {
-                IconButton(onClick = onBackClick) {
-                    Icon(
-                        imageVector = Icons.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = Color.White
-                    )
-                }
-            }
-        },
+        navigationIcon = {},
         title = {
             Row(
                 modifier = Modifier.horizontalScroll(rememberScrollState()),

@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.captainslog.BuildConfig
+import com.captainslog.ui.components.BreadcrumbItem
 import com.captainslog.sync.ConflictLogger
 import com.captainslog.ui.settings.SyncSettingsScreen
 import com.captainslog.viewmodel.TripTrackingViewModel
@@ -34,6 +35,8 @@ fun SettingsScreen(
     viewModel: TripTrackingViewModel = viewModel(),
     onNotesClick: () -> Unit = {},
     onTodosClick: () -> Unit = {},
+    onSignOut: () -> Unit = {},
+    onBreadcrumbChanged: (List<BreadcrumbItem>, (() -> Unit)?) -> Unit = { _, _ -> }
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -50,6 +53,19 @@ fun SettingsScreen(
         conflictLogs = conflictLogger.getConflictLogs()
     }
 
+    // Report breadcrumbs based on current sub-screen
+    LaunchedEffect(showBoatManagement, showSyncSettings) {
+        val crumbs = when {
+            showBoatManagement -> listOf(BreadcrumbItem("Manage Boats"))
+            showSyncSettings -> listOf(BreadcrumbItem("Sync Settings"))
+            else -> emptyList()
+        }
+        val backToRoot: (() -> Unit)? = if (showBoatManagement || showSyncSettings) {
+            { showBoatManagement = false; showSyncSettings = false }
+        } else null
+        onBreadcrumbChanged(crumbs, backToRoot)
+    }
+
     if (showBoatManagement) {
         // Simply use the original BoatListScreen - it works fine, just needs proper space
         com.captainslog.ui.boats.BoatListScreen(
@@ -59,11 +75,6 @@ fun SettingsScreen(
         SyncSettingsScreen(
             conflictLogs = conflictLogs,
             isSyncing = isSyncing,
-            onBack = { 
-                showSyncSettings = false
-                // Reload logs when returning
-                conflictLogs = conflictLogger.getConflictLogs()
-            },
             onTriggerSync = {
                 scope.launch {
                     isSyncing = true
@@ -125,9 +136,9 @@ fun SettingsScreen(
                             // Use LoginViewModel to properly logout
                             val loginViewModel = com.captainslog.ui.auth.LoginViewModel(context.applicationContext as android.app.Application)
                             loginViewModel.logout()
-                            
-                            // Restart the activity to show login screen
-                            (context as? android.app.Activity)?.recreate()
+
+                            // Invoke sign-out callback
+                            onSignOut()
                         }
                     }
                 )

@@ -147,11 +147,11 @@ fun MainApp() {
         return
     }
 
-    MainAppContent()
+    MainAppContent(onSignOut = { isAuthenticated = false })
 }
 
 @Composable
-fun MainAppContent() {
+fun MainAppContent(onSignOut: () -> Unit = {}) {
     // Get network and sync status
     val networkMonitor = NetworkMonitor.getInstance(LocalContext.current)
     val isConnected by networkMonitor.isConnected.collectAsState()
@@ -243,7 +243,7 @@ fun MainAppContent() {
                 }
             )
         } else {
-            MainNavigation()
+            MainNavigation(onSignOut = onSignOut)
         }
     }
 }

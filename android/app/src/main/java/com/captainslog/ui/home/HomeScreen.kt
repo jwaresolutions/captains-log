@@ -49,8 +49,8 @@ fun HomeScreen(
         label = "glowAlpha"
     )
     val glowRadius by infiniteTransition.animateFloat(
-        initialValue = 20f,
-        targetValue = 50f,
+        initialValue = 30f,
+        targetValue = 70f,
         animationSpec = infiniteRepeatable(
             animation = tween(1500, easing = EaseInOut),
             repeatMode = RepeatMode.Reverse
@@ -95,8 +95,8 @@ fun HomeScreen(
                         drawCircle(
                             brush = Brush.radialGradient(
                                 colors = listOf(
-                                    glowColor.copy(alpha = glowAlpha * 0.6f),
-                                    glowColor.copy(alpha = glowAlpha * 0.2f),
+                                    glowColor.copy(alpha = glowAlpha * 0.8f),
+                                    glowColor.copy(alpha = glowAlpha * 0.3f),
                                     Color.Transparent
                                 ),
                                 center = Offset(size.width / 2f, size.height / 2f),
@@ -113,7 +113,7 @@ fun HomeScreen(
                         .height(200.dp)
                         .graphicsLayer {
                             // Subtle scale pulse
-                            val scale = 1f + (glowAlpha - 0.4f) * 0.02f
+                            val scale = 1f + (glowAlpha - 0.4f) * 0.06f
                             scaleX = scale
                             scaleY = scale
                         }
