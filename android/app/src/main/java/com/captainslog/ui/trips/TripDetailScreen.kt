@@ -19,7 +19,6 @@ import com.captainslog.database.entities.GpsPointEntity
 import com.captainslog.database.entities.TripEntity
 import com.captainslog.repository.TripStatistics
 import com.captainslog.ui.sensors.CompactSensorDataDisplay
-import com.captainslog.util.DebugPreferences
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -42,10 +41,6 @@ fun TripDetailScreen(
     sensorData: List<SensorData> = emptyList(),
     modifier: Modifier = Modifier
 ) {
-    val context = androidx.compose.ui.platform.LocalContext.current
-    val debugPrefs = remember { DebugPreferences(context) }
-    val isDebugMode by remember { mutableStateOf(debugPrefs.isDebugModeEnabled) }
-    
     Scaffold(
         topBar = {
             TopAppBar(
@@ -133,26 +128,6 @@ fun TripDetailScreen(
                             )
                         }
                         
-                        // Show debug force stop button only in debug mode
-                        if (isDebugMode) {
-                            Spacer(modifier = Modifier.height(16.dp))
-                            
-                            // Secondary force stop button
-                            Button(
-                                onClick = {
-                                    android.util.Log.d("TripDetailScreen", "💥 FORCE STOP button clicked for active trip ${trip.id}")
-                                    onStopTrip()
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.errorContainer,
-                                    contentColor = MaterialTheme.colorScheme.onErrorContainer
-                                )
-                            ) {
-                                Text("🐛 FORCE STOP (debug - if normal stop fails)")
-                            }
-                        }
-                        
                     } else {
                         // COMPLETED TRIP
                         Text(
@@ -166,26 +141,6 @@ fun TripDetailScreen(
                             text = "Ended: ${formatDateTime(trip.endTime!!)}",
                             style = MaterialTheme.typography.bodyLarge
                         )
-                        
-                        // Show debug cleanup button only in debug mode
-                        if (isDebugMode) {
-                            Spacer(modifier = Modifier.height(16.dp))
-                            
-                            // Debug cleanup button for completed trips
-                            Button(
-                                onClick = {
-                                    android.util.Log.d("TripDetailScreen", "🧹 CLEANUP button clicked for completed trip ${trip.id}")
-                                    onStopTrip()
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                                )
-                            ) {
-                                Text("🐛 CLEANUP (debug only)")
-                            }
-                        }
                     }
                 }
             }

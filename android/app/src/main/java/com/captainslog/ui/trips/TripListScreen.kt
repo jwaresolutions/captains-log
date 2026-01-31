@@ -14,7 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.captainslog.database.entities.TripEntity
-import com.captainslog.util.DebugPreferences
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -37,10 +36,6 @@ fun TripListScreen(
     onNuclearStop: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    val context = androidx.compose.ui.platform.LocalContext.current
-    val debugPrefs = remember { DebugPreferences(context) }
-    val isDebugMode by remember { mutableStateOf(debugPrefs.isDebugModeEnabled) }
-    
     // Check if there's an active trip (trip with no end time)
     val hasActiveTrip = trips.any { it.endTime == null }
     
@@ -52,88 +47,6 @@ fun TripListScreen(
             modifier = Modifier.fillMaxSize()
         ) {
 
-            // Debug card (only visible when debug mode is enabled)
-            if (isDebugMode) {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
-                    )
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text("🐛 Debug Info:", style = MaterialTheme.typography.titleSmall)
-                        Text("isTracking: $isTracking", style = MaterialTheme.typography.bodySmall)
-                        Text("currentTrip: ${if (currentTrip != null) "Not null (${currentTrip.id})" else "null"}", style = MaterialTheme.typography.bodySmall)
-                        Text("Available boats: ${boats.size}", style = MaterialTheme.typography.bodySmall)
-                        Text("Active boat: ${activeBoat?.name ?: "none"}", style = MaterialTheme.typography.bodySmall)
-                        
-                        Spacer(modifier = Modifier.height(8.dp))
-                        
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Button(
-                                onClick = {
-                                    android.util.Log.d("TripListScreen", "Force cleanup button clicked")
-                                    onForceCleanup()
-                                },
-                                modifier = Modifier.weight(1f),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.secondary
-                                )
-                            ) {
-                                Text("Cleanup", style = MaterialTheme.typography.bodySmall)
-                            }
-                            
-                            Button(
-                                onClick = {
-                                    android.util.Log.d("TripListScreen", "Manual refresh button clicked")
-                                    onRefreshState()
-                                },
-                                modifier = Modifier.weight(1f),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.tertiary
-                                )
-                            ) {
-                                Text("Refresh", style = MaterialTheme.typography.bodySmall)
-                            }
-                            
-                            Button(
-                                onClick = {
-                                    android.util.Log.d("TripListScreen", "Nuclear stop button clicked")
-                                    onNuclearStop()
-                                },
-                                modifier = Modifier.weight(1f),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.error
-                                )
-                            ) {
-                                Text("NUKE", style = MaterialTheme.typography.bodySmall)
-                            }
-                        }
-                        
-                        Spacer(modifier = Modifier.height(8.dp))
-                        
-                        // Debug start trip button
-                        Button(
-                            onClick = {
-                                android.util.Log.d("TripListScreen", "DEBUG START TRIP button clicked")
-                                showStartDialog = true
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = androidx.compose.ui.graphics.Color.Green
-                            )
-                        ) {
-                            Text("🐛 DEBUG: START TRIP", style = MaterialTheme.typography.titleMedium)
-                        }
-                    }
-                }
-            }
-            
             // Trip list content
             if (trips.isEmpty()) {
                 EmptyTripList(

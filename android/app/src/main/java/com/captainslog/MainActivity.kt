@@ -21,7 +21,6 @@ import com.captainslog.connection.ConnectionManager
 import com.captainslog.network.NetworkMonitor
 import com.captainslog.security.SecurePreferences
 import com.captainslog.sync.ImmediateSyncService
-import com.captainslog.ui.auth.LoginScreen
 import com.captainslog.ui.components.ConnectivityStatusBar
 import com.captainslog.ui.theme.BoatTrackingTheme
 import com.captainslog.ui.MainNavigation
@@ -46,12 +45,9 @@ class MainActivity : ComponentActivity() {
         connectionManager = ConnectionManager.getInstance(this)
         networkMonitor = NetworkMonitor.getInstance(this)
         
-        // Set up token expiration callback
+        // Log token expiration (no longer forces login screen)
         connectionManager.onTokenExpired = {
-            // Recreate activity to show login screen
-            runOnUiThread {
-                recreate()
-            }
+            Log.d(TAG, "Token expired - background sync will be unavailable until re-authentication")
         }
         
         // Check and request permissions
@@ -64,13 +60,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     if (permissionsGranted) {
-                        MainContent(
-                            isLoggedIn = securePreferences.jwtToken != null,
-                            onLoginSuccess = {
-                                // Recreate activity to reload with new login
-                                recreate()
-                            }
-                        )
+                        MainApp()
                     } else {
                         PermissionRequestScreen(
                             onPermissionsRequested = {
@@ -144,22 +134,8 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@Composable
-fun MainContent(
-    isLoggedIn: Boolean,
-    onLoginSuccess: () -> Unit
-) {
-    when {
-        !isLoggedIn -> {
-            // Not logged in - show login screen
-            LoginScreen(onLoginSuccess = onLoginSuccess)
-        }
-        else -> {
-            // Logged in - show main app
-            MainApp()
-        }
-    }
-}
+// MainContent composable removed - app now opens directly to MainApp()
+// LoginScreen is still available via Settings -> Server Configuration
 
 @Composable
 fun MainApp() {

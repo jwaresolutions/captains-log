@@ -12,10 +12,7 @@ import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Star
 
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -34,7 +31,6 @@ import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.windowInsetsPadding
 import com.captainslog.security.SecurePreferences
 import com.captainslog.sync.ConflictLogger
-import com.captainslog.util.DebugPreferences
 import com.captainslog.ui.settings.SyncSettingsScreen
 import com.captainslog.util.LicenseTrackingPreferences
 import com.captainslog.viewmodel.TripTrackingViewModel
@@ -51,7 +47,6 @@ fun SettingsScreen(
     viewModel: TripTrackingViewModel = viewModel(),
     onNotesClick: () -> Unit = {},
     onTodosClick: () -> Unit = {},
-    onNavigationPrefsChanged: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -64,15 +59,7 @@ fun SettingsScreen(
     var conflictLogs by remember { mutableStateOf("No conflicts logged") }
     
     val conflictLogger = remember { ConflictLogger(context) }
-    val debugPrefs = remember { DebugPreferences(context) }
-    val navPrefs = remember { com.captainslog.util.NavigationPreferences(context) }
 
-    var isDebugMode by remember { mutableStateOf(debugPrefs.isDebugModeEnabled) }
-    var isSensorsEnabled by remember { mutableStateOf(navPrefs.isSensorsEnabled) }
-    var isLicenseEnabled by remember { mutableStateOf(navPrefs.isLicenseEnabled) }
-    var isMapsEnabled by remember { mutableStateOf(navPrefs.isMapsEnabled) }
-
-    
     // Load conflict logs
     LaunchedEffect(Unit) {
         conflictLogs = conflictLogger.getConflictLogs()
@@ -138,48 +125,6 @@ fun SettingsScreen(
 
             Divider()
 
-            // Navigation Section
-            SettingsSection(title = "Navigation Tabs") {
-                NavigationTabToggleItem(
-                    icon = Icons.Filled.Info,
-                    title = "Sensors",
-                    subtitle = "Show sensors tab in bottom navigation",
-                    isEnabled = isSensorsEnabled,
-                    onToggle = { enabled ->
-                        isSensorsEnabled = enabled
-                        navPrefs.isSensorsEnabled = enabled
-                        onNavigationPrefsChanged()
-                    }
-                )
-                
-                NavigationTabToggleItem(
-                    icon = Icons.Filled.Star,
-                    title = "License Progress",
-                    subtitle = "Show license tracking tab in bottom navigation",
-                    isEnabled = isLicenseEnabled,
-                    onToggle = { enabled ->
-                        isLicenseEnabled = enabled
-                        navPrefs.isLicenseEnabled = enabled
-                        onNavigationPrefsChanged()
-                    }
-                )
-                
-                // Maps are now always enabled with OpenStreetMap (no API key needed)
-                NavigationTabToggleItem(
-                    icon = Icons.Filled.LocationOn,
-                    title = "Maps",
-                    subtitle = "Show maps tab with OpenStreetMap and marine charts",
-                    isEnabled = isMapsEnabled,
-                    onToggle = { enabled ->
-                        isMapsEnabled = enabled
-                        navPrefs.isMapsEnabled = enabled
-                        onNavigationPrefsChanged()
-                    }
-                )
-            }
-
-            Divider()
-
             // Connection Settings Section
             SettingsSection(title = "Connection") {
                 SettingsItem(
@@ -226,19 +171,6 @@ fun SettingsScreen(
                             // Restart the activity to show login screen
                             (context as? android.app.Activity)?.recreate()
                         }
-                    }
-                )
-            }
-
-            Divider()
-
-            // Developer Section
-            SettingsSection(title = "Developer") {
-                DebugToggleItem(
-                    isEnabled = isDebugMode,
-                    onToggle = { enabled ->
-                        isDebugMode = enabled
-                        debugPrefs.isDebugModeEnabled = enabled
                     }
                 )
             }
@@ -542,99 +474,6 @@ fun ServerSettingsScreen(
                     )
                 }
             }
-        }
-    }
-}
-
-@Composable
-fun DebugToggleItem(
-    isEnabled: Boolean,
-    onToggle: (Boolean) -> Unit
-) {
-    Surface(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.Build,
-                contentDescription = null,
-                tint = if (isEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(24.dp)
-            )
-            
-            Spacer(modifier = Modifier.width(16.dp))
-            
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = "Debug Mode",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                Text(
-                    text = if (isEnabled) "Debug menus and buttons are visible" else "Debug menus and buttons are hidden",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            
-            Switch(
-                checked = isEnabled,
-                onCheckedChange = onToggle
-            )
-        }
-    }
-}
-
-@Composable
-fun NavigationTabToggleItem(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    title: String,
-    subtitle: String,
-    isEnabled: Boolean,
-    onToggle: (Boolean) -> Unit
-) {
-    Surface(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = if (isEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(24.dp)
-            )
-            
-            Spacer(modifier = Modifier.width(16.dp))
-            
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            
-            Switch(
-                checked = isEnabled,
-                onCheckedChange = onToggle
-            )
         }
     }
 }

@@ -73,6 +73,9 @@ class MaintenanceTemplateViewModel(context: Context) : ViewModel() {
                 // Save locally first
                 templateDao.insertTemplate(template)
 
+                // Generate the first recurring event
+                generateNextEvent(template)
+
                 // TODO: Sync to backend API
                 // connectionManager.createMaintenanceTemplate(template)
 
@@ -148,6 +151,15 @@ class MaintenanceTemplateViewModel(context: Context) : ViewModel() {
 
                 eventDao.completeEvent(eventId, Date(), actualCost, actualTime, notes)
 
+                // Generate next recurring event from template
+                val completedEvent = eventDao.getEventByIdSync(eventId)
+                if (completedEvent != null) {
+                    val template = templateDao.getTemplateByIdSync(completedEvent.templateId)
+                    if (template != null && template.isActive) {
+                        generateNextEvent(template, completedEvent.dueDate)
+                    }
+                }
+
                 // TODO: Sync to backend API
                 // connectionManager.completeMaintenanceEvent(eventId, actualCost, actualTime, notes)
 
@@ -201,6 +213,25 @@ class MaintenanceTemplateViewModel(context: Context) : ViewModel() {
 
     fun clearError() {
         _uiState.value = _uiState.value.copy(error = null)
+    }
+
+    private suspend fun generateNextEvent(template: MaintenanceTemplateEntity, fromDate: Date = Date()) {
+        val calendar = Calendar.getInstance()
+        calendar.time = fromDate
+
+        when (template.recurrenceType) {
+            "days" -> calendar.add(Calendar.DAY_OF_YEAR, template.recurrenceInterval)
+            "weeks" -> calendar.add(Calendar.WEEK_OF_YEAR, template.recurrenceInterval)
+            "months" -> calendar.add(Calendar.MONTH, template.recurrenceInterval)
+            "years" -> calendar.add(Calendar.YEAR, template.recurrenceInterval)
+            "engine_hours" -> calendar.add(Calendar.MONTH, template.recurrenceInterval) // fallback for engine hours
+        }
+
+        val event = MaintenanceEventEntity(
+            templateId = template.id,
+            dueDate = calendar.time
+        )
+        eventDao.insertEvent(event)
     }
 }
 

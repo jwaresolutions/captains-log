@@ -14,9 +14,7 @@ import { TripEdit } from './pages/TripEdit'
 import { NotesList } from './pages/NotesList'
 import { NoteDetail } from './pages/NoteDetail'
 import { NoteEditor } from './pages/NoteEditor'
-import { TodoLists } from './pages/TodoLists'
-import { TodoDetail } from './pages/TodoDetail'
-import { TodoForm } from './pages/TodoForm'
+import { TodoPage } from './pages/TodoPage'
 import { MaintenanceList } from './pages/MaintenanceList'
 import { MaintenanceTemplateDetail } from './pages/MaintenanceTemplateDetail'
 import { MaintenanceEventDetail } from './pages/MaintenanceEventDetail'
@@ -102,9 +100,7 @@ function App() {
             <Route path="/notes/new" element={<NoteEditor />} />
             <Route path="/notes/:id" element={<NoteDetail />} />
             <Route path="/notes/:id/edit" element={<NoteEditor />} />
-            <Route path="/todos" element={<TodoLists />} />
-            <Route path="/todos/new" element={<TodoForm />} />
-            <Route path="/todos/:id" element={<TodoDetail />} />
+            <Route path="/todos" element={<TodoPage />} />
             <Route path="/maintenance" element={<MaintenanceList />} />
             <Route path="/maintenance/templates/new" element={<MaintenanceTemplateForm />} />
             <Route path="/maintenance/templates/:id" element={<MaintenanceTemplateDetail />} />

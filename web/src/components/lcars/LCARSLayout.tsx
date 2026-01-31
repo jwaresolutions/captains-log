@@ -380,7 +380,6 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Home', path: '/' },
   { label: 'Dashboard', path: '/dashboard' },
   { label: 'Vessels', path: '/boats' },
   { label: 'Trip Log', path: '/trips' },

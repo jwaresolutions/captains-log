@@ -1,7 +1,9 @@
 package com.captainslog.ui.maintenance
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
@@ -73,7 +75,9 @@ fun MaintenanceTemplateFormScreen(
             modifier = modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp),
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState())
+                .windowInsetsPadding(WindowInsets.ime),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Boat selection
@@ -202,7 +206,7 @@ fun MaintenanceTemplateFormScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(16.dp))
 
             Button(
                 onClick = {

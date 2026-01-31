@@ -1,10 +1,8 @@
 package com.captainslog.ui
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Home
@@ -13,13 +11,10 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.activity.compose.BackHandler
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import com.captainslog.ui.home.HomeScreen
 import com.captainslog.ui.license.LicenseProgressScreen
 import com.captainslog.ui.maintenance.MaintenanceNavigation
@@ -29,57 +24,25 @@ import com.captainslog.ui.sensors.SensorManagementScreen
 import com.captainslog.ui.settings.SettingsScreen
 import com.captainslog.ui.todos.TodoNavigation
 import com.captainslog.ui.trips.TripNavigation
-import com.captainslog.util.NavigationPreferences
 
 /**
  * Main navigation structure with bottom navigation bar.
- * Features configurable tabs and consistent top bar across all screens.
+ * All tabs are always visible. Top bar shows back button on non-tab screens.
  */
 @Composable
 fun MainNavigation() {
-    val context = LocalContext.current
-    val navPrefs = remember { NavigationPreferences(context) }
-    var isSensorsEnabled by remember { mutableStateOf(navPrefs.isSensorsEnabled) }
-    var isLicenseEnabled by remember { mutableStateOf(navPrefs.isLicenseEnabled) }
-    var isMapsEnabled by remember { mutableStateOf(navPrefs.isMapsEnabled) }
     var selectedTab by remember { mutableStateOf(NavigationTab.Home) }
-    
+
     // Track current screen (including top bar actions)
     var currentScreen: CurrentScreen by remember { mutableStateOf(CurrentScreen.Tab(NavigationTab.Home)) }
 
-    // Get available tabs based on user preferences
-    val availableTabs = remember(isSensorsEnabled, isLicenseEnabled, isMapsEnabled) {
-        buildList {
-            // Core tabs (always available)
-            add(NavigationTab.Home)
-            add(NavigationTab.Trips)
-            add(NavigationTab.Maintenance)
-            
-            // Optional tabs (user configurable)
-            if (isMapsEnabled) add(NavigationTab.Map)
-            if (isSensorsEnabled) add(NavigationTab.Sensors)
-            if (isLicenseEnabled) add(NavigationTab.License)
-        }
-    }
-
-    // Reset selected tab if it becomes unavailable
-    LaunchedEffect(availableTabs) {
-        if (selectedTab !in availableTabs) {
-            selectedTab = NavigationTab.Home
-            currentScreen = CurrentScreen.Tab(NavigationTab.Home)
-        }
-    }
-    
-    // Function to refresh navigation preferences
-    val refreshNavPrefs = {
-        isSensorsEnabled = navPrefs.isSensorsEnabled
-        isLicenseEnabled = navPrefs.isLicenseEnabled
-        isMapsEnabled = navPrefs.isMapsEnabled
-    }
+    // All tabs always available
+    val availableTabs = NavigationTab.entries
 
     // Main navigation with integrated top bar actions
     Scaffold(
         topBar = {
+            val isOnNonTabScreen = currentScreen !is CurrentScreen.Tab
             com.captainslog.ui.components.AppTopBar(
                 title = when (val screen = currentScreen) {
                     is CurrentScreen.Tab -> when (screen.tab) {
@@ -100,7 +63,10 @@ fun MainNavigation() {
                 // Highlight active top bar button
                 notesActive = currentScreen == CurrentScreen.Notes,
                 todosActive = currentScreen == CurrentScreen.Todos,
-                settingsActive = currentScreen == CurrentScreen.Settings
+                settingsActive = currentScreen == CurrentScreen.Settings,
+                onBackClick = if (isOnNonTabScreen) {
+                    { currentScreen = CurrentScreen.Tab(selectedTab) }
+                } else null
             )
         },
         bottomBar = {
@@ -162,8 +128,7 @@ fun MainNavigation() {
                 SettingsScreen(
                     modifier = Modifier.padding(paddingValues),
                     onNotesClick = { currentScreen = CurrentScreen.Notes },
-                    onTodosClick = { currentScreen = CurrentScreen.Todos },
-                    onNavigationPrefsChanged = refreshNavPrefs
+                    onTodosClick = { currentScreen = CurrentScreen.Todos }
                 )
             }
         }
@@ -172,8 +137,7 @@ fun MainNavigation() {
 
 /**
  * Enum representing the main navigation tabs.
- * Core tabs (Home, Trips, Maintenance, Map) are always available.
- * Optional tabs (Sensors, License) can be enabled/disabled by user.
+ * All tabs are always visible.
  */
 enum class NavigationTab(val label: String, val icon: ImageVector) {
     Home("Home", Icons.Filled.Home),

@@ -402,6 +402,14 @@ class ApiService {
     return this.patch(`/todos/items/${itemId}/complete`)
   }
 
+  async updateTodoItem(itemId: string, data: { content?: string; completed?: boolean }): Promise<TodoItem> {
+    return this.put(`/todos/items/${itemId}`, data)
+  }
+
+  async deleteTodoItem(itemId: string): Promise<void> {
+    return this.delete(`/todos/items/${itemId}`)
+  }
+
   // Maintenance Template API methods
   async getMaintenanceTemplates(boatId?: string): Promise<MaintenanceTemplate[]> {
     return this.get('/maintenance/templates', boatId ? { boatId } : undefined)
