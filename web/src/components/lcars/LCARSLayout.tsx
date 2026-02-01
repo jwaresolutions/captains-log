@@ -197,6 +197,10 @@ const HeaderBar = styled.header`
     border-radius: 0;
     justify-content: center;
   }
+
+  @media (max-width: 480px) {
+    padding: 0 8px;
+  }
 `
 
 const HeaderTitle = styled.h1`
@@ -217,6 +221,11 @@ const HeaderTitle = styled.h1`
     font-size: ${p => p.theme.typography.fontSize.lg};
     letter-spacing: ${p => p.theme.typography.letterSpacing.wide};
   }
+
+  @media (max-width: 480px) {
+    font-size: ${p => p.theme.typography.fontSize.md};
+    letter-spacing: ${p => p.theme.typography.letterSpacing.normal};
+  }
 `
 
 const HeaderLogo = styled.img`
@@ -233,6 +242,10 @@ const HeaderLogo = styled.img`
 
   @media (max-width: ${MOBILE_BP}) {
     height: 32px;
+  }
+
+  @media (max-width: 480px) {
+    display: none;
   }
 `
 
@@ -262,6 +275,10 @@ const ContentArea = styled.main`
 
   @media (max-width: ${MOBILE_BP}) {
     padding: ${p => p.theme.spacing.md};
+  }
+
+  @media (max-width: 480px) {
+    padding: ${p => p.theme.spacing.sm};
   }
 `
 
@@ -366,6 +383,24 @@ const MobileMenuTrigger = styled.button`
     padding: 6px 12px;
     border-radius: 12px;
     cursor: pointer;
+  }
+
+  @media (max-width: 480px) {
+    display: block;
+    position: absolute;
+    left: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 8px;
+    border: 2px solid currentColor;
+    background: none;
+    color: inherit;
+    cursor: pointer;
+    text-transform: uppercase;
+    font-weight: bold;
+    font-family: inherit;
   }
 `
 
@@ -486,7 +521,7 @@ export const LCARSLayout: React.FC<LCARSLayoutProps> = ({ children }) => {
         <HeaderStardate>Stardate {stardate} ({new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })})</HeaderStardate>
         <HeaderLogo src="/assets/captains-log-logo.png" alt="Captain's Log" onClick={() => go('/')} />
         <HeaderTitle onClick={() => go('/')}>Captain&apos;s Log</HeaderTitle>
-        <div style={{ marginLeft: '16px' }}>
+        <div style={{ marginLeft: '8px' }}>
           <NotificationPanel />
         </div>
       </HeaderBar>
