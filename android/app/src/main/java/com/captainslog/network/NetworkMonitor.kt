@@ -175,7 +175,14 @@ class NetworkMonitor(private val context: Context) {
     fun canSyncData(): Boolean {
         return _isConnected.value
     }
-    
+
+    /**
+     * Mark server as reachable (called when sync succeeds, proving server connectivity)
+     */
+    fun reportServerReachable() {
+        _isServerReachable.value = true
+    }
+
     /**
      * Unregister network callback (call in onDestroy)
      */

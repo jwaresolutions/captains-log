@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.util.concurrent.TimeUnit
+import com.captainslog.network.NetworkMonitor
 
 /**
  * Enhanced sync status manager with visual indicators and aggressive retry logic
@@ -91,6 +92,8 @@ class SyncStatusManager(private val context: Context) {
         // Update status
         _syncStatus.value = SyncStatus.SUCCESS
         _lastSyncTime.value = System.currentTimeMillis()
+        // Sync success proves server is reachable - update NetworkMonitor to dismiss "Cannot Reach Server" banner
+        NetworkMonitor.getInstance(context).reportServerReachable()
         _syncMessage.value = if (syncedCount > 0) {
             "Synced $syncedCount item(s)"
         } else {

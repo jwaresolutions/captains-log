@@ -1,11 +1,7 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:16-alpine
     container_name: boat-tracking-db
-    ports:
-      - "5432:5432"
     environment:
       POSTGRES_DB: ${DB_NAME:-boat_tracking}
       POSTGRES_USER: ${DB_USER:-boat_user}

@@ -195,15 +195,38 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 // Start server
-app.listen(port, async () => {
+const server = app.listen(port, async () => {
   logger.info(`Server is running on port ${port}`);
   logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  
+
   // Check for initial setup on startup
   await checkAndCreateInitialUser();
-  
+
   // Start scheduled jobs
   schedulerService.start();
 });
+
+// Graceful shutdown
+function gracefulShutdown(signal: string) {
+  logger.info(`${signal} received. Starting graceful shutdown...`);
+
+  server.close(() => {
+    logger.info('HTTP server closed');
+
+    // Stop scheduled jobs
+    schedulerService.stop();
+
+    process.exit(0);
+  });
+
+  // Force exit after 30 seconds
+  setTimeout(() => {
+    logger.error('Graceful shutdown timed out, forcing exit');
+    process.exit(1);
+  }, 30000);
+}
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 export default app;
