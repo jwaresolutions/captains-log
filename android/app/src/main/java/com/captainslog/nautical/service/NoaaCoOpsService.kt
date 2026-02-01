@@ -37,6 +37,7 @@ object NoaaCoOpsService {
                 } else null
             }
         } catch (e: Exception) {
+            android.util.Log.e("NoaaCoOpsService", "Failed to fetch tide stations", e)
             emptyList()
         }
     }
@@ -58,6 +59,7 @@ object NoaaCoOpsService {
                 TidePrediction(p.getString("t"), p.getDouble("v"), p.getString("type"))
             }
         } catch (e: Exception) {
+            android.util.Log.e("NoaaCoOpsService", "Failed to fetch tide predictions", e)
             emptyList()
         }
     }

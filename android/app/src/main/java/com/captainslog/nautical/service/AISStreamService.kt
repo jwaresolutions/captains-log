@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import okhttp3.*
 import org.json.JSONObject
+import java.util.concurrent.ConcurrentHashMap
 
 data class AISVessel(
     val mmsi: Long,
@@ -20,12 +21,24 @@ class AISStreamService {
 
     private var webSocket: WebSocket? = null
     private val client = OkHttpClient()
-    private val vessels = mutableMapOf<Long, AISVessel>()
+    private val vessels = ConcurrentHashMap<Long, AISVessel>()
 
     private val _vesselFlow = MutableStateFlow<List<AISVessel>>(emptyList())
     val vesselFlow: StateFlow<List<AISVessel>> = _vesselFlow.asStateFlow()
 
+    private var lastApiKey: String = ""
+    private var lastMinLat: Double = 0.0
+    private var lastMinLng: Double = 0.0
+    private var lastMaxLat: Double = 0.0
+    private var lastMaxLng: Double = 0.0
+
     fun connect(apiKey: String, minLat: Double, minLng: Double, maxLat: Double, maxLng: Double) {
+        lastApiKey = apiKey
+        lastMinLat = minLat
+        lastMinLng = minLng
+        lastMaxLat = maxLat
+        lastMaxLng = maxLng
+
         disconnect()
 
         val request = Request.Builder()
@@ -64,20 +77,30 @@ class AISStreamService {
                     vessels[mmsi] = vessel
                     // Prune stale
                     val cutoff = System.currentTimeMillis() - 600_000
-                    vessels.entries.removeAll { it.value.timestamp < cutoff }
+                    val staleKeys = vessels.entries.filter { it.value.timestamp < cutoff }.map { it.key }
+                    staleKeys.forEach { vessels.remove(it) }
                     _vesselFlow.value = vessels.values.toList()
-                } catch (_: Exception) {}
+                } catch (e: Exception) {
+                    android.util.Log.w("AISStreamService", "Failed to parse AIS message", e)
+                }
             }
 
             override fun onFailure(ws: WebSocket, t: Throwable, response: Response?) {
-                // Silent failure
+                android.util.Log.e("AISStreamService", "WebSocket failure", t)
+                // Reconnect after delay
+                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                    if (webSocket != null) { // Only reconnect if not deliberately disconnected
+                        connect(lastApiKey, lastMinLat, lastMinLng, lastMaxLat, lastMaxLng)
+                    }
+                }, 5000)
             }
         })
     }
 
     fun disconnect() {
-        webSocket?.close(1000, "Closing")
+        val ws = webSocket
         webSocket = null
+        ws?.close(1000, "Closing")
         vessels.clear()
         _vesselFlow.value = emptyList()
     }

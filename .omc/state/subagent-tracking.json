@@ -1,0 +1,15 @@
+{
+  "agents": [
+    {
+      "agent_id": "afac611",
+      "agent_type": "oh-my-claudecode:explore-medium",
+      "started_at": "2026-02-01T01:14:25.718Z",
+      "parent_mode": "autopilot",
+      "status": "running"
+    }
+  ],
+  "total_spawned": 1,
+  "total_completed": 0,
+  "total_failed": 0,
+  "last_updated": "2026-02-01T01:14:25.718Z"
+}

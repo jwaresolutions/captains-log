@@ -6,7 +6,9 @@ import android.location.Location
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -22,7 +24,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
@@ -33,11 +34,17 @@ import com.captainslog.repository.MarkedLocationWithDistance
 import com.captainslog.viewmodel.MapViewModel
 import com.captainslog.viewmodel.MapUiState
 import com.captainslog.viewmodel.MapFilter
-import com.captainslog.nautical.NauticalSettingsManager
+import com.captainslog.nautical.NauticalProviders
 import com.captainslog.nautical.tile.NauticalTileSources
+import com.captainslog.nautical.service.AISVessel
+import com.captainslog.nautical.service.TideStation
+import com.captainslog.nautical.service.MarineWeather
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.launch
 import org.osmdroid.config.Configuration
+import org.osmdroid.events.MapListener
+import org.osmdroid.events.ScrollEvent
+import org.osmdroid.events.ZoomEvent
 import org.osmdroid.tileprovider.MapTileProviderBasic
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.tileprovider.tilesource.OnlineTileSourceBase
@@ -51,9 +58,9 @@ import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
 
 /**
- * Main map screen with OpenStreetMap integration
- * Displays trip routes, marked locations, and provides location marking functionality
- * Features marine charts via OpenSeaMap overlay
+ * Main map screen with OpenStreetMap integration.
+ * Displays trip routes, marked locations, AIS vessels, tide stations,
+ * marine weather, and nautical chart overlays with per-provider toggles.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,23 +70,25 @@ fun MapScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    
+
     // State
     val uiState by viewModel.uiState.collectAsState()
     var showLocationDialog by remember { mutableStateOf(false) }
     var selectedLocation by remember { mutableStateOf<GeoPoint?>(null) }
     var currentLocation by remember { mutableStateOf<Location?>(null) }
-    var showMarineLayer by remember { mutableStateOf(true) }
     var mapView by remember { mutableStateOf<MapView?>(null) }
-    val nauticalSettingsManager = remember { NauticalSettingsManager.getInstance(context) }
-    var hasLocationPermission by remember { 
+    val snackbarHostState = remember { SnackbarHostState() }
+    var hasLocationPermission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(
-                context, 
+                context,
                 Manifest.permission.ACCESS_FINE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED
         )
     }
+
+    // Debounce tracker for viewport changes
+    var lastViewportCallTime by remember { mutableStateOf(0L) }
 
     // Location permission launcher
     val locationPermissionLauncher = rememberLauncherForActivityResult(
@@ -112,6 +121,13 @@ fun MapScreen(
         viewModel.loadMarkedLocations()
     }
 
+    // Error display via Snackbar
+    uiState.error?.let { error ->
+        LaunchedEffect(error) {
+            snackbarHostState.showSnackbar(error)
+        }
+    }
+
     Box(modifier = modifier.fillMaxSize()) {
         // OpenStreetMap with osmdroid
         AndroidView(
@@ -120,36 +136,50 @@ fun MapScreen(
                 // Configure osmdroid
                 Configuration.getInstance().load(ctx, ctx.getSharedPreferences("osmdroid", 0))
                 Configuration.getInstance().userAgentValue = "CaptainsLog"
-                
+
                 MapView(ctx).apply {
                     mapView = this
-                    
+
                     // Set tile source to OpenStreetMap
                     setTileSource(TileSourceFactory.MAPNIK)
-                    
+
                     // Enable built-in zoom controls
                     setBuiltInZoomControls(true)
                     setMultiTouchControls(true)
-                    
+
                     // Set initial position (Seattle, WA)
                     controller.setZoom(12.0)
                     controller.setCenter(GeoPoint(47.6062, -122.3321))
 
-                    // Add nautical tile layers based on settings
-                    addNauticalTileLayers(this, nauticalSettingsManager)
-                    
                     // Add location overlay if permission granted
                     if (hasLocationPermission) {
                         addLocationOverlay(this, ctx)
                     }
-                    
-                    // Touch handling is managed by osmdroid for pan/zoom
-                    // Location adding is handled by the + button only
+
+                    // Viewport change detection with debounce
+                    addMapListener(object : MapListener {
+                        override fun onScroll(event: ScrollEvent?): Boolean {
+                            onViewportChanged(this@apply, viewModel, lastViewportCallTime) { newTime ->
+                                lastViewportCallTime = newTime
+                            }
+                            return false
+                        }
+
+                        override fun onZoom(event: ZoomEvent?): Boolean {
+                            onViewportChanged(this@apply, viewModel, lastViewportCallTime) { newTime ->
+                                lastViewportCallTime = newTime
+                            }
+                            return false
+                        }
+                    })
+
+                    // Initial nautical data load
+                    val bb = boundingBox
+                    viewModel.loadNauticalData(bb.latSouth, bb.lonWest, bb.latNorth, bb.lonEast)
                 }
             },
             update = { mapViewInstance ->
-                // Update overlays when UI state changes
-                updateMapOverlays(mapViewInstance, uiState, showMarineLayer, nauticalSettingsManager)
+                updateMapOverlays(mapViewInstance, uiState, viewModel)
             }
         )
 
@@ -160,21 +190,6 @@ fun MapScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Marine layer toggle
-            FloatingActionButton(
-                onClick = {
-                    showMarineLayer = !showMarineLayer
-                    mapView?.let { updateMapOverlays(it, uiState, showMarineLayer, nauticalSettingsManager) }
-                },
-                containerColor = if (showMarineLayer) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Settings,
-                    contentDescription = "Toggle Marine Layer",
-                    tint = if (showMarineLayer) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            
             // Current location button
             FloatingActionButton(
                 onClick = {
@@ -218,19 +233,30 @@ fun MapScreen(
         MapControlsOverlay(
             modifier = Modifier.align(Alignment.TopStart),
             uiState = uiState,
-            showMarineLayer = showMarineLayer,
+            enabledProviderIds = viewModel.getEnabledProviderIds(),
+            onToggleProvider = { id -> viewModel.toggleNauticalLayerVisibility(id) },
             onFilterChange = { filter ->
                 viewModel.updateFilter(filter)
-            },
-            onMarineLayerToggle = {
-                showMarineLayer = !showMarineLayer
-                mapView?.let { updateMapOverlays(it, uiState, showMarineLayer, nauticalSettingsManager) }
             },
             onRefresh = {
                 viewModel.loadTrips()
                 viewModel.loadMarkedLocations()
+                mapView?.let { mv ->
+                    val bb = mv.boundingBox
+                    viewModel.loadNauticalData(bb.latSouth, bb.lonWest, bb.latNorth, bb.lonEast)
+                }
             }
         )
+
+        // Marine weather overlay (bottom-left)
+        if (uiState.marineWeather != null && viewModel.isNauticalLayerVisible("open-meteo")) {
+            MarineWeatherCard(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(16.dp),
+                weather = uiState.marineWeather!!
+            )
+        }
 
         // Loading indicator
         if (uiState.isLoading) {
@@ -244,19 +270,18 @@ fun MapScreen(
             }
         }
 
-        // Error message
-        uiState.error?.let { error ->
-            LaunchedEffect(error) {
-                // Show error snackbar or dialog
-            }
-        }
+        // Snackbar host for error display
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 
     // Add location dialog
     if (showLocationDialog && selectedLocation != null) {
         AddLocationDialog(
             location = selectedLocation!!,
-            onDismiss = { 
+            onDismiss = {
                 showLocationDialog = false
                 selectedLocation = null
             },
@@ -279,6 +304,23 @@ fun MapScreen(
 }
 
 /**
+ * Handle viewport changes with 2-second debounce.
+ */
+private fun onViewportChanged(
+    mapView: MapView,
+    viewModel: MapViewModel,
+    lastCallTime: Long,
+    updateTime: (Long) -> Unit
+) {
+    val now = System.currentTimeMillis()
+    if (now - lastCallTime > 2000) {
+        updateTime(now)
+        val bb = mapView.boundingBox
+        viewModel.loadNauticalData(bb.latSouth, bb.lonWest, bb.latNorth, bb.lonEast)
+    }
+}
+
+/**
  * Get current location using FusedLocationProviderClient
  */
 @Suppress("MissingPermission")
@@ -297,23 +339,6 @@ private fun getCurrentLocation(
 }
 
 /**
- * Add nautical tile layer overlays based on settings
- */
-private fun addNauticalTileLayers(mapView: MapView, settingsManager: NauticalSettingsManager) {
-    NauticalTileSources.tileProviderIds.forEach { id ->
-        if (settingsManager.isEnabled(id)) {
-            val tileSource = NauticalTileSources.getSourceById(id) ?: return@forEach
-            val overlay = TilesOverlay(
-                MapTileProviderBasic(mapView.context, tileSource),
-                mapView.context
-            )
-            overlay.setLoadingBackgroundColor(android.graphics.Color.TRANSPARENT)
-            mapView.overlayManager.add(overlay)
-        }
-    }
-}
-
-/**
  * Add location overlay for showing current position
  */
 @Suppress("MissingPermission")
@@ -325,30 +350,29 @@ private fun addLocationOverlay(mapView: MapView, context: android.content.Contex
 }
 
 /**
- * Update map overlays based on UI state
+ * Update all map overlays based on UI state.
+ * This is the SOLE owner of overlay management -- no other function adds overlays.
  */
-private fun updateMapOverlays(mapView: MapView, uiState: MapUiState, showMarineLayer: Boolean, nauticalSettingsManager: NauticalSettingsManager? = null) {
-    // Clear existing overlays (except location)
-    val overlaysToKeep = mapView.overlayManager.filter {
-        it is MyLocationNewOverlay || (it is TilesOverlay && showMarineLayer)
-    }
+private fun updateMapOverlays(mapView: MapView, uiState: MapUiState, viewModel: MapViewModel) {
+    // 1. Clear ALL overlays except MyLocationNewOverlay
+    val locationOverlay = mapView.overlayManager.filterIsInstance<MyLocationNewOverlay>()
     mapView.overlayManager.clear()
-    overlaysToKeep.forEach { mapView.overlayManager.add(it) }
+    locationOverlay.forEach { mapView.overlayManager.add(it) }
 
-    // Add nautical tile layers if enabled
-    if (showMarineLayer && nauticalSettingsManager != null) {
-        addNauticalTileLayers(mapView, nauticalSettingsManager)
-    } else if (showMarineLayer && overlaysToKeep.none { it is TilesOverlay }) {
-        // Fallback: add OpenSeaMap directly
-        val marineOverlay = TilesOverlay(
-            MapTileProviderBasic(mapView.context, NauticalTileSources.openSeaMap),
-            mapView.context
-        )
-        marineOverlay.setLoadingBackgroundColor(android.graphics.Color.TRANSPARENT)
-        mapView.overlayManager.add(marineOverlay)
+    // 2. Add nautical tile overlays (per-provider visibility)
+    NauticalTileSources.tileProviderIds.forEach { id ->
+        if (viewModel.isNauticalLayerVisible(id)) {
+            val tileSource = NauticalTileSources.getSourceById(id) ?: return@forEach
+            val overlay = TilesOverlay(
+                MapTileProviderBasic(mapView.context, tileSource),
+                mapView.context
+            )
+            overlay.setLoadingBackgroundColor(android.graphics.Color.TRANSPARENT)
+            mapView.overlayManager.add(overlay)
+        }
     }
-    
-    // Add trip routes
+
+    // 3. Add trip routes
     if (uiState.filter.showTrips) {
         uiState.trips.forEach { trip ->
             val gpsPoints = uiState.tripGpsPoints[trip.id] ?: emptyList()
@@ -357,14 +381,46 @@ private fun updateMapOverlays(mapView: MapView, uiState: MapUiState, showMarineL
             }
         }
     }
-    
-    // Add marked locations
+
+    // 4. Add marked location markers
     if (uiState.filter.showMarkedLocations) {
         uiState.markedLocations.forEach { locationWithDistance ->
             addMarkedLocationMarker(mapView, locationWithDistance)
         }
     }
-    
+
+    // 5. Add AIS vessel markers (only if AIS layer is visible)
+    if (viewModel.isNauticalLayerVisible("aisstream")) uiState.aisVessels.forEach { vessel ->
+        val marker = Marker(mapView).apply {
+            position = GeoPoint(vessel.latitude, vessel.longitude)
+            title = vessel.name.ifEmpty { "MMSI: ${vessel.mmsi}" }
+            snippet = "Speed: ${"%.1f".format(vessel.speed)} kn | Heading: ${"%.0f".format(vessel.heading)}\u00B0"
+            setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+            icon = ContextCompat.getDrawable(mapView.context, android.R.drawable.ic_menu_send)
+            rotation = vessel.heading.toFloat()
+        }
+        mapView.overlayManager.add(marker)
+    }
+
+    // 6. Add tide station markers (only if NOAA layer is visible)
+    if (viewModel.isNauticalLayerVisible("noaa-coops")) uiState.tideStations.forEach { station ->
+        val predictions = uiState.tidePredictions[station.id]
+        val latestPrediction = predictions?.firstOrNull()
+        val marker = Marker(mapView).apply {
+            position = GeoPoint(station.latitude, station.longitude)
+            title = station.name
+            snippet = if (latestPrediction != null) {
+                "${latestPrediction.type}: ${"%.2f".format(latestPrediction.value)} ft @ ${latestPrediction.time}"
+            } else {
+                "Tide station"
+            }
+            setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+            icon = ContextCompat.getDrawable(mapView.context, android.R.drawable.ic_menu_compass)
+        }
+        mapView.overlayManager.add(marker)
+    }
+
+    // 7. Invalidate to redraw
     mapView.invalidate()
 }
 
@@ -375,9 +431,9 @@ private fun addTripRoute(mapView: MapView, trip: TripEntity, gpsPoints: List<Gps
     val points = gpsPoints.map { point ->
         GeoPoint(point.latitude, point.longitude)
     }
-    
+
     if (points.isEmpty()) return
-    
+
     // Create polyline for route
     val polyline = Polyline().apply {
         setPoints(points)
@@ -386,7 +442,7 @@ private fun addTripRoute(mapView: MapView, trip: TripEntity, gpsPoints: List<Gps
         title = "Trip: ${trip.startTime}"
     }
     mapView.overlayManager.add(polyline)
-    
+
     // Start marker
     val startMarker = Marker(mapView).apply {
         position = points.first()
@@ -396,7 +452,7 @@ private fun addTripRoute(mapView: MapView, trip: TripEntity, gpsPoints: List<Gps
         icon = ContextCompat.getDrawable(mapView.context, android.R.drawable.ic_menu_mylocation)
     }
     mapView.overlayManager.add(startMarker)
-    
+
     // End marker (if trip is completed)
     if (points.size > 1 && trip.endTime != null) {
         val endMarker = Marker(mapView).apply {
@@ -415,14 +471,14 @@ private fun addTripRoute(mapView: MapView, trip: TripEntity, gpsPoints: List<Gps
  */
 private fun addMarkedLocationMarker(mapView: MapView, locationWithDistance: MarkedLocationWithDistance) {
     val location = locationWithDistance.location
-    
+
     val marker = Marker(mapView).apply {
         position = GeoPoint(location.latitude, location.longitude)
         title = location.name
         snippet = buildString {
             append(location.category.replaceFirstChar { it.uppercase() })
             if (locationWithDistance.distanceMeters > 0) {
-                append(" • ${String.format("%.1f", locationWithDistance.distanceMeters / 1000)} km")
+                append(" \u2022 ${String.format("%.1f", locationWithDistance.distanceMeters / 1000)} km")
             }
             location.notes?.let { notes ->
                 if (notes.isNotEmpty()) {
@@ -431,7 +487,7 @@ private fun addMarkedLocationMarker(mapView: MapView, locationWithDistance: Mark
             }
         }
         setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-        
+
         // Set marker icon based on category
         icon = when (location.category) {
             "fishing" -> ContextCompat.getDrawable(mapView.context, android.R.drawable.ic_menu_compass)
@@ -441,22 +497,61 @@ private fun addMarkedLocationMarker(mapView: MapView, locationWithDistance: Mark
             else -> ContextCompat.getDrawable(mapView.context, android.R.drawable.ic_menu_mapmode)
         }
     }
-    
+
     mapView.overlayManager.add(marker)
 }
 
-
+/**
+ * Marine weather info card displayed in bottom-left corner.
+ */
+@Composable
+private fun MarineWeatherCard(
+    modifier: Modifier = Modifier,
+    weather: MarineWeather
+) {
+    Card(
+        modifier = modifier.width(180.dp),
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(10.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = "Marine Weather",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold
+            )
+            weather.waveHeight?.let {
+                Text(text = "Waves: ${"%.1f".format(it)} m", style = MaterialTheme.typography.bodySmall)
+            }
+            weather.windSpeed?.let {
+                Text(text = "Wind: ${"%.0f".format(it)} km/h", style = MaterialTheme.typography.bodySmall)
+            }
+            weather.temperature?.let {
+                Text(text = "Temp: ${"%.1f".format(it)}\u00B0C", style = MaterialTheme.typography.bodySmall)
+            }
+            weather.swellHeight?.let {
+                Text(text = "Swell: ${"%.1f".format(it)} m", style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
+}
 
 /**
- * Map controls overlay for filtering and actions
+ * Map controls overlay with per-provider nautical layer toggles,
+ * trip/location filters, and refresh.
  */
 @Composable
 private fun MapControlsOverlay(
     modifier: Modifier = Modifier,
     uiState: MapUiState,
-    showMarineLayer: Boolean,
+    enabledProviderIds: List<String>,
+    onToggleProvider: (String) -> Unit,
     onFilterChange: (MapFilter) -> Unit,
-    onMarineLayerToggle: () -> Unit,
     onRefresh: () -> Unit
 ) {
     Card(
@@ -476,28 +571,38 @@ private fun MapControlsOverlay(
                 fontWeight = FontWeight.Bold
             )
 
+            // Per-provider nautical layer chips
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.horizontalScroll(rememberScrollState())
+            ) {
+                enabledProviderIds.forEach { id ->
+                    val providerName = NauticalProviders.getById(id)?.name ?: id
+                    val isVisible = uiState.nauticalLayerVisibility[id] ?: true
+                    FilterChip(
+                        selected = isVisible,
+                        onClick = { onToggleProvider(id) },
+                        label = { Text(providerName, style = MaterialTheme.typography.labelSmall) },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Settings,
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp)
+                            )
+                        }
+                    )
+                }
+            }
+
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Marine layer toggle
-                FilterChip(
-                    selected = showMarineLayer,
-                    onClick = onMarineLayerToggle,
-                    label = { Text("Marine") },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-                )
-                
                 // Show trips toggle
                 FilterChip(
                     selected = uiState.filter.showTrips,
-                    onClick = { 
+                    onClick = {
                         onFilterChange(uiState.filter.copy(showTrips = !uiState.filter.showTrips))
                     },
                     label = { Text("Trips") },
@@ -513,7 +618,7 @@ private fun MapControlsOverlay(
                 // Show locations toggle
                 FilterChip(
                     selected = uiState.filter.showMarkedLocations,
-                    onClick = { 
+                    onClick = {
                         onFilterChange(uiState.filter.copy(showMarkedLocations = !uiState.filter.showMarkedLocations))
                     },
                     label = { Text("Locations") },
@@ -541,4 +646,3 @@ private fun MapControlsOverlay(
         }
     }
 }
-

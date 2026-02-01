@@ -32,8 +32,11 @@ object NauticalTileSources {
     fun getSourceById(id: String): OnlineTileSourceBase? = when (id) {
         "openseamap" -> openSeaMap
         "noaa-charts" -> noaaCharts
+        // GEBCO bathymetry requires WMS support which is not yet implemented for osmdroid
+        "gebco" -> null
         else -> null
     }
 
+    // Note: GEBCO is in settings but not yet supported on Android (requires WMS tile support)
     val tileProviderIds = listOf("openseamap", "noaa-charts")
 }

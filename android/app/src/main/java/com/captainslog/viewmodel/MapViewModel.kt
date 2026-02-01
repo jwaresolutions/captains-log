@@ -14,6 +14,13 @@ import com.captainslog.repository.MarkedLocationWithDistance
 import com.captainslog.repository.TripRepository
 import com.captainslog.nautical.NauticalSettingsManager
 import com.captainslog.nautical.tile.NauticalTileSources
+import com.captainslog.nautical.service.AISStreamService
+import com.captainslog.nautical.service.AISVessel
+import com.captainslog.nautical.service.NoaaCoOpsService
+import com.captainslog.nautical.service.TideStation
+import com.captainslog.nautical.service.TidePrediction
+import com.captainslog.nautical.service.OpenMeteoService
+import com.captainslog.nautical.service.MarineWeather
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -34,6 +41,8 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
     private val markedLocationRepository: MarkedLocationRepository
     private val connectionManager: ConnectionManager
     val nauticalSettingsManager: NauticalSettingsManager
+    private val aisStreamService = AISStreamService()
+    private var aisCollectionJob: kotlinx.coroutines.Job? = null
 
     init {
         val database = AppDatabase.getInstance(application)
@@ -68,9 +77,7 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
                     // Load GPS points for each trip
                     val tripGpsPoints = mutableMapOf<String, List<GpsPointEntity>>()
                     for (trip in filteredTrips) {
-                        tripRepository.getGpsPointsForTrip(trip.id).collect { gpsPoints ->
-                            tripGpsPoints[trip.id] = gpsPoints
-                        }
+                        tripGpsPoints[trip.id] = tripRepository.getGpsPointsForTrip(trip.id).first()
                     }
 
                     _uiState.value = _uiState.value.copy(
@@ -330,6 +337,113 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
         
         return earthRadius * c
     }
+
+    /**
+     * Load nautical data based on current map viewport
+     */
+    fun loadNauticalData(minLat: Double, minLng: Double, maxLat: Double, maxLng: Double) {
+        val centerLat = (minLat + maxLat) / 2
+        val centerLng = (minLng + maxLng) / 2
+
+        // Load tide stations if NOAA CO-OPS is enabled
+        if (nauticalSettingsManager.isEnabled("noaa-coops")) {
+            loadTideStations(minLat, minLng, maxLat, maxLng)
+        }
+
+        // Load marine weather if Open-Meteo is enabled
+        if (nauticalSettingsManager.isEnabled("open-meteo")) {
+            loadMarineWeather(centerLat, centerLng)
+        }
+
+        // Connect AIS if enabled and has API key
+        val aisConfig = nauticalSettingsManager.getProviderConfig("aisstream")
+        if (nauticalSettingsManager.isEnabled("aisstream") && !aisConfig.apiKey.isNullOrBlank()) {
+            connectAIS(aisConfig.apiKey!!, minLat, minLng, maxLat, maxLng)
+        } else {
+            disconnectAIS()
+        }
+    }
+
+    private fun loadTideStations(minLat: Double, minLng: Double, maxLat: Double, maxLng: Double) {
+        viewModelScope.launch {
+            try {
+                val stations = NoaaCoOpsService.fetchTideStations(minLat, minLng, maxLat, maxLng)
+                val predictions = mutableMapOf<String, List<TidePrediction>>()
+                // Load predictions for first 20 stations
+                stations.take(20).forEach { station ->
+                    predictions[station.id] = NoaaCoOpsService.fetchTidePredictions(station.id)
+                }
+                _uiState.value = _uiState.value.copy(
+                    tideStations = stations,
+                    tidePredictions = predictions
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "Error loading tide stations", e)
+            }
+        }
+    }
+
+    private fun loadMarineWeather(lat: Double, lng: Double) {
+        viewModelScope.launch {
+            try {
+                val weather = OpenMeteoService.fetchMarineWeather(lat, lng)
+                _uiState.value = _uiState.value.copy(marineWeather = weather)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error loading marine weather", e)
+            }
+        }
+    }
+
+    private fun connectAIS(apiKey: String, minLat: Double, minLng: Double, maxLat: Double, maxLng: Double) {
+        aisStreamService.connect(apiKey, minLat, minLng, maxLat, maxLng)
+        // Collect vessel updates
+        aisCollectionJob?.cancel()
+        aisCollectionJob = viewModelScope.launch {
+            aisStreamService.vesselFlow.collect { vessels ->
+                _uiState.value = _uiState.value.copy(aisVessels = vessels)
+            }
+        }
+    }
+
+    private fun disconnectAIS() {
+        aisCollectionJob?.cancel()
+        aisCollectionJob = null
+        aisStreamService.disconnect()
+        _uiState.value = _uiState.value.copy(aisVessels = emptyList())
+    }
+
+    /**
+     * Toggle visibility of a specific nautical layer on the map
+     */
+    fun toggleNauticalLayerVisibility(providerId: String) {
+        val current = _uiState.value.nauticalLayerVisibility
+        val isVisible = current[providerId] ?: true
+        _uiState.value = _uiState.value.copy(
+            nauticalLayerVisibility = current + (providerId to !isVisible)
+        )
+    }
+
+    /**
+     * Check if a nautical layer is visible on the map
+     */
+    fun isNauticalLayerVisible(providerId: String): Boolean {
+        return nauticalSettingsManager.isEnabled(providerId) &&
+            (_uiState.value.nauticalLayerVisibility[providerId] ?: true)
+    }
+
+    /**
+     * Get list of enabled nautical provider IDs
+     */
+    fun getEnabledProviderIds(): List<String> {
+        return com.captainslog.nautical.NauticalProviders.all
+            .filter { nauticalSettingsManager.isEnabled(it.id) }
+            .map { it.id }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        disconnectAIS()
+    }
 }
 
 /**
@@ -345,7 +459,14 @@ data class MapUiState(
     val filter: MapFilter = MapFilter(),
     val isLoading: Boolean = false,
     val error: String? = null,
-    val enabledNauticalLayers: List<String> = emptyList()
+    // Nautical data
+    val aisVessels: List<AISVessel> = emptyList(),
+    val tideStations: List<TideStation> = emptyList(),
+    val tidePredictions: Map<String, List<TidePrediction>> = emptyMap(),
+    val marineWeather: MarineWeather? = null,
+    val enabledNauticalLayers: Set<String> = emptySet(),
+    // Per-layer visibility on map (separate from settings enabled)
+    val nauticalLayerVisibility: Map<String, Boolean> = emptyMap()
 )
 
 /**
@@ -354,7 +475,7 @@ data class MapUiState(
 data class MapFilter(
     val showTrips: Boolean = true,
     val showMarkedLocations: Boolean = true,
+    val showNauticalLayers: Boolean = true,
     val categoryFilter: String? = null,
-    val tagFilter: List<String> = emptyList(),
-    val showNauticalLayers: Boolean = true
+    val tagFilter: List<String> = emptyList()
 )

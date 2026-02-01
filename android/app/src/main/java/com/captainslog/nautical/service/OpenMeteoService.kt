@@ -45,6 +45,7 @@ object OpenMeteoService {
                 timestamp = current?.optString("time") ?: ""
             )
         } catch (e: Exception) {
+            android.util.Log.e("OpenMeteoService", "Failed to fetch marine weather", e)
             null
         }
     }
