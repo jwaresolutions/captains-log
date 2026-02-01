@@ -16,6 +16,10 @@ const Container = styled.div`
   gap: 20px;
   height: 100vh;
   padding: 20px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 `
 
 const MainContent = styled.div`
@@ -46,6 +50,10 @@ const ItemGrid = styled.div`
   display: grid;
   gap: 15px;
   grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 `
 
 const ItemCard = styled(LCARSPanel)`

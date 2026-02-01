@@ -24,6 +24,10 @@ const FiltersGrid = styled.div`
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: ${props => props.theme.spacing.md};
   align-items: end;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 `
 
 const FilterGroup = styled.div`
@@ -111,6 +115,10 @@ const TripMeta = styled.div`
   gap: ${props => props.theme.spacing.sm};
   font-size: ${props => props.theme.typography.fontSize.sm};
   color: ${props => props.theme.colors.text.secondary};
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 `
 
 const TripStats = styled.div`

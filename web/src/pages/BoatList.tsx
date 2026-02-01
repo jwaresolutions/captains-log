@@ -22,6 +22,10 @@ const BoatGrid = styled.div`
   grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
   gap: 20px;
   margin-top: 20px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 `
 
 const BoatCard = styled.div<{ $isActive?: boolean; $isEnabled?: boolean }>`

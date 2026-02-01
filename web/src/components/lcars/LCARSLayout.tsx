@@ -37,6 +37,7 @@ const LayoutContainer = styled.div`
     "sidebar content"
     "sidebar footer";
   gap: 0;
+  overflow-x: hidden;
   animation: ${fadeIn} 0.6s ease;
 
   @media (max-width: ${MOBILE_BP}) {
@@ -256,6 +257,7 @@ const ContentArea = styled.main`
   grid-area: content;
   background: ${p => p.theme.colors.background};
   overflow-y: auto;
+  overflow-x: hidden;
   padding: ${p => p.theme.spacing.lg};
 
   @media (max-width: ${MOBILE_BP}) {
