@@ -24,6 +24,7 @@ import { LicenseProgress } from './pages/LicenseProgress'
 import { MaintenanceReports } from './pages/MaintenanceReports'
 import { Reports } from './pages/Reports'
 import { Settings } from './pages/Settings'
+import { NauticalSettings } from './pages/NauticalSettings'
 import { BackupManager } from './pages/BackupManager'
 import { Calendar } from './pages/Calendar'
 import { PhotoGallery } from './pages/PhotoGallery'
@@ -112,6 +113,7 @@ function App() {
             <Route path="/reports/maintenance" element={<MaintenanceReports />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/settings/backup" element={<BackupManager />} />
+            <Route path="/settings/nautical" element={<NauticalSettings />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/photos" element={<PhotoGallery />} />
             {/* Additional routes will be added in subsequent tasks */}

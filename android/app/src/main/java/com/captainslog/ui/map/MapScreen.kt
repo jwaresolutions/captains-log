@@ -33,9 +33,12 @@ import com.captainslog.repository.MarkedLocationWithDistance
 import com.captainslog.viewmodel.MapViewModel
 import com.captainslog.viewmodel.MapUiState
 import com.captainslog.viewmodel.MapFilter
+import com.captainslog.nautical.NauticalSettingsManager
+import com.captainslog.nautical.tile.NauticalTileSources
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.launch
 import org.osmdroid.config.Configuration
+import org.osmdroid.tileprovider.MapTileProviderBasic
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.tileprovider.tilesource.OnlineTileSourceBase
 import org.osmdroid.tileprovider.tilesource.XYTileSource
@@ -68,6 +71,7 @@ fun MapScreen(
     var currentLocation by remember { mutableStateOf<Location?>(null) }
     var showMarineLayer by remember { mutableStateOf(true) }
     var mapView by remember { mutableStateOf<MapView?>(null) }
+    val nauticalSettingsManager = remember { NauticalSettingsManager.getInstance(context) }
     var hasLocationPermission by remember { 
         mutableStateOf(
             ContextCompat.checkSelfPermission(
@@ -130,11 +134,9 @@ fun MapScreen(
                     // Set initial position (Seattle, WA)
                     controller.setZoom(12.0)
                     controller.setCenter(GeoPoint(47.6062, -122.3321))
-                    
-                    // Add marine layer (OpenSeaMap)
-                    if (showMarineLayer) {
-                        addMarineLayer(this)
-                    }
+
+                    // Add nautical tile layers based on settings
+                    addNauticalTileLayers(this, nauticalSettingsManager)
                     
                     // Add location overlay if permission granted
                     if (hasLocationPermission) {
@@ -147,7 +149,7 @@ fun MapScreen(
             },
             update = { mapViewInstance ->
                 // Update overlays when UI state changes
-                updateMapOverlays(mapViewInstance, uiState, showMarineLayer)
+                updateMapOverlays(mapViewInstance, uiState, showMarineLayer, nauticalSettingsManager)
             }
         )
 
@@ -162,7 +164,7 @@ fun MapScreen(
             FloatingActionButton(
                 onClick = {
                     showMarineLayer = !showMarineLayer
-                    mapView?.let { updateMapOverlays(it, uiState, showMarineLayer) }
+                    mapView?.let { updateMapOverlays(it, uiState, showMarineLayer, nauticalSettingsManager) }
                 },
                 containerColor = if (showMarineLayer) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
             ) {
@@ -222,7 +224,7 @@ fun MapScreen(
             },
             onMarineLayerToggle = {
                 showMarineLayer = !showMarineLayer
-                mapView?.let { updateMapOverlays(it, uiState, showMarineLayer) }
+                mapView?.let { updateMapOverlays(it, uiState, showMarineLayer, nauticalSettingsManager) }
             },
             onRefresh = {
                 viewModel.loadTrips()
@@ -295,31 +297,20 @@ private fun getCurrentLocation(
 }
 
 /**
- * Add OpenSeaMap marine layer overlay
+ * Add nautical tile layer overlays based on settings
  */
-private fun addMarineLayer(mapView: MapView) {
-    val marineSource = object : OnlineTileSourceBase(
-        "OpenSeaMap",
-        1, 18, 256, ".png",
-        arrayOf("https://tiles.openseamap.org/seamark/")
-    ) {
-        override fun getTileURLString(pMapTileIndex: Long): String {
-            val zoom = org.osmdroid.util.MapTileIndex.getZoom(pMapTileIndex)
-            val x = org.osmdroid.util.MapTileIndex.getX(pMapTileIndex)
-            val y = org.osmdroid.util.MapTileIndex.getY(pMapTileIndex)
-            return "${baseUrl[0]}$zoom/$x/$y.png"
+private fun addNauticalTileLayers(mapView: MapView, settingsManager: NauticalSettingsManager) {
+    NauticalTileSources.tileProviderIds.forEach { id ->
+        if (settingsManager.isEnabled(id)) {
+            val tileSource = NauticalTileSources.getSourceById(id) ?: return@forEach
+            val overlay = TilesOverlay(
+                MapTileProviderBasic(mapView.context, tileSource),
+                mapView.context
+            )
+            overlay.setLoadingBackgroundColor(android.graphics.Color.TRANSPARENT)
+            mapView.overlayManager.add(overlay)
         }
     }
-    
-    val marineOverlay = TilesOverlay(
-        org.osmdroid.tileprovider.MapTileProviderBasic(
-            mapView.context,
-            marineSource
-        ),
-        mapView.context
-    )
-    marineOverlay.setLoadingBackgroundColor(android.graphics.Color.TRANSPARENT)
-    mapView.overlayManager.add(marineOverlay)
 }
 
 /**
@@ -336,17 +327,25 @@ private fun addLocationOverlay(mapView: MapView, context: android.content.Contex
 /**
  * Update map overlays based on UI state
  */
-private fun updateMapOverlays(mapView: MapView, uiState: MapUiState, showMarineLayer: Boolean) {
+private fun updateMapOverlays(mapView: MapView, uiState: MapUiState, showMarineLayer: Boolean, nauticalSettingsManager: NauticalSettingsManager? = null) {
     // Clear existing overlays (except location)
-    val overlaysToKeep = mapView.overlayManager.filter { 
+    val overlaysToKeep = mapView.overlayManager.filter {
         it is MyLocationNewOverlay || (it is TilesOverlay && showMarineLayer)
     }
     mapView.overlayManager.clear()
     overlaysToKeep.forEach { mapView.overlayManager.add(it) }
-    
-    // Add marine layer if enabled
-    if (showMarineLayer && overlaysToKeep.none { it is TilesOverlay }) {
-        addMarineLayer(mapView)
+
+    // Add nautical tile layers if enabled
+    if (showMarineLayer && nauticalSettingsManager != null) {
+        addNauticalTileLayers(mapView, nauticalSettingsManager)
+    } else if (showMarineLayer && overlaysToKeep.none { it is TilesOverlay }) {
+        // Fallback: add OpenSeaMap directly
+        val marineOverlay = TilesOverlay(
+            MapTileProviderBasic(mapView.context, NauticalTileSources.openSeaMap),
+            mapView.context
+        )
+        marineOverlay.setLoadingBackgroundColor(android.graphics.Color.TRANSPARENT)
+        mapView.overlayManager.add(marineOverlay)
     }
     
     // Add trip routes

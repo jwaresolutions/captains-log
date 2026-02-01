@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Place
 
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -43,6 +44,7 @@ fun SettingsScreen(
     
     var showSyncSettings by remember { mutableStateOf(false) }
     var showBoatManagement by remember { mutableStateOf(false) }
+    var showNauticalSettings by remember { mutableStateOf(false) }
     var isSyncing by remember { mutableStateOf(false) }
     var conflictLogs by remember { mutableStateOf("No conflicts logged") }
     
@@ -54,19 +56,22 @@ fun SettingsScreen(
     }
 
     // Report breadcrumbs based on current sub-screen
-    LaunchedEffect(showBoatManagement, showSyncSettings) {
+    LaunchedEffect(showBoatManagement, showSyncSettings, showNauticalSettings) {
         val crumbs = when {
             showBoatManagement -> listOf(BreadcrumbItem("Manage Boats"))
             showSyncSettings -> listOf(BreadcrumbItem("Sync Settings"))
+            showNauticalSettings -> listOf(BreadcrumbItem("Nautical Data"))
             else -> emptyList()
         }
-        val backToRoot: (() -> Unit)? = if (showBoatManagement || showSyncSettings) {
-            { showBoatManagement = false; showSyncSettings = false }
+        val backToRoot: (() -> Unit)? = if (showBoatManagement || showSyncSettings || showNauticalSettings) {
+            { showBoatManagement = false; showSyncSettings = false; showNauticalSettings = false }
         } else null
         onBreadcrumbChanged(crumbs, backToRoot)
     }
 
-    if (showBoatManagement) {
+    if (showNauticalSettings) {
+        NauticalSettingsScreen(modifier = modifier)
+    } else if (showBoatManagement) {
         // Simply use the original BoatListScreen - it works fine, just needs proper space
         com.captainslog.ui.boats.BoatListScreen(
             modifier = modifier
@@ -108,6 +113,18 @@ fun SettingsScreen(
                     title = "Manage Boats",
                     subtitle = "Add, enable/disable, and set active boat",
                     onClick = { showBoatManagement = true }
+                )
+            }
+
+            Divider()
+
+            // Nautical Data Section
+            SettingsSection(title = "Nautical Data") {
+                SettingsItem(
+                    icon = Icons.Filled.Place,
+                    title = "Nautical Data Providers",
+                    subtitle = "Configure chart overlays, tides, AIS, and weather sources",
+                    onClick = { showNauticalSettings = true }
                 )
             }
 

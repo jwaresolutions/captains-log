@@ -1,7 +1,11 @@
 import React, { useState, useCallback, useRef } from 'react'
 import styled from 'styled-components'
-import { MapContainer, TileLayer, Polyline, Marker, Popup, useMapEvents } from 'react-leaflet'
+import { MapContainer, TileLayer, Polyline, Marker, Popup, useMapEvents, WMSTileLayer } from 'react-leaflet'
 import { LatLngTuple, Icon, DivIcon } from 'leaflet'
+import { useNauticalLayers } from '../hooks/useNauticalLayers'
+import { useNauticalData, MapBounds } from '../hooks/useNauticalData'
+import { useNauticalSettings } from '../hooks/useNauticalSettings'
+import { nauticalProviders } from '../config/nauticalProviders'
 import { LCARSPanel } from '../components/lcars/LCARSPanel'
 import { LCARSButton } from '../components/lcars/LCARSButton'
 import { LCARSHeader } from '../components/lcars/LCARSHeader'
@@ -37,6 +41,7 @@ const MapControlsContainer = styled.div`
 `
 
 const MapContainer_Styled = styled.div`
+  position: relative;
   flex: 1;
   display: flex;
   gap: ${props => props.theme.spacing.md};
@@ -204,6 +209,37 @@ const MapClickHandler: React.FC<{ onMapClick: (lat: number, lng: number) => void
   return null
 }
 
+// Component for tracking map bounds
+const MapBoundsTracker: React.FC<{ onBoundsChange: (bounds: MapBounds) => void }> = ({ onBoundsChange }) => {
+  const map = useMapEvents({
+    moveend: () => {
+      const b = map.getBounds()
+      const center = map.getCenter()
+      onBoundsChange({
+        minLat: b.getSouth(),
+        minLng: b.getWest(),
+        maxLat: b.getNorth(),
+        maxLng: b.getEast(),
+        centerLat: center.lat,
+        centerLng: center.lng,
+      })
+    },
+    zoomend: () => {
+      const b = map.getBounds()
+      const center = map.getCenter()
+      onBoundsChange({
+        minLat: b.getSouth(),
+        minLng: b.getWest(),
+        maxLat: b.getNorth(),
+        maxLng: b.getEast(),
+        centerLat: center.lat,
+        centerLng: center.lng,
+      })
+    },
+  })
+  return null
+}
+
 export const MapView: React.FC = () => {
   const [showTripRoutes, setShowTripRoutes] = useState(true)
   const [showMarkedLocations, setShowMarkedLocations] = useState(true)
@@ -217,8 +253,37 @@ export const MapView: React.FC = () => {
     longitude: 0,
   })
   const [selectedLocation, setSelectedLocation] = useState<MarkedLocation | null>(null)
-  
+
   const mapRef = useRef<any>(null)
+
+  // Nautical layers
+  const { enabledTileLayers } = useNauticalLayers()
+  const [mapBounds, setMapBounds] = useState<MapBounds | null>(null)
+  const nauticalData = useNauticalData(mapBounds)
+
+  const { isEnabled: isProviderEnabled } = useNauticalSettings()
+
+  // Per-layer visibility toggles (separate from settings enabled - these control map visibility)
+  const [hiddenLayers, setHiddenLayers] = useState<Set<string>>(new Set())
+
+  const toggleLayerVisibility = useCallback((id: string) => {
+    setHiddenLayers(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }, [])
+
+  const isLayerVisible = useCallback((id: string) => {
+    return isProviderEnabled(id) && !hiddenLayers.has(id)
+  }, [isProviderEnabled, hiddenLayers])
+
+  // Get list of currently enabled providers for showing controls
+  const enabledProviders = nauticalProviders.filter(p => isProviderEnabled(p.id))
   
   // Data fetching
   const { data: trips = [], isLoading: tripsLoading } = useTrips()
@@ -428,7 +493,23 @@ export const MapView: React.FC = () => {
           >
             Locations
           </LCARSButton>
-          
+
+          {enabledProviders.length > 0 && (
+            <>
+              <label>Overlays:</label>
+              {enabledProviders.map(provider => (
+                <LCARSButton
+                  key={provider.id}
+                  variant={!hiddenLayers.has(provider.id) ? 'primary' : 'secondary'}
+                  size="sm"
+                  onClick={() => toggleLayerVisibility(provider.id)}
+                >
+                  {provider.name}
+                </LCARSButton>
+              ))}
+            </>
+          )}
+
           <label>Category:</label>
           <select
             value={selectedCategory}
@@ -456,11 +537,137 @@ export const MapView: React.FC = () => {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            
+
+            {/* Nautical tile overlays */}
+            {enabledTileLayers.filter(layer => !hiddenLayers.has(layer.id)).map(layer =>
+              layer.type === 'wms' ? (
+                <WMSTileLayer
+                  key={layer.id}
+                  url={layer.url}
+                  layers={layer.wmsLayers || ''}
+                  format={layer.wmsFormat || 'image/png'}
+                  transparent={true}
+                  opacity={layer.opacity}
+                  attribution={layer.attribution}
+                />
+              ) : (
+                <TileLayer
+                  key={layer.id}
+                  url={layer.url}
+                  opacity={layer.opacity}
+                  maxZoom={layer.maxZoom}
+                  attribution={layer.attribution}
+                />
+              )
+            )}
+
+            <MapBoundsTracker onBoundsChange={setMapBounds} />
+
             <MapClickHandler onMapClick={handleMapClick} />
-            
+
             {renderTripRoutes()}
             {renderMarkedLocations()}
+
+            {/* AIS Vessels */}
+            {isLayerVisible('aisstream') && nauticalData.vessels.map(vessel => (
+              <Marker
+                key={`ais-${vessel.mmsi}`}
+                position={[vessel.latitude, vessel.longitude]}
+                icon={new DivIcon({
+                  html: `<div style="
+                    width: 0; height: 0;
+                    border-left: 6px solid transparent;
+                    border-right: 6px solid transparent;
+                    border-bottom: 14px solid #00FFFF;
+                    transform: rotate(${vessel.heading}deg);
+                  "></div>`,
+                  className: 'vessel-marker',
+                  iconSize: [12, 14],
+                  iconAnchor: [6, 7],
+                })}
+              >
+                <Popup>
+                  <div>
+                    <strong>{vessel.name}</strong><br />
+                    MMSI: {vessel.mmsi}<br />
+                    Speed: {vessel.speed.toFixed(1)} kts<br />
+                    Heading: {vessel.heading}°
+                  </div>
+                </Popup>
+              </Marker>
+            ))}
+
+            {/* MarineTraffic Vessels */}
+            {isLayerVisible('marinetraffic') && nauticalData.marineTrafficVessels.map(vessel => (
+              <Marker
+                key={`mt-${vessel.mmsi}`}
+                position={[vessel.latitude, vessel.longitude]}
+                icon={new DivIcon({
+                  html: `<div style="
+                    width: 0; height: 0;
+                    border-left: 6px solid transparent;
+                    border-right: 6px solid transparent;
+                    border-bottom: 14px solid #FF00FF;
+                    transform: rotate(${vessel.heading}deg);
+                  "></div>`,
+                  className: 'vessel-marker',
+                  iconSize: [12, 14],
+                  iconAnchor: [6, 7],
+                })}
+              >
+                <Popup>
+                  <div>
+                    <strong>{vessel.name}</strong><br />
+                    MMSI: {vessel.mmsi}<br />
+                    Speed: {vessel.speed.toFixed(1)} kts<br />
+                    Destination: {vessel.destination}
+                  </div>
+                </Popup>
+              </Marker>
+            ))}
+
+            {/* Tide Stations */}
+            {isLayerVisible('noaa-coops') && nauticalData.tideStations.map(station => (
+              <Marker
+                key={`tide-${station.id}`}
+                position={[station.latitude, station.longitude]}
+                icon={new DivIcon({
+                  html: `<div style="
+                    background: #0066FF;
+                    color: white;
+                    width: 22px;
+                    height: 22px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 10px;
+                    font-weight: bold;
+                    border: 2px solid white;
+                  ">T</div>`,
+                  className: 'tide-marker',
+                  iconSize: [22, 22],
+                  iconAnchor: [11, 11],
+                })}
+              >
+                <Popup>
+                  <div>
+                    <strong>{station.name}</strong><br />
+                    Station: {station.id}<br />
+                    {station.predictions.length > 0 && (
+                      <>
+                        <strong>Predictions:</strong><br />
+                        {station.predictions.slice(0, 6).map((p, i) => (
+                          <span key={i}>
+                            {p.type === 'H' ? '▲ High' : '▼ Low'}: {p.value.toFixed(1)} ft at {p.time}<br />
+                          </span>
+                        ))}
+                      </>
+                    )}
+                  </div>
+                </Popup>
+              </Marker>
+            ))}
             
             {/* New location marker */}
             {isAddingLocation && newLocationData.latitude && newLocationData.longitude && (
@@ -474,8 +681,40 @@ export const MapView: React.FC = () => {
               </Marker>
             )}
           </MapContainer>
+
+        {/* Weather overlay */}
+        {(isLayerVisible('open-meteo') || isLayerVisible('stormglass')) && nauticalData.weather && (
+          <div style={{
+            position: 'absolute',
+            bottom: '10px',
+            left: '10px',
+            background: 'rgba(0,0,0,0.85)',
+            color: '#99CCFF',
+            padding: '8px 12px',
+            borderRadius: '4px',
+            border: '1px solid #336699',
+            fontSize: '12px',
+            fontFamily: 'monospace',
+            zIndex: 1000,
+            lineHeight: '1.5',
+          }}>
+            <div style={{ fontWeight: 'bold', marginBottom: '4px', color: '#FFCC99' }}>MARINE WEATHER</div>
+            {nauticalData.weather.waveHeight != null && <div>Waves: {nauticalData.weather.waveHeight}m</div>}
+            {nauticalData.weather.windSpeed != null && <div>Wind: {nauticalData.weather.windSpeed} km/h</div>}
+            {nauticalData.weather.swellHeight != null && <div>Swell: {nauticalData.weather.swellHeight}m</div>}
+            {nauticalData.weather.temperature != null && <div>Temp: {nauticalData.weather.temperature}°C</div>}
+            {isLayerVisible('stormglass') && nauticalData.stormglassWeather && (
+              <>
+                <div style={{ fontWeight: 'bold', marginTop: '4px', color: '#CC99CC' }}>STORMGLASS</div>
+                {nauticalData.stormglassWeather.waveHeight != null && <div>Waves: {nauticalData.stormglassWeather.waveHeight}m</div>}
+                {nauticalData.stormglassWeather.visibility != null && <div>Vis: {nauticalData.stormglassWeather.visibility}km</div>}
+                {nauticalData.stormglassWeather.waterTemperature != null && <div>Water: {nauticalData.stormglassWeather.waterTemperature}°C</div>}
+              </>
+            )}
+          </div>
+        )}
         </MapPanel>
-        
+
         <SidePanel title="Location Manager" variant="secondary">
           {!isAddingLocation ? (
             <>

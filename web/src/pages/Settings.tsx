@@ -306,11 +306,17 @@ export const Settings: React.FC = () => {
       {/* System Management */}
       <LCARSPanel title="System Management">
         <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-          <LCARSButton 
+          <LCARSButton
             onClick={() => navigate('/settings/backup')}
             variant="secondary"
           >
             Backup Manager
+          </LCARSButton>
+          <LCARSButton
+            onClick={() => navigate('/settings/nautical')}
+            variant="secondary"
+          >
+            Nautical Data
           </LCARSButton>
         </div>
         

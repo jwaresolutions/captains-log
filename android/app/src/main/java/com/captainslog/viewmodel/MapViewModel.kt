@@ -12,6 +12,8 @@ import com.captainslog.database.entities.TripEntity
 import com.captainslog.repository.MarkedLocationRepository
 import com.captainslog.repository.MarkedLocationWithDistance
 import com.captainslog.repository.TripRepository
+import com.captainslog.nautical.NauticalSettingsManager
+import com.captainslog.nautical.tile.NauticalTileSources
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -31,6 +33,7 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
     private val tripRepository: TripRepository
     private val markedLocationRepository: MarkedLocationRepository
     private val connectionManager: ConnectionManager
+    val nauticalSettingsManager: NauticalSettingsManager
 
     init {
         val database = AppDatabase.getInstance(application)
@@ -40,7 +43,8 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
         // Initialize repositories with ConnectionManager
         tripRepository = TripRepository(database, application)
         markedLocationRepository = MarkedLocationRepository(database, connectionManager)
-        
+        nauticalSettingsManager = NauticalSettingsManager.getInstance(application)
+
         // Load initial data
         loadTrips()
         loadMarkedLocations()
@@ -340,7 +344,8 @@ data class MapUiState(
     val currentLongitude: Double? = null,
     val filter: MapFilter = MapFilter(),
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val enabledNauticalLayers: List<String> = emptyList()
 )
 
 /**
@@ -350,5 +355,6 @@ data class MapFilter(
     val showTrips: Boolean = true,
     val showMarkedLocations: Boolean = true,
     val categoryFilter: String? = null,
-    val tagFilter: List<String> = emptyList()
+    val tagFilter: List<String> = emptyList(),
+    val showNauticalLayers: Boolean = true
 )
