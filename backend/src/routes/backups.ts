@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { requireRole } from '../middleware/auth';
 import { backupService } from '../services/backupService';
 import { logger } from '../utils/logger';
 import * as fs from 'fs/promises';
@@ -10,7 +11,7 @@ const router = Router();
  * POST /api/v1/backups
  * Create a manual backup
  */
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', requireRole('ADMIN'), async (req: Request, res: Response) => {
   try {
     const { includePhotos = true, compress = true } = req.body;
 
@@ -235,7 +236,7 @@ router.get('/:id/download', async (req: Request, res: Response) => {
  * DELETE /api/v1/backups/:id
  * Delete a backup
  */
-router.delete('/:id', async (req: Request, res: Response) => {
+router.delete('/:id', requireRole('ADMIN'), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const deleted = await backupService.deleteBackup(id);
@@ -276,7 +277,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
  * POST /api/v1/backups/cleanup
  * Clean up old backups (admin operation)
  */
-router.post('/cleanup', async (req: Request, res: Response) => {
+router.post('/cleanup', requireRole('ADMIN'), async (req: Request, res: Response) => {
   try {
     const { retentionDays = 30 } = req.body;
 

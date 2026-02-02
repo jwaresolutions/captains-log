@@ -9,6 +9,7 @@ import { LCARSColumn } from '../components/lcars/LCARSColumn'
 import { LCARSAlert } from '../components/lcars/LCARSAlert'
 import { useMaintenanceTemplate, useCreateMaintenanceTemplate, useUpdateMaintenanceTemplate } from '../hooks/useMaintenance'
 import { useBoats } from '../hooks/useBoats'
+import { ReadOnlyGuard } from '../components/ReadOnlyGuard'
 
 
 const Container = styled.div`
@@ -442,13 +443,15 @@ export function MaintenanceTemplateForm() {
               <Link to="/maintenance">
                 <LCARSButton type="button">Cancel</LCARSButton>
               </Link>
-              <LCARSButton 
-                type="submit" 
-                disabled={isSubmitting}
-                variant="accent"
-              >
-                {isSubmitting ? 'Saving...' : (isEditing ? 'Update Template' : 'Create Template')}
-              </LCARSButton>
+              <ReadOnlyGuard>
+                <LCARSButton
+                  type="submit"
+                  disabled={isSubmitting}
+                  variant="accent"
+                >
+                  {isSubmitting ? 'Saving...' : (isEditing ? 'Update Template' : 'Create Template')}
+                </LCARSButton>
+              </ReadOnlyGuard>
             </ActionBar>
           </Form>
         </ContentArea>

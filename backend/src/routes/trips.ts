@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { requireRole } from '../middleware/auth';
 import { tripService } from '../services/tripService';
 import { logger } from '../utils/logger';
 import { sendJsonResponse } from '../utils/serialization';
@@ -10,7 +11,7 @@ const router = Router();
  * POST /api/v1/trips
  * Create a new trip
  */
-router.post('/', async (req: Request, res: Response): Promise<void> => {
+router.post('/', requireRole('ADMIN'), async (req: Request, res: Response): Promise<void> => {
   try {
     const {
       boatId,
@@ -238,7 +239,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
  * PUT /api/v1/trips/:id
  * Update a trip
  */
-router.put('/:id', async (req: Request, res: Response): Promise<void> => {
+router.put('/:id', requireRole('ADMIN'), async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const {
@@ -326,7 +327,7 @@ router.put('/:id', async (req: Request, res: Response): Promise<void> => {
  * PATCH /api/v1/trips/:id/manual-data
  * Add or update manual data for a trip
  */
-router.patch('/:id/manual-data', async (req: Request, res: Response): Promise<void> => {
+router.patch('/:id/manual-data', requireRole('ADMIN'), async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const {

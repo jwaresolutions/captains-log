@@ -8,6 +8,7 @@ import { LCARSDataDisplay } from '../components/lcars/LCARSDataDisplay'
 import { LCARSColumn } from '../components/lcars/LCARSColumn'
 import { LCARSAlert } from '../components/lcars/LCARSAlert'
 import { useMaintenanceEvent, useCompleteMaintenanceEvent } from '../hooks/useMaintenance'
+import { ReadOnlyGuard } from '../components/ReadOnlyGuard'
 
 const Container = styled.div`
   display: grid;
@@ -297,12 +298,14 @@ export function MaintenanceEventDetail() {
             </Link>
           )}
           {!isCompleted && (
-            <LCARSButton 
-              onClick={() => setShowCompletionForm(!showCompletionForm)}
-              variant="accent"
-            >
-              {showCompletionForm ? 'Cancel Completion' : 'Complete Event'}
-            </LCARSButton>
+            <ReadOnlyGuard>
+              <LCARSButton
+                onClick={() => setShowCompletionForm(!showCompletionForm)}
+                variant="accent"
+              >
+                {showCompletionForm ? 'Cancel Completion' : 'Complete Event'}
+              </LCARSButton>
+            </ReadOnlyGuard>
           )}
         </ActionBar>
 

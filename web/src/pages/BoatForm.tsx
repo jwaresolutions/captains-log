@@ -8,6 +8,7 @@ import {
   LCARSAlert
 } from '../components/lcars'
 import { useCreateBoat } from '../hooks/useBoats'
+import { ReadOnlyGuard } from '../components/ReadOnlyGuard'
 
 const Container = styled.div`
   padding: 20px;
@@ -408,13 +409,15 @@ export const BoatForm: React.FC = () => {
               >
                 CANCEL
               </LCARSButton>
-              <LCARSButton 
-                type="submit" 
-                variant="primary"
-                disabled={isSubmitting || !formData.name.trim()}
-              >
-                {isSubmitting ? 'CREATING VESSEL...' : 'CREATE VESSEL'}
-              </LCARSButton>
+              <ReadOnlyGuard>
+                <LCARSButton
+                  type="submit"
+                  variant="primary"
+                  disabled={isSubmitting || !formData.name.trim()}
+                >
+                  {isSubmitting ? 'CREATING VESSEL...' : 'CREATE VESSEL'}
+                </LCARSButton>
+              </ReadOnlyGuard>
             </FormActions>
           </Form>
         </FormPanel>

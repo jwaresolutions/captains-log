@@ -12,6 +12,7 @@ import { LCARSHeader } from '../components/lcars/LCARSHeader'
 import { LCARSDataDisplay } from '../components/lcars/LCARSDataDisplay'
 import { useTrips } from '../hooks/useTrips'
 import { useMarkedLocations, useCreateMarkedLocation, useDeleteMarkedLocation } from '../hooks/useLocations'
+import { ReadOnlyGuard } from '../components/ReadOnlyGuard'
 import { Trip, MarkedLocation } from '../types/api'
 import 'leaflet/dist/leaflet.css'
 
@@ -718,12 +719,14 @@ export const MapView: React.FC = () => {
         <SidePanel title="Location Manager" variant="secondary">
           {!isAddingLocation ? (
             <>
-              <LCARSButton
-                onClick={() => setIsAddingLocation(true)}
-                disabled={createLocationMutation.isPending}
-              >
-                Add New Location
-              </LCARSButton>
+              <ReadOnlyGuard>
+                <LCARSButton
+                  onClick={() => setIsAddingLocation(true)}
+                  disabled={createLocationMutation.isPending}
+                >
+                  Add New Location
+                </LCARSButton>
+              </ReadOnlyGuard>
               
               {selectedLocation && (
                 <div>
@@ -748,14 +751,16 @@ export const MapView: React.FC = () => {
                       </>
                     )}
                     <div style={{ marginTop: '8px' }}>
-                      <LCARSButton
-                        size="sm"
-                        variant="accent"
-                        onClick={() => handleDeleteLocation(selectedLocation.id)}
-                        disabled={deleteLocationMutation.isPending}
-                      >
-                        Delete
-                      </LCARSButton>
+                      <ReadOnlyGuard>
+                        <LCARSButton
+                          size="sm"
+                          variant="accent"
+                          onClick={() => handleDeleteLocation(selectedLocation.id)}
+                          disabled={deleteLocationMutation.isPending}
+                        >
+                          Delete
+                        </LCARSButton>
+                      </ReadOnlyGuard>
                     </div>
                   </div>
                 </div>
@@ -835,12 +840,14 @@ export const MapView: React.FC = () => {
               )}
               
               <div style={{ display: 'flex', gap: '8px' }}>
-                <LCARSButton
-                  onClick={handleCreateLocation}
-                  disabled={!newLocationData.name || !newLocationData.latitude || !newLocationData.longitude || createLocationMutation.isPending}
-                >
-                  Save Location
-                </LCARSButton>
+                <ReadOnlyGuard>
+                  <LCARSButton
+                    onClick={handleCreateLocation}
+                    disabled={!newLocationData.name || !newLocationData.latitude || !newLocationData.longitude || createLocationMutation.isPending}
+                  >
+                    Save Location
+                  </LCARSButton>
+                </ReadOnlyGuard>
                 <LCARSButton
                   variant="secondary"
                   onClick={() => {

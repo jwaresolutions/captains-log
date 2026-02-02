@@ -6,6 +6,7 @@ import { LCARSButton } from '../components/lcars/LCARSButton'
 import { LCARSHeader } from '../components/lcars/LCARSHeader'
 import { useTrip, useUpdateTrip, useAddManualData } from '../hooks/useTrips'
 import { useBoats } from '../hooks/useBoats'
+import { ReadOnlyGuard } from '../components/ReadOnlyGuard'
 import { ManualData } from '../types/api'
 
 const TripEditContainer = styled.div`
@@ -355,13 +356,15 @@ export const TripEdit: React.FC = () => {
           </FormRow>
 
           <ActionButtons>
-            <LCARSButton
-              variant="primary"
-              onClick={handleSaveTripData}
-              disabled={updateTripMutation.isPending}
-            >
-              {updateTripMutation.isPending ? 'Saving...' : 'Save Trip Information'}
-            </LCARSButton>
+            <ReadOnlyGuard>
+              <LCARSButton
+                variant="primary"
+                onClick={handleSaveTripData}
+                disabled={updateTripMutation.isPending}
+              >
+                {updateTripMutation.isPending ? 'Saving...' : 'Save Trip Information'}
+              </LCARSButton>
+            </ReadOnlyGuard>
           </ActionButtons>
         </FormSection>
 
@@ -427,13 +430,15 @@ export const TripEdit: React.FC = () => {
           </FormRow>
 
           <ActionButtons>
-            <LCARSButton
-              variant="secondary"
-              onClick={handleSaveManualData}
-              disabled={addManualDataMutation.isPending}
-            >
-              {addManualDataMutation.isPending ? 'Saving...' : 'Save Manual Data'}
-            </LCARSButton>
+            <ReadOnlyGuard>
+              <LCARSButton
+                variant="secondary"
+                onClick={handleSaveManualData}
+                disabled={addManualDataMutation.isPending}
+              >
+                {addManualDataMutation.isPending ? 'Saving...' : 'Save Manual Data'}
+              </LCARSButton>
+            </ReadOnlyGuard>
           </ActionButtons>
         </FormSection>
       </FormGrid>

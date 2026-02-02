@@ -6,6 +6,7 @@ import { LCARSPanel } from '../components/lcars/LCARSPanel'
 import { LCARSButton } from '../components/lcars/LCARSButton'
 import { useNote, useCreateNote, useUpdateNote, useNoteTags } from '../hooks/useNotes'
 import { useBoats } from '../hooks/useBoats'
+import { ReadOnlyGuard } from '../components/ReadOnlyGuard'
 import { useTrips } from '../hooks/useTrips'
 
 const PageContainer = styled.div`
@@ -422,15 +423,17 @@ export const NoteEditor: React.FC = () => {
             <LCARSButton variant="secondary" onClick={handleCancel}>
               Cancel
             </LCARSButton>
-            <LCARSButton 
-              onClick={handleSave}
-              disabled={createNoteMutation.isPending || updateNoteMutation.isPending}
-            >
-              {createNoteMutation.isPending || updateNoteMutation.isPending 
-                ? 'Saving...' 
-                : 'Save Note'
-              }
-            </LCARSButton>
+            <ReadOnlyGuard>
+              <LCARSButton
+                onClick={handleSave}
+                disabled={createNoteMutation.isPending || updateNoteMutation.isPending}
+              >
+                {createNoteMutation.isPending || updateNoteMutation.isPending
+                  ? 'Saving...'
+                  : 'Save Note'
+                }
+              </LCARSButton>
+            </ReadOnlyGuard>
           </ActionButtons>
         </FormSection>
       </LCARSPanel>

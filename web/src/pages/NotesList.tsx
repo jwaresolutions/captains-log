@@ -6,6 +6,7 @@ import { LCARSPanel } from '../components/lcars/LCARSPanel'
 import { LCARSButton } from '../components/lcars/LCARSButton'
 import { useNotes, useDeleteNote, useNoteTags } from '../hooks/useNotes'
 import { useBoats } from '../hooks/useBoats'
+import { ReadOnlyGuard } from '../components/ReadOnlyGuard'
 
 const PageContainer = styled.div`
   display: flex;
@@ -295,9 +296,11 @@ export const NotesList: React.FC = () => {
     <PageContainer>
       <HeaderSection>
         <LCARSHeader level={1}>Notes Database</LCARSHeader>
-        <LCARSButton onClick={handleCreateNote}>
-          Create New Note
-        </LCARSButton>
+        <ReadOnlyGuard>
+          <LCARSButton onClick={handleCreateNote}>
+            Create New Note
+          </LCARSButton>
+        </ReadOnlyGuard>
       </HeaderSection>
 
       <LCARSPanel title="Filters" variant="secondary">
@@ -381,15 +384,19 @@ export const NotesList: React.FC = () => {
                   {note.type === 'boat' && getBoatName(note.boatId) && ` - ${getBoatName(note.boatId)}`}
                 </NoteType>
                 <NoteActions>
-                  <ActionButton onClick={(e) => handleEditNote(note.id, e)}>
-                    Edit
-                  </ActionButton>
-                  <ActionButton 
-                    className="danger"
-                    onClick={(e) => handleDeleteNote(note.id, e)}
-                  >
-                    Delete
-                  </ActionButton>
+                  <ReadOnlyGuard>
+                    <ActionButton onClick={(e) => handleEditNote(note.id, e)}>
+                      Edit
+                    </ActionButton>
+                  </ReadOnlyGuard>
+                  <ReadOnlyGuard>
+                    <ActionButton
+                      className="danger"
+                      onClick={(e) => handleDeleteNote(note.id, e)}
+                    >
+                      Delete
+                    </ActionButton>
+                  </ReadOnlyGuard>
                 </NoteActions>
               </NoteHeader>
               

@@ -13,6 +13,7 @@ interface AuthState {
 }
 
 interface AuthContextValue extends AuthState {
+  isReadOnly: boolean
   login: (username: string, password: string) => Promise<{ success: boolean; error?: string }>
   logout: () => Promise<void>
   checkAuthStatus: () => Promise<void>
@@ -48,7 +49,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAuthenticated: true,
         isLoading: false,
         needsSetup: false,
-        user: { id: 'current', username: 'user', createdAt: '', updatedAt: '' },
+        user: { id: 'current', username: 'user', role: localStorage.getItem('user_role') || 'ADMIN', createdAt: '', updatedAt: '' },
       })
       connectSyncEvents(queryClient)
     } catch (error) {
@@ -76,6 +77,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         needsSetup: false,
         user: response.user,
       })
+      if (response.user?.role) {
+        localStorage.setItem('user_role', response.user.role)
+      }
       connectSyncEvents(queryClient)
 
       return { success: true }
@@ -98,6 +102,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.warn('Logout request failed:', error)
     } finally {
       disconnectSyncEvents()
+      localStorage.removeItem('user_role')
       setAuthState({
         isAuthenticated: false,
         isLoading: false,
@@ -109,6 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const value: AuthContextValue = {
     ...authState,
+    isReadOnly: authState.user?.role === 'VIEWER',
     login,
     logout,
     checkAuthStatus,

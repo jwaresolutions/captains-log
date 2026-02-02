@@ -1,4 +1,5 @@
 import express from 'express';
+import { requireRole } from '../middleware/auth';
 import { eventBus } from '../services/eventBus';
 import {
   createMarkedLocation,
@@ -21,7 +22,7 @@ const router = express.Router();
  * POST /api/v1/locations
  * Create a new marked location
  */
-router.post('/', async (req, res) => {
+router.post('/', requireRole('ADMIN'), async (req, res) => {
   try {
     const { name, latitude, longitude, category, notes, tags } = req.body;
 
@@ -189,7 +190,7 @@ router.get('/:id', async (req, res) => {
  * PUT /api/v1/locations/:id
  * Update a marked location
  */
-router.put('/:id', async (req, res) => {
+router.put('/:id', requireRole('ADMIN'), async (req, res) => {
   try {
     const { id } = req.params;
     const { name, latitude, longitude, category, notes, tags } = req.body;
@@ -249,7 +250,7 @@ router.put('/:id', async (req, res) => {
  * DELETE /api/v1/locations/:id
  * Delete a marked location
  */
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireRole('ADMIN'), async (req, res) => {
   try {
     const { id } = req.params;
 

@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { requireRole } from '../middleware/auth';
 import { notificationService } from '../services/notificationService';
 import { logger } from '../utils/logger';
 import { sendJsonResponse } from '../utils/serialization';
@@ -52,7 +53,7 @@ router.get('/', async (req: Request, res: Response) => {
  * POST /api/v1/notifications
  * Create a new notification
  */
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', requireRole('ADMIN'), async (req: Request, res: Response) => {
   try {
     const { type, title, message, entityType, entityId } = req.body;
 
@@ -100,7 +101,7 @@ router.post('/', async (req: Request, res: Response) => {
  * PATCH /api/v1/notifications/:id/read
  * Mark a notification as read
  */
-router.patch('/:id/read', async (req: Request, res: Response) => {
+router.patch('/:id/read', requireRole('ADMIN'), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -135,7 +136,7 @@ router.patch('/:id/read', async (req: Request, res: Response) => {
  * PATCH /api/v1/notifications/read-all
  * Mark all notifications as read (with optional filtering)
  */
-router.patch('/read-all', async (req: Request, res: Response) => {
+router.patch('/read-all', requireRole('ADMIN'), async (req: Request, res: Response) => {
   try {
     const { type, entityType, entityId } = req.body;
 
@@ -174,7 +175,7 @@ router.patch('/read-all', async (req: Request, res: Response) => {
  * DELETE /api/v1/notifications/:id
  * Delete a notification
  */
-router.delete('/:id', async (req: Request, res: Response) => {
+router.delete('/:id', requireRole('ADMIN'), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -209,7 +210,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
  * POST /api/v1/notifications/check-maintenance
  * Manually trigger maintenance due check
  */
-router.post('/check-maintenance', async (req: Request, res: Response) => {
+router.post('/check-maintenance', requireRole('ADMIN'), async (req: Request, res: Response) => {
   try {
     const { daysAhead = 7 } = req.body;
 

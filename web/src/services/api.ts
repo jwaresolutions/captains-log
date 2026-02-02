@@ -1,21 +1,22 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios'
-import { 
-  ApiResponse, 
-  ApiError, 
-  Boat, 
-  Trip, 
-  GPSPoint, 
-  ManualData, 
-  LicenseProgress, 
-  Note, 
-  TodoList, 
-  TodoItem, 
-  MaintenanceTemplate, 
-  MaintenanceEvent, 
-  RecurrenceSchedule, 
-  MarkedLocation, 
-  Photo, 
-  Notification 
+import {
+  ApiResponse,
+  ApiError,
+  Boat,
+  Trip,
+  GPSPoint,
+  ManualData,
+  LicenseProgress,
+  Note,
+  TodoList,
+  TodoItem,
+  MaintenanceTemplate,
+  MaintenanceEvent,
+  RecurrenceSchedule,
+  MarkedLocation,
+  Photo,
+  Notification,
+  ViewerSettings
 } from '../types/api'
 
 class ApiService {
@@ -542,6 +543,15 @@ class ApiService {
       responseType: 'blob',
     })
     return response.data
+  }
+
+  // Viewer account settings (admin only)
+  async getViewerSettings(): Promise<ViewerSettings> {
+    return this.get('/settings/viewer')
+  }
+
+  async updateViewerSettings(data: { username?: string; password?: string; enabled?: boolean }): Promise<ViewerSettings> {
+    return this.put('/settings/viewer', data)
   }
 }
 

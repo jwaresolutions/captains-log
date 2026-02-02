@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { requireRole } from '../middleware/auth';
 import { boatService } from '../services/boatService';
 import { logger } from '../utils/logger';
 import { serializeBoat } from '../utils/serialization';
@@ -12,7 +13,7 @@ const router = Router();
  * POST /api/v1/boats
  * Create a new boat
  */
-router.post('/', async (req: Request, res: Response): Promise<void> => {
+router.post('/', requireRole('ADMIN'), async (req: Request, res: Response): Promise<void> => {
   try {
     const { name, metadata } = req.body;
 
@@ -147,7 +148,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
  * PUT /api/v1/boats/:id
  * Update a boat
  */
-router.put('/:id', async (req: Request, res: Response): Promise<void> => {
+router.put('/:id', requireRole('ADMIN'), async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const { name, metadata } = req.body;
@@ -203,7 +204,7 @@ router.put('/:id', async (req: Request, res: Response): Promise<void> => {
  * PATCH /api/v1/boats/:id/status
  * Enable or disable a boat
  */
-router.patch('/:id/status', async (req: Request, res: Response): Promise<void> => {
+router.patch('/:id/status', requireRole('ADMIN'), async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const { enabled } = req.body;
@@ -260,7 +261,7 @@ router.patch('/:id/status', async (req: Request, res: Response): Promise<void> =
  * PATCH /api/v1/boats/:id/active
  * Set a boat as the active boat
  */
-router.patch('/:id/active', async (req: Request, res: Response): Promise<void> => {
+router.patch('/:id/active', requireRole('ADMIN'), async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const boat = await boatService.setActiveBoat(id);

@@ -61,4 +61,4 @@ HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=3 \
   CMD node -e "const http=require('http');const req=http.get('http://localhost:8585/health',(r)=>{process.exit(r.statusCode===200?0:1)});req.on('error',()=>process.exit(1));req.setTimeout(3000,()=>process.exit(1))"
 
 # Start the application
-CMD ["node", "dist/index.js"]
+CMD npx prisma migrate deploy && node dist/index.js

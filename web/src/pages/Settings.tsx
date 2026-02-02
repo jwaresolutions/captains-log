@@ -7,6 +7,8 @@ import { LCARSDataDisplay } from '../components/lcars/LCARSDataDisplay'
 import { useAuth } from '../hooks/useAuth'
 import { apiService } from '../services/api'
 import { useNavigate } from 'react-router-dom'
+import { ReadOnlyGuard } from '../components/ReadOnlyGuard'
+import { ViewerSettings } from '../types/api'
 
 const SettingsContainer = styled.div`
   display: flex;
@@ -110,8 +112,54 @@ const InfoValue = styled.div`
   font-family: ${props => props.theme.typography.fontFamily.monospace};
 `
 
+const ToggleContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${props => props.theme.spacing.md};
+`
+
+const ToggleSwitch = styled.label`
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 26px;
+  cursor: pointer;
+`
+
+const ToggleSlider = styled.span<{ $checked: boolean }>`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: ${props => props.$checked ? props.theme.colors.status.success : props.theme.colors.surface.dark};
+  border: 2px solid ${props => props.$checked ? props.theme.colors.status.success : props.theme.colors.primary.anakiwa};
+  border-radius: 13px;
+  transition: 0.3s;
+
+  &::before {
+    content: '';
+    position: absolute;
+    height: 18px;
+    width: 18px;
+    left: ${props => props.$checked ? '22px' : '2px'};
+    bottom: 2px;
+    background-color: ${props => props.theme.colors.text.primary};
+    border-radius: 50%;
+    transition: 0.3s;
+  }
+`
+
+const ToggleLabel = styled.span<{ $active: boolean }>`
+  color: ${props => props.$active ? props.theme.colors.status.success : props.theme.colors.text.secondary};
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: ${props => props.theme.typography.fontSize.sm};
+  letter-spacing: 1px;
+`
+
 export const Settings: React.FC = () => {
-  const { user, logout } = useAuth()
+  const { user, logout, isReadOnly } = useAuth()
   const navigate = useNavigate()
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
@@ -123,6 +171,89 @@ export const Settings: React.FC = () => {
     type: 'success' | 'error' | 'info'
     text: string
   } | null>(null)
+
+  const [viewerSettings, setViewerSettings] = useState<ViewerSettings>({ exists: false, enabled: false, username: '' })
+  const [viewerForm, setViewerForm] = useState({ username: '', password: '' })
+  const [isLoadingViewer, setIsLoadingViewer] = useState(false)
+  const [viewerMessage, setViewerMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null)
+
+  // Load viewer settings on mount (admin only)
+  React.useEffect(() => {
+    if (!isReadOnly) {
+      loadViewerSettings()
+    }
+  }, [isReadOnly])
+
+  const loadViewerSettings = async () => {
+    try {
+      const settings = await apiService.getViewerSettings()
+      setViewerSettings(settings)
+      setViewerForm(prev => ({ ...prev, username: settings.username || '' }))
+    } catch (error) {
+      // Settings endpoint may not exist yet, ignore
+    }
+  }
+
+  const handleViewerToggle = async () => {
+    setIsLoadingViewer(true)
+    try {
+      if (!viewerSettings.exists) {
+        // Need username and password to create
+        if (!viewerForm.username || !viewerForm.password) {
+          setViewerMessage({ type: 'error', text: 'Username and password required to create viewer account' })
+          setIsLoadingViewer(false)
+          return
+        }
+        const result = await apiService.updateViewerSettings({
+          username: viewerForm.username,
+          password: viewerForm.password,
+          enabled: true,
+        })
+        setViewerSettings(result)
+        setViewerForm(prev => ({ ...prev, password: '' }))
+        setViewerMessage({ type: 'success', text: 'Viewer account created and enabled' })
+      } else {
+        const result = await apiService.updateViewerSettings({ enabled: !viewerSettings.enabled })
+        setViewerSettings(result)
+        setViewerMessage({ type: 'success', text: `Viewer account ${result.enabled ? 'enabled' : 'disabled'}` })
+      }
+    } catch (error: any) {
+      setViewerMessage({ type: 'error', text: error.message || 'Failed to update viewer settings' })
+    } finally {
+      setIsLoadingViewer(false)
+    }
+  }
+
+  const handleViewerSave = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!viewerForm.username) {
+      setViewerMessage({ type: 'error', text: 'Username is required' })
+      return
+    }
+    if (!viewerSettings.exists && !viewerForm.password) {
+      setViewerMessage({ type: 'error', text: 'Password is required for new viewer account' })
+      return
+    }
+    if (viewerForm.password && viewerForm.password.length < 8) {
+      setViewerMessage({ type: 'error', text: 'Password must be at least 8 characters' })
+      return
+    }
+
+    setIsLoadingViewer(true)
+    setViewerMessage({ type: 'info', text: 'Saving...' })
+    try {
+      const updateData: any = { username: viewerForm.username }
+      if (viewerForm.password) updateData.password = viewerForm.password
+      const result = await apiService.updateViewerSettings(updateData)
+      setViewerSettings(result)
+      setViewerForm(prev => ({ ...prev, password: '' }))
+      setViewerMessage({ type: 'success', text: 'Viewer account updated' })
+    } catch (error: any) {
+      setViewerMessage({ type: 'error', text: error.message || 'Failed to save viewer settings' })
+    } finally {
+      setIsLoadingViewer(false)
+    }
+  }
 
   const handlePasswordChange = (field: keyof typeof passwordForm) => (
     e: React.ChangeEvent<HTMLInputElement>
@@ -245,63 +376,129 @@ export const Settings: React.FC = () => {
         </LCARSPanel>
 
         {/* Password Change */}
-        <LCARSPanel title="Change Password">
-          <form onSubmit={handlePasswordSubmit}>
+        <ReadOnlyGuard fallback={
+          <LCARSPanel title="Change Password">
+            <div style={{ padding: '20px', color: '#6688CC', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '1px' }}>
+              Password changes are not available for viewer accounts.
+            </div>
+          </LCARSPanel>
+        }>
+          <LCARSPanel title="Change Password">
+            <form onSubmit={handlePasswordSubmit}>
+              <FormGroup>
+                <Label htmlFor="currentPassword">Current Password</Label>
+                <Input
+                  id="currentPassword"
+                  type="password"
+                  value={passwordForm.currentPassword}
+                  onChange={handlePasswordChange('currentPassword')}
+                  disabled={isChangingPassword}
+                  autoComplete="current-password"
+                />
+              </FormGroup>
+
+              <FormGroup>
+                <Label htmlFor="newPassword">New Password</Label>
+                <Input
+                  id="newPassword"
+                  type="password"
+                  value={passwordForm.newPassword}
+                  onChange={handlePasswordChange('newPassword')}
+                  disabled={isChangingPassword}
+                  autoComplete="new-password"
+                  minLength={8}
+                />
+              </FormGroup>
+
+              <FormGroup>
+                <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={passwordForm.confirmPassword}
+                  onChange={handlePasswordChange('confirmPassword')}
+                  disabled={isChangingPassword}
+                  autoComplete="new-password"
+                  minLength={8}
+                />
+              </FormGroup>
+
+              {passwordMessage && (
+                <StatusMessage $type={passwordMessage.type}>
+                  {passwordMessage.text}
+                </StatusMessage>
+              )}
+
+              <div style={{ marginTop: '20px' }}>
+                <LCARSButton
+                  type="submit"
+                  disabled={isChangingPassword}
+                >
+                  {isChangingPassword ? 'Changing Password...' : 'Change Password'}
+                </LCARSButton>
+              </div>
+            </form>
+          </LCARSPanel>
+        </ReadOnlyGuard>
+      </SettingsGrid>
+
+      {!isReadOnly && (
+        <LCARSPanel title="Viewer Account">
+          <div style={{ marginBottom: '20px' }}>
+            <ToggleContainer>
+              <ToggleSwitch onClick={handleViewerToggle}>
+                <ToggleSlider $checked={viewerSettings.enabled} />
+              </ToggleSwitch>
+              <ToggleLabel $active={viewerSettings.enabled}>
+                {viewerSettings.enabled ? 'Enabled' : 'Disabled'}
+              </ToggleLabel>
+              {isLoadingViewer && <span style={{ color: '#9999cc', fontSize: '12px' }}>Updating...</span>}
+            </ToggleContainer>
+          </div>
+
+          <form onSubmit={handleViewerSave}>
             <FormGroup>
-              <Label htmlFor="currentPassword">Current Password</Label>
+              <Label htmlFor="viewerUsername">Viewer Username</Label>
               <Input
-                id="currentPassword"
-                type="password"
-                value={passwordForm.currentPassword}
-                onChange={handlePasswordChange('currentPassword')}
-                disabled={isChangingPassword}
-                autoComplete="current-password"
+                id="viewerUsername"
+                type="text"
+                value={viewerForm.username}
+                onChange={(e) => { setViewerForm(prev => ({ ...prev, username: e.target.value })); setViewerMessage(null) }}
+                disabled={isLoadingViewer}
+                placeholder="viewer"
               />
             </FormGroup>
 
             <FormGroup>
-              <Label htmlFor="newPassword">New Password</Label>
+              <Label htmlFor="viewerPassword">{viewerSettings.exists ? 'New Password (leave blank to keep)' : 'Password'}</Label>
               <Input
-                id="newPassword"
+                id="viewerPassword"
                 type="password"
-                value={passwordForm.newPassword}
-                onChange={handlePasswordChange('newPassword')}
-                disabled={isChangingPassword}
-                autoComplete="new-password"
+                value={viewerForm.password}
+                onChange={(e) => { setViewerForm(prev => ({ ...prev, password: e.target.value })); setViewerMessage(null) }}
+                disabled={isLoadingViewer}
                 minLength={8}
+                placeholder={viewerSettings.exists ? '********' : 'Min 8 characters'}
               />
             </FormGroup>
 
-            <FormGroup>
-              <Label htmlFor="confirmPassword">Confirm New Password</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                value={passwordForm.confirmPassword}
-                onChange={handlePasswordChange('confirmPassword')}
-                disabled={isChangingPassword}
-                autoComplete="new-password"
-                minLength={8}
-              />
-            </FormGroup>
-
-            {passwordMessage && (
-              <StatusMessage $type={passwordMessage.type}>
-                {passwordMessage.text}
+            {viewerMessage && (
+              <StatusMessage $type={viewerMessage.type}>
+                {viewerMessage.text}
               </StatusMessage>
             )}
 
             <div style={{ marginTop: '20px' }}>
-              <LCARSButton 
+              <LCARSButton
                 type="submit"
-                disabled={isChangingPassword}
+                disabled={isLoadingViewer}
               >
-                {isChangingPassword ? 'Changing Password...' : 'Change Password'}
+                {viewerSettings.exists ? 'Update Viewer' : 'Create Viewer'}
               </LCARSButton>
             </div>
           </form>
         </LCARSPanel>
-      </SettingsGrid>
+      )}
 
       {/* System Management */}
       <LCARSPanel title="System Management">

@@ -9,6 +9,7 @@ import { LCARSHeader } from '../components/lcars/LCARSHeader'
 
 import { useTrip } from '../hooks/useTrips'
 import { useBoats } from '../hooks/useBoats'
+import { ReadOnlyGuard } from '../components/ReadOnlyGuard'
 import { GPSPoint, StopPoint } from '../types/api'
 
 // Import Leaflet CSS
@@ -524,11 +525,13 @@ export const TripDetail: React.FC = () => {
       )}
 
       <ActionButtons>
-        <Link to={`/trips/${trip.id}/edit`} style={{ textDecoration: 'none' }}>
-          <LCARSButton variant="primary">
-            Edit Trip Data
-          </LCARSButton>
-        </Link>
+        <ReadOnlyGuard>
+          <Link to={`/trips/${trip.id}/edit`} style={{ textDecoration: 'none' }}>
+            <LCARSButton variant="primary">
+              Edit Trip Data
+            </LCARSButton>
+          </Link>
+        </ReadOnlyGuard>
         <LCARSButton variant="secondary">
           Export Data
         </LCARSButton>

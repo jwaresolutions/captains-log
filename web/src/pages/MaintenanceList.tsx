@@ -8,6 +8,7 @@ import { LCARSDataDisplay } from '../components/lcars/LCARSDataDisplay'
 import { LCARSColumn } from '../components/lcars/LCARSColumn'
 import { useMaintenanceTemplates, useUpcomingMaintenanceEvents, useCompletedMaintenanceEvents } from '../hooks/useMaintenance'
 import { useBoats } from '../hooks/useBoats'
+import { ReadOnlyGuard } from '../components/ReadOnlyGuard'
 import { MaintenanceTemplate, MaintenanceEvent } from '../types/api'
 
 const Container = styled.div`
@@ -261,9 +262,11 @@ export function MaintenanceList() {
             ))}
           </Select>
           
-          <Link to="/maintenance/templates/new">
-            <LCARSButton>New Template</LCARSButton>
-          </Link>
+          <ReadOnlyGuard>
+            <Link to="/maintenance/templates/new">
+              <LCARSButton>New Template</LCARSButton>
+            </Link>
+          </ReadOnlyGuard>
         </FilterContainer>
 
         <TabContainer>

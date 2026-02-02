@@ -25,6 +25,7 @@ export interface LoginResponse {
 export interface User {
   id: string
   username: string
+  role?: string
   createdAt: string
   updatedAt: string
 }
@@ -233,4 +234,10 @@ export interface Notification {
   entityId?: string
   read: boolean
   createdAt: string
+}
+
+export interface ViewerSettings {
+  exists: boolean
+  enabled: boolean
+  username: string
 }

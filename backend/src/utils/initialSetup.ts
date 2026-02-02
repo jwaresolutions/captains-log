@@ -5,6 +5,54 @@ import { logger } from './logger';
 const prisma = new PrismaClient();
 
 /**
+ * Bootstrap viewer account from environment variables
+ * Creates or updates a VIEWER role account if VIEWER_USERNAME and VIEWER_PASSWORD are set
+ */
+async function bootstrapViewerAccount(): Promise<void> {
+  const viewerUsername = process.env.VIEWER_USERNAME;
+  const viewerPassword = process.env.VIEWER_PASSWORD;
+  const viewerEnabled = process.env.VIEWER_ENABLED === 'true';
+
+  if (!viewerUsername || !viewerPassword) {
+    return; // No viewer env vars set, skip
+  }
+
+  try {
+    const passwordHash = await authService.hashPassword(viewerPassword);
+
+    const existing = await prisma.user.findFirst({
+      where: { role: 'VIEWER' }
+    });
+
+    if (existing) {
+      // Update existing viewer account
+      await prisma.user.update({
+        where: { id: existing.id },
+        data: {
+          username: viewerUsername,
+          passwordHash,
+          isEnabled: viewerEnabled,
+        }
+      });
+      logger.info('Viewer account updated from environment variables', { username: viewerUsername, enabled: viewerEnabled });
+    } else {
+      // Create new viewer account
+      await prisma.user.create({
+        data: {
+          username: viewerUsername,
+          passwordHash,
+          role: 'VIEWER',
+          isEnabled: viewerEnabled,
+        }
+      });
+      logger.info('Viewer account created from environment variables', { username: viewerUsername, enabled: viewerEnabled });
+    }
+  } catch (error) {
+    logger.error('Error bootstrapping viewer account', { error });
+  }
+}
+
+/**
  * Check if any users exist in the system
  * If no users exist, attempt to create initial user from environment variables
  * This runs on server startup
@@ -50,6 +98,9 @@ export async function checkAndCreateInitialUser(): Promise<void> {
     } else {
       logger.info(`System has ${userCount} user(s) - initial setup not required`);
     }
+
+    // Bootstrap viewer account from environment variables
+    await bootstrapViewerAccount();
   } catch (error) {
     logger.error('Error during initial setup check', { error });
     // Don't throw - allow server to start even if initial setup fails

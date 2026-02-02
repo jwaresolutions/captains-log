@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import { requireRole } from '../middleware/auth';
 import { offlineChangeService } from '../services/offlineChangeService';
 
 const router = express.Router();
@@ -61,7 +62,7 @@ router.get('/pending', async (req: Request, res: Response): Promise<void> => {
  * POST /api/v1/offline-sync/sync
  * Sync all pending offline changes
  */
-router.post('/sync', async (req: Request, res: Response): Promise<void> => {
+router.post('/sync', requireRole('ADMIN'), async (req: Request, res: Response): Promise<void> => {
   try {
     const { userId } = req.body;
 
@@ -97,7 +98,7 @@ router.post('/sync', async (req: Request, res: Response): Promise<void> => {
  * POST /api/v1/offline-sync/cleanup
  * Clean up successfully synced changes older than specified days
  */
-router.post('/cleanup', async (req: Request, res: Response): Promise<void> => {
+router.post('/cleanup', requireRole('ADMIN'), async (req: Request, res: Response): Promise<void> => {
   try {
     const { olderThanDays = 30 } = req.body;
 

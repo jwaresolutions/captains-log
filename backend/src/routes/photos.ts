@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { requireRole } from '../middleware/auth';
 import multer from 'multer';
 import { photoService } from '../services/photoService';
 import { logger } from '../utils/logger';
@@ -28,7 +29,7 @@ const upload = multer({
  * POST /api/v1/photos
  * Upload a photo
  */
-router.post('/', upload.single('photo'), async (req: Request, res: Response): Promise<void> => {
+router.post('/', requireRole('ADMIN'), upload.single('photo'), async (req: Request, res: Response): Promise<void> => {
   try {
     const { entityType, entityId } = req.body;
     const file = req.file;
@@ -346,7 +347,7 @@ router.get('/by-category', async (req: Request, res: Response): Promise<void> =>
  * DELETE /api/v1/photos/:id
  * Delete a photo with proper cleanup for template-event structure
  */
-router.delete('/:id', async (req: Request, res: Response): Promise<void> => {
+router.delete('/:id', requireRole('ADMIN'), async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     await photoService.deletePhotoWithCleanup(id);
@@ -386,7 +387,7 @@ router.delete('/:id', async (req: Request, res: Response): Promise<void> => {
  * DELETE /api/v1/photos/:id/template/:templateId
  * Delete template photo with template-event structure handling
  */
-router.delete('/:id/template/:templateId', async (req: Request, res: Response): Promise<void> => {
+router.delete('/:id/template/:templateId', requireRole('ADMIN'), async (req: Request, res: Response): Promise<void> => {
   try {
     const { id, templateId } = req.params;
     await photoService.deleteTemplatePhoto(id, templateId);
@@ -438,7 +439,7 @@ router.delete('/:id/template/:templateId', async (req: Request, res: Response): 
  * DELETE /api/v1/photos/:id/event/:eventId
  * Delete completion photo with event-specific handling
  */
-router.delete('/:id/event/:eventId', async (req: Request, res: Response): Promise<void> => {
+router.delete('/:id/event/:eventId', requireRole('ADMIN'), async (req: Request, res: Response): Promise<void> => {
   try {
     const { id, eventId } = req.params;
     await photoService.deleteCompletionPhoto(id, eventId);
@@ -532,7 +533,7 @@ router.get('/statistics', async (req: Request, res: Response): Promise<void> => 
  * POST /api/v1/photos/validate-template-visibility/:templateId
  * Validate that template photos are visible on all related events
  */
-router.post('/validate-template-visibility/:templateId', async (req: Request, res: Response): Promise<void> => {
+router.post('/validate-template-visibility/:templateId', requireRole('ADMIN'), async (req: Request, res: Response): Promise<void> => {
   try {
     const { templateId } = req.params;
 

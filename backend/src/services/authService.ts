@@ -13,6 +13,7 @@ export interface LoginResult {
   user: {
     id: string;
     username: string;
+    role: string;
   };
   token: string;
 }
@@ -20,6 +21,7 @@ export interface LoginResult {
 export interface TokenValidationResult {
   valid: boolean;
   userId?: string;
+  role?: string;
   error?: string;
 }
 
@@ -51,11 +53,18 @@ export class AuthService {
       throw new Error('Invalid credentials');
     }
 
+    // Check if account is enabled
+    if (!user.isEnabled) {
+      logger.warn('Login attempt for disabled account', { username });
+      throw new Error('Account is disabled');
+    }
+
     // Generate JWT token with unique identifier to prevent duplicates
     const token = jwt.sign(
-      { 
-        userId: user.id, 
+      {
+        userId: user.id,
         username: user.username,
+        role: user.role,
         jti: `${user.id}-${Date.now()}-${Math.random().toString(36).substring(7)}` // Unique token ID
       },
       JWT_SECRET,
@@ -81,7 +90,8 @@ export class AuthService {
     return {
       user: {
         id: user.id,
-        username: user.username
+        username: user.username,
+        role: user.role
       },
       token
     };
@@ -98,7 +108,7 @@ export class AuthService {
 
     try {
       // Verify JWT signature and expiration
-      const decoded = jwt.verify(token, JWT_SECRET) as { userId: string; username: string };
+      const decoded = jwt.verify(token, JWT_SECRET) as { userId: string; username: string; role?: string };
 
       // Check if token exists in database and is not revoked
       const sessionToken = await prisma.sessionToken.findUnique({
@@ -120,7 +130,7 @@ export class AuthService {
         return { valid: false, error: 'Token has expired' };
       }
 
-      return { valid: true, userId: decoded.userId };
+      return { valid: true, userId: decoded.userId, role: decoded.role };
     } catch (error) {
       if (error instanceof jwt.JsonWebTokenError) {
         logger.warn('Invalid JWT token', { error: error.message });

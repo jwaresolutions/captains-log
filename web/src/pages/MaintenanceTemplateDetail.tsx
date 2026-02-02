@@ -7,6 +7,7 @@ import { LCARSDataDisplay } from '../components/lcars/LCARSDataDisplay'
 import { LCARSColumn } from '../components/lcars/LCARSColumn'
 import { LCARSAlert } from '../components/lcars/LCARSAlert'
 import { useMaintenanceTemplate, useDeleteMaintenanceTemplate } from '../hooks/useMaintenance'
+import { ReadOnlyGuard } from '../components/ReadOnlyGuard'
 
 const Container = styled.div`
   display: grid;
@@ -210,16 +211,20 @@ export function MaintenanceTemplateDetail() {
           <Link to="/maintenance">
             <LCARSButton>Back to List</LCARSButton>
           </Link>
-          <Link to={`/maintenance/templates/${template.id}/edit`}>
-            <LCARSButton>Edit Template</LCARSButton>
-          </Link>
-          <LCARSButton 
-            onClick={handleDelete}
-            disabled={deleteTemplateMutation.isPending}
-            variant="danger"
-          >
-            {deleteTemplateMutation.isPending ? 'Deleting...' : 'Delete Template'}
-          </LCARSButton>
+          <ReadOnlyGuard>
+            <Link to={`/maintenance/templates/${template.id}/edit`}>
+              <LCARSButton>Edit Template</LCARSButton>
+            </Link>
+          </ReadOnlyGuard>
+          <ReadOnlyGuard>
+            <LCARSButton
+              onClick={handleDelete}
+              disabled={deleteTemplateMutation.isPending}
+              variant="danger"
+            >
+              {deleteTemplateMutation.isPending ? 'Deleting...' : 'Delete Template'}
+            </LCARSButton>
+          </ReadOnlyGuard>
         </ActionBar>
 
         <ContentArea>

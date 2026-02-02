@@ -17,6 +17,7 @@ import { TodoItemRow } from '../components/todos/TodoItemRow'
 import { TodoProgressBar } from '../components/todos/TodoProgressBar'
 import { TodoEmptyState } from '../components/todos/TodoEmptyState'
 import { LCARSButton } from '../components/lcars/LCARSButton'
+import { ReadOnlyGuard } from '../components/ReadOnlyGuard'
 import { LCARSModal } from '../components/lcars/LCARSModal'
 import { LCARSConfirmModal } from '../components/lcars/LCARSConfirmModal'
 import { TodoList } from '../types/api'
@@ -607,9 +608,11 @@ export const TodoPage: React.FC = () => {
       <SidebarPanel $hidden={isMobileDetailView}>
         <SidebarHeader>
           <SidebarTitle>Task Lists</SidebarTitle>
-          <LCARSButton variant="secondary" size="sm" onClick={() => setShowCreateModal(true)}>
-            New List
-          </LCARSButton>
+          <ReadOnlyGuard>
+            <LCARSButton variant="secondary" size="sm" onClick={() => setShowCreateModal(true)}>
+              New List
+            </LCARSButton>
+          </ReadOnlyGuard>
           <FilterSelect
             value={typeFilter}
             onChange={e => setTypeFilter(e.target.value as 'all' | 'general' | 'boat')}
@@ -704,18 +707,20 @@ export const TodoPage: React.FC = () => {
             </DetailHeader>
 
             <ItemsContainer>
-              <AddItemRow onSubmit={handleAddItem}>
-                <AddItemInput
-                  ref={addItemInputRef}
-                  value={newItemContent}
-                  onChange={e => setNewItemContent(e.target.value)}
-                  placeholder="Add new task..."
-                  aria-label="New task content"
-                />
-                <LCARSButton variant="primary" size="sm" type="submit" onClick={() => {}}>
-                  Add
-                </LCARSButton>
-              </AddItemRow>
+              <ReadOnlyGuard fallback={null}>
+                <AddItemRow onSubmit={handleAddItem}>
+                  <AddItemInput
+                    ref={addItemInputRef}
+                    value={newItemContent}
+                    onChange={e => setNewItemContent(e.target.value)}
+                    placeholder="Add new task..."
+                    aria-label="New task content"
+                  />
+                  <LCARSButton variant="primary" size="sm" type="submit" onClick={() => {}}>
+                    Add
+                  </LCARSButton>
+                </AddItemRow>
+              </ReadOnlyGuard>
 
               {sortedItems.length === 0 ? (
                 <ListCardMeta style={{ textAlign: 'center', padding: '24px 0' }}>
@@ -735,13 +740,15 @@ export const TodoPage: React.FC = () => {
             </ItemsContainer>
 
             <FooterActions>
-              <LCARSButton
-                variant="danger"
-                size="sm"
-                onClick={() => setShowDeleteConfirm(true)}
-              >
-                Delete List
-              </LCARSButton>
+              <ReadOnlyGuard>
+                <LCARSButton
+                  variant="danger"
+                  size="sm"
+                  onClick={() => setShowDeleteConfirm(true)}
+                >
+                  Delete List
+                </LCARSButton>
+              </ReadOnlyGuard>
             </FooterActions>
           </>
         ) : (

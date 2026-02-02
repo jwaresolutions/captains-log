@@ -10,6 +10,7 @@ import {
 } from '../components/lcars'
 import { useBoat, useUpdateBoat, useToggleBoatStatus, useSetActiveBoat } from '../hooks/useBoats'
 import { useTrips } from '../hooks/useTrips'
+import { ReadOnlyGuard } from '../components/ReadOnlyGuard'
 
 const Container = styled.div`
   padding: 20px;
@@ -297,9 +298,11 @@ export const BoatDetail: React.FC = () => {
               BACK TO VESSELS
             </BackButton>
             {!isEditing && (
-              <LCARSButton variant="primary" onClick={handleEdit}>
-                EDIT VESSEL
-              </LCARSButton>
+              <ReadOnlyGuard>
+                <LCARSButton variant="primary" onClick={handleEdit}>
+                  EDIT VESSEL
+                </LCARSButton>
+              </ReadOnlyGuard>
             )}
           </div>
         </HeaderContainer>
@@ -385,30 +388,32 @@ export const BoatDetail: React.FC = () => {
             </StatusGrid>
 
             {!isEditing && (
-              <ActionGrid>
-                {!boat.isActive && boat.enabled && (
+              <ReadOnlyGuard>
+                <ActionGrid>
+                  {!boat.isActive && boat.enabled && (
+                    <LCARSButton
+                      variant="primary"
+                      onClick={handleSetActive}
+                      disabled={actionLoading === 'active'}
+                    >
+                      {actionLoading === 'active' ? 'SETTING...' : 'SET AS ACTIVE'}
+                    </LCARSButton>
+                  )}
+
                   <LCARSButton
-                    variant="primary"
-                    onClick={handleSetActive}
-                    disabled={actionLoading === 'active'}
+                    variant={boat.enabled ? 'danger' : 'accent'}
+                    onClick={handleToggleStatus}
+                    disabled={actionLoading === 'toggle'}
                   >
-                    {actionLoading === 'active' ? 'SETTING...' : 'SET AS ACTIVE'}
+                    {actionLoading === 'toggle'
+                      ? 'UPDATING...'
+                      : boat.enabled
+                        ? 'DISABLE VESSEL'
+                        : 'ENABLE VESSEL'
+                    }
                   </LCARSButton>
-                )}
-                
-                <LCARSButton
-                  variant={boat.enabled ? 'danger' : 'accent'}
-                  onClick={handleToggleStatus}
-                  disabled={actionLoading === 'toggle'}
-                >
-                  {actionLoading === 'toggle' 
-                    ? 'UPDATING...' 
-                    : boat.enabled 
-                      ? 'DISABLE VESSEL' 
-                      : 'ENABLE VESSEL'
-                  }
-                </LCARSButton>
-              </ActionGrid>
+                </ActionGrid>
+              </ReadOnlyGuard>
             )}
           </InfoSection>
         </ContentGrid>

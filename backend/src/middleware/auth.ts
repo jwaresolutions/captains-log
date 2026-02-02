@@ -59,11 +59,36 @@ export const authenticateToken = async (
     return;
   }
 
-  // Token is valid, attach userId to request for use in route handlers
+  // Token is valid, attach userId and role to request for use in route handlers
   (req as any).userId = result.userId;
+  (req as any).userRole = result.role;
 
   // Proceed to next middleware
   next();
+};
+
+/**
+ * Middleware to require specific roles for access
+ * Must be used after authenticateToken
+ */
+export const requireRole = (...roles: string[]) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    const userRole = (req as any).userRole;
+
+    if (!userRole || !roles.includes(userRole)) {
+      res.status(403).json({
+        error: {
+          code: 'FORBIDDEN',
+          message: 'You do not have permission to perform this action'
+        },
+        timestamp: new Date().toISOString(),
+        path: req.path
+      });
+      return;
+    }
+
+    next();
+  };
 };
 
 // Backward compatibility alias (deprecated)

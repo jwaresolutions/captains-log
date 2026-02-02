@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { requireRole } from '../middleware/auth';
 import { sensorService } from '../services/sensorService';
 import { logger } from '../utils/logger';
 import { eventBus } from '../services/eventBus';
@@ -9,7 +10,7 @@ const router = Router();
  * POST /api/v1/sensors/types
  * Register a new sensor type
  */
-router.post('/types', async (req: Request, res: Response): Promise<void> => {
+router.post('/types', requireRole('ADMIN'), async (req: Request, res: Response): Promise<void> => {
   try {
     const { name, unit, loggingFrequency, description } = req.body;
 
@@ -155,7 +156,7 @@ router.get('/types/:id', async (req: Request, res: Response): Promise<void> => {
  * PUT /api/v1/sensors/types/:id
  * Update a sensor type
  */
-router.put('/types/:id', async (req: Request, res: Response): Promise<void> => {
+router.put('/types/:id', requireRole('ADMIN'), async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const { name, unit, loggingFrequency, description } = req.body;
@@ -226,7 +227,7 @@ router.put('/types/:id', async (req: Request, res: Response): Promise<void> => {
  * POST /api/v1/sensors/readings
  * Record sensor data
  */
-router.post('/readings', async (req: Request, res: Response): Promise<void> => {
+router.post('/readings', requireRole('ADMIN'), async (req: Request, res: Response): Promise<void> => {
   try {
     const { tripId, sensorTypeName, value, timestamp } = req.body;
 

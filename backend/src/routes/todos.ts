@@ -1,4 +1,5 @@
 import express from 'express';
+import { requireRole } from '../middleware/auth';
 import { todoService, TodoListCreateDTO, TodoItemCreateDTO, TodoItemUpdateDTO } from '../services/todoService';
 import { sendJsonResponse } from '../utils/serialization';
 import { eventBus } from '../services/eventBus';
@@ -9,7 +10,7 @@ const router = express.Router();
  * POST /api/v1/todos
  * Create a new todo list
  */
-router.post('/', async (req, res) => {
+router.post('/', requireRole('ADMIN'), async (req, res) => {
   try {
     const { title, boatId } = req.body;
 
@@ -108,7 +109,7 @@ router.get('/:id', async (req, res) => {
  * PUT /api/v1/todos/:id
  * Update a todo list
  */
-router.put('/:id', async (req, res) => {
+router.put('/:id', requireRole('ADMIN'), async (req, res) => {
   try {
     const { id } = req.params;
     const { title, boatId } = req.body;
@@ -154,7 +155,7 @@ router.put('/:id', async (req, res) => {
  * DELETE /api/v1/todos/:id
  * Delete a todo list
  */
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireRole('ADMIN'), async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -184,7 +185,7 @@ router.delete('/:id', async (req, res) => {
  * POST /api/v1/todos/:id/items
  * Add an item to a todo list
  */
-router.post('/:id/items', async (req, res) => {
+router.post('/:id/items', requireRole('ADMIN'), async (req, res) => {
   try {
     const { id } = req.params;
     const { content } = req.body;
@@ -232,7 +233,7 @@ router.post('/:id/items', async (req, res) => {
  * PUT /api/v1/todos/items/:itemId
  * Update a todo item
  */
-router.put('/items/:itemId', async (req, res) => {
+router.put('/items/:itemId', requireRole('ADMIN'), async (req, res) => {
   try {
     const { itemId } = req.params;
     const { content, completed } = req.body;
@@ -278,7 +279,7 @@ router.put('/items/:itemId', async (req, res) => {
  * PATCH /api/v1/todos/items/:itemId/complete
  * Toggle completion status of a todo item
  */
-router.patch('/items/:itemId/complete', async (req, res) => {
+router.patch('/items/:itemId/complete', requireRole('ADMIN'), async (req, res) => {
   try {
     const { itemId } = req.params;
 
@@ -308,7 +309,7 @@ router.patch('/items/:itemId/complete', async (req, res) => {
  * DELETE /api/v1/todos/items/:itemId
  * Delete a todo item
  */
-router.delete('/items/:itemId', async (req, res) => {
+router.delete('/items/:itemId', requireRole('ADMIN'), async (req, res) => {
   try {
     const { itemId } = req.params;
 

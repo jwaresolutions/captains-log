@@ -5,6 +5,7 @@ import { LCARSButton } from '../components/lcars/LCARSButton'
 import { LCARSHeader } from '../components/lcars/LCARSHeader'
 import { LCARSDataDisplay } from '../components/lcars/LCARSDataDisplay'
 import { apiService } from '../services/api'
+import { ReadOnlyGuard } from '../components/ReadOnlyGuard'
 
 const BackupContainer = styled.div`
   display: flex;
@@ -229,12 +230,14 @@ export const BackupManager: React.FC = () => {
         <LCARSPanel title="Backup Operations">
           <div style={{ marginBottom: '20px' }}>
             <div style={{ width: '100%', marginBottom: '10px' }}>
-              <LCARSButton 
-                onClick={createBackup}
-                disabled={isCreatingBackup}
-              >
-                {isCreatingBackup ? 'Creating Backup...' : 'Create Manual Backup'}
-              </LCARSButton>
+              <ReadOnlyGuard>
+                <LCARSButton
+                  onClick={createBackup}
+                  disabled={isCreatingBackup}
+                >
+                  {isCreatingBackup ? 'Creating Backup...' : 'Create Manual Backup'}
+                </LCARSButton>
+              </ReadOnlyGuard>
             </div>
             
             <div style={{ width: '100%' }}>

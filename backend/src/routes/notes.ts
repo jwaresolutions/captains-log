@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { requireRole } from '../middleware/auth';
 import { noteService } from '../services/noteService';
 import { logger } from '../utils/logger';
 import { sendJsonResponse } from '../utils/serialization';
@@ -10,7 +11,7 @@ const router = Router();
  * POST /api/v1/notes
  * Create a new note
  */
-router.post('/', async (req: Request, res: Response): Promise<void> => {
+router.post('/', requireRole('ADMIN'), async (req: Request, res: Response): Promise<void> => {
   try {
     const { content, type, boatId, tripId, tags } = req.body;
 
@@ -215,7 +216,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
  * PUT /api/v1/notes/:id
  * Update a note
  */
-router.put('/:id', async (req: Request, res: Response): Promise<void> => {
+router.put('/:id', requireRole('ADMIN'), async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const { content, tags } = req.body;
@@ -269,7 +270,7 @@ router.put('/:id', async (req: Request, res: Response): Promise<void> => {
  * DELETE /api/v1/notes/:id
  * Delete a note
  */
-router.delete('/:id', async (req: Request, res: Response): Promise<void> => {
+router.delete('/:id', requireRole('ADMIN'), async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     await noteService.deleteNote(id);
@@ -306,7 +307,7 @@ router.delete('/:id', async (req: Request, res: Response): Promise<void> => {
  * POST /api/v1/notes/:id/tags
  * Add tags to a note
  */
-router.post('/:id/tags', async (req: Request, res: Response): Promise<void> => {
+router.post('/:id/tags', requireRole('ADMIN'), async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const { tags } = req.body;
@@ -359,7 +360,7 @@ router.post('/:id/tags', async (req: Request, res: Response): Promise<void> => {
  * DELETE /api/v1/notes/:id/tags
  * Remove tags from a note
  */
-router.delete('/:id/tags', async (req: Request, res: Response): Promise<void> => {
+router.delete('/:id/tags', requireRole('ADMIN'), async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const { tags } = req.body;

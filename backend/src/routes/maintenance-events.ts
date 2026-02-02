@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import { requireRole } from '../middleware/auth';
 import { eventManagerService, MaintenanceEventCompletionDTO } from '../services/eventManagerService';
 import { sendJsonResponse } from '../utils/serialization';
 import { eventBus } from '../services/eventBus';
@@ -166,7 +167,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
  * POST /api/v1/maintenance/events/:id/complete
  * Complete event with cost, notes, photos
  */
-router.post('/:id/complete', async (req: Request, res: Response): Promise<void> => {
+router.post('/:id/complete', requireRole('ADMIN'), async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const { actualCost, actualTime, notes } = req.body;
@@ -274,7 +275,7 @@ router.post('/:id/complete', async (req: Request, res: Response): Promise<void> 
  * POST /api/v1/maintenance/events/:id/photos
  * Attach completion photo
  */
-router.post('/:id/photos', async (req: Request, res: Response): Promise<void> => {
+router.post('/:id/photos', requireRole('ADMIN'), async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const { photoId } = req.body;
@@ -341,7 +342,7 @@ router.post('/:id/photos', async (req: Request, res: Response): Promise<void> =>
  * DELETE /api/v1/maintenance/events/:id/photos/:photoId
  * Remove completion photo (only affects this specific event)
  */
-router.delete('/:id/photos/:photoId', async (req: Request, res: Response): Promise<void> => {
+router.delete('/:id/photos/:photoId', requireRole('ADMIN'), async (req: Request, res: Response): Promise<void> => {
   try {
     const { id, photoId } = req.params;
 

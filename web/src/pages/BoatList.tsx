@@ -11,6 +11,7 @@ import { Skeleton } from '../components/LoadingSpinner'
 import { ErrorMessage } from '../components/ErrorMessage'
 import { useBoats, useToggleBoatStatus, useSetActiveBoat } from '../hooks/useBoats'
 import { useOptimisticList } from '../hooks/useOptimisticUpdates'
+import { ReadOnlyGuard } from '../components/ReadOnlyGuard'
 import { Boat } from '../types/api'
 
 const Container = styled.div`
@@ -234,12 +235,14 @@ export const BoatList: React.FC = () => {
               value={activeBoat?.name || 'NONE SELECTED'}
               valueColor={activeBoat ? 'neonCarrot' : 'anakiwa'}
             />
-            <LCARSButton 
-              variant="primary" 
-              onClick={handleCreateBoat}
-            >
-              ADD NEW VESSEL
-            </LCARSButton>
+            <ReadOnlyGuard>
+              <LCARSButton
+                variant="primary"
+                onClick={handleCreateBoat}
+              >
+                ADD NEW VESSEL
+              </LCARSButton>
+            </ReadOnlyGuard>
           </HeaderActions>
         </HeaderContainer>
 
@@ -249,12 +252,14 @@ export const BoatList: React.FC = () => {
               <EmptyStateIcon>🚤</EmptyStateIcon>
               <h3>NO VESSELS REGISTERED</h3>
               <p>Add your first vessel to begin tracking trips and maintenance.</p>
-              <LCARSButton 
-                variant="primary" 
-                onClick={handleCreateBoat}
-              >
-                ADD FIRST VESSEL
-              </LCARSButton>
+              <ReadOnlyGuard>
+                <LCARSButton
+                  variant="primary"
+                  onClick={handleCreateBoat}
+                >
+                  ADD FIRST VESSEL
+                </LCARSButton>
+              </ReadOnlyGuard>
             </EmptyState>
           </LCARSPanel>
         ) : (
@@ -293,27 +298,31 @@ export const BoatList: React.FC = () => {
 
                 <BoatActions>
                   {!boat.isActive && boat.enabled && (
-                    <ActionButton
-                      variant="secondary"
-                      onClick={() => handleSetActive(boat)}
-                      disabled={actionLoading === `active-${boat.id}`}
-                    >
-                      {actionLoading === `active-${boat.id}` ? 'SETTING...' : 'SET ACTIVE'}
-                    </ActionButton>
+                    <ReadOnlyGuard>
+                      <ActionButton
+                        variant="secondary"
+                        onClick={() => handleSetActive(boat)}
+                        disabled={actionLoading === `active-${boat.id}`}
+                      >
+                        {actionLoading === `active-${boat.id}` ? 'SETTING...' : 'SET ACTIVE'}
+                      </ActionButton>
+                    </ReadOnlyGuard>
                   )}
-                  
-                  <ActionButton
-                    variant={boat.enabled ? 'danger' : 'accent'}
-                    onClick={() => handleToggleStatus(boat)}
-                    disabled={actionLoading === `toggle-${boat.id}`}
-                  >
-                    {actionLoading === `toggle-${boat.id}` 
-                      ? 'UPDATING...' 
-                      : boat.enabled 
-                        ? 'DISABLE' 
-                        : 'ENABLE'
-                    }
-                  </ActionButton>
+
+                  <ReadOnlyGuard>
+                    <ActionButton
+                      variant={boat.enabled ? 'danger' : 'accent'}
+                      onClick={() => handleToggleStatus(boat)}
+                      disabled={actionLoading === `toggle-${boat.id}`}
+                    >
+                      {actionLoading === `toggle-${boat.id}`
+                        ? 'UPDATING...'
+                        : boat.enabled
+                          ? 'DISABLE'
+                          : 'ENABLE'
+                      }
+                    </ActionButton>
+                  </ReadOnlyGuard>
                 </BoatActions>
               </BoatCard>
             ))}

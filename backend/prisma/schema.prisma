@@ -95,10 +95,17 @@ model GPSPoint {
   @@index([latitude, longitude])
 }
 
+enum Role {
+  ADMIN
+  VIEWER
+}
+
 model User {
   id           String   @id @default(uuid())
   username     String   @unique
   passwordHash String
+  role         Role     @default(ADMIN)
+  isEnabled    Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

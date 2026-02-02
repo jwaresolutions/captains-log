@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import { requireRole } from '../middleware/auth';
 import { templateManagerService, MaintenanceTemplateCreateDTO, MaintenanceTemplateUpdateDTO } from '../services/templateManagerService';
 import { scheduleChangeService } from '../services/scheduleChangeService';
 import { templateInformationService, TemplateInformationChanges } from '../services/templateInformationService';
@@ -11,7 +12,7 @@ const router = express.Router();
  * POST /api/v1/maintenance/templates
  * Create a new maintenance template
  */
-router.post('/', async (req: Request, res: Response): Promise<void> => {
+router.post('/', requireRole('ADMIN'), async (req: Request, res: Response): Promise<void> => {
   try {
     const { boatId, title, description, component, recurrence, estimatedCost, estimatedTime } = req.body;
 
@@ -228,7 +229,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
  * PUT /api/v1/maintenance/templates/:id
  * Update a maintenance template
  */
-router.put('/:id', async (req: Request, res: Response): Promise<void> => {
+router.put('/:id', requireRole('ADMIN'), async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const { title, description, component, recurrence, estimatedCost, estimatedTime, isActive } = req.body;
@@ -306,7 +307,7 @@ router.put('/:id', async (req: Request, res: Response): Promise<void> => {
  * DELETE /api/v1/maintenance/templates/:id
  * Delete a maintenance template with cascade to future events
  */
-router.delete('/:id', async (req: Request, res: Response): Promise<void> => {
+router.delete('/:id', requireRole('ADMIN'), async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
 
@@ -347,7 +348,7 @@ router.delete('/:id', async (req: Request, res: Response): Promise<void> => {
  * POST /api/v1/maintenance/templates/:id/photos
  * Attach a photo to a maintenance template
  */
-router.post('/:id/photos', async (req: Request, res: Response): Promise<void> => {
+router.post('/:id/photos', requireRole('ADMIN'), async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const { photoId } = req.body;
@@ -413,7 +414,7 @@ router.post('/:id/photos', async (req: Request, res: Response): Promise<void> =>
  * DELETE /api/v1/maintenance/templates/:id/photos/:photoId
  * Remove a photo from a maintenance template (affects all related events)
  */
-router.delete('/:id/photos/:photoId', async (req: Request, res: Response): Promise<void> => {
+router.delete('/:id/photos/:photoId', requireRole('ADMIN'), async (req: Request, res: Response): Promise<void> => {
   try {
     const { id, photoId } = req.params;
 
@@ -470,7 +471,7 @@ router.delete('/:id/photos/:photoId', async (req: Request, res: Response): Promi
  * POST /api/v1/maintenance/templates/:id/schedule-change/preview
  * Preview the impact of changing a template's recurrence schedule
  */
-router.post('/:id/schedule-change/preview', async (req: Request, res: Response): Promise<void> => {
+router.post('/:id/schedule-change/preview', requireRole('ADMIN'), async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const { recurrence } = req.body;
@@ -548,7 +549,7 @@ router.post('/:id/schedule-change/preview', async (req: Request, res: Response):
  * POST /api/v1/maintenance/templates/:id/schedule-change/apply
  * Apply the schedule change after user confirmation
  */
-router.post('/:id/schedule-change/apply', async (req: Request, res: Response): Promise<void> => {
+router.post('/:id/schedule-change/apply', requireRole('ADMIN'), async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const { recurrence, offline } = req.body;
@@ -657,7 +658,7 @@ router.post('/:id/schedule-change/apply', async (req: Request, res: Response): P
  * POST /api/v1/maintenance/templates/:id/information-change/preview
  * Preview the impact of changing template information on future events
  */
-router.post('/:id/information-change/preview', async (req: Request, res: Response) => {
+router.post('/:id/information-change/preview', requireRole('ADMIN'), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { title, description, component, estimatedCost, estimatedTime } = req.body;
@@ -733,7 +734,7 @@ router.post('/:id/information-change/preview', async (req: Request, res: Respons
  * POST /api/v1/maintenance/templates/:id/information-change/apply
  * Apply template information changes after user confirmation
  */
-router.post('/:id/information-change/apply', async (req: Request, res: Response) => {
+router.post('/:id/information-change/apply', requireRole('ADMIN'), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { title, description, component, estimatedCost, estimatedTime } = req.body;
@@ -828,7 +829,7 @@ router.post('/:id/information-change/apply', async (req: Request, res: Response)
  * POST /api/v1/maintenance/templates/sync-offline-changes
  * Process queued template changes when connectivity is restored
  */
-router.post('/sync-offline-changes', async (req: Request, res: Response) => {
+router.post('/sync-offline-changes', requireRole('ADMIN'), async (req: Request, res: Response) => {
   try {
     const results = await templateInformationService.processQueuedChanges();
     
@@ -865,7 +866,7 @@ router.post('/sync-offline-changes', async (req: Request, res: Response) => {
  * POST /api/v1/maintenance/templates/:id/photos/propagate
  * Propagate template photo changes to all related events
  */
-router.post('/:id/photos/propagate', async (req: Request, res: Response) => {
+router.post('/:id/photos/propagate', requireRole('ADMIN'), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { addedPhotoIds = [], removedPhotoIds = [] } = req.body;
@@ -945,7 +946,7 @@ router.post('/:id/photos/propagate', async (req: Request, res: Response) => {
  * Manually trigger the daily maintenance task automation (for testing)
  * Migrated from legacy maintenance-simple route
  */
-router.post('/trigger-daily-task', async (_req: Request, res: Response): Promise<void> => {
+router.post('/trigger-daily-task', requireRole('ADMIN'), async (_req: Request, res: Response): Promise<void> => {
   try {
     const { schedulerService } = await import('../services/schedulerService');
     await schedulerService.triggerDailyMaintenanceTask();
