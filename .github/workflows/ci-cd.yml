@@ -57,7 +57,9 @@ jobs:
           context: ./backend
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ghcr.io/jwaresolutions/captains-log-backend:latest
+          tags: |
+            ghcr.io/jwaresolutions/captains-log-backend:latest
+            ghcr.io/jwaresolutions/captains-log-backend:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -67,7 +69,9 @@ jobs:
           context: ./web
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ghcr.io/jwaresolutions/captains-log-web:latest
+          tags: |
+            ghcr.io/jwaresolutions/captains-log-web:latest
+            ghcr.io/jwaresolutions/captains-log-web:${{ github.sha }}
           build-args: VITE_API_BASE_URL=/api/v1
           cache-from: type=gha
           cache-to: type=gha,mode=max
