@@ -1,7 +1,17 @@
 {
-  "agents": [],
-  "total_spawned": 0,
+  "agents": [
+    {
+      "agent_id": "ab6b2fe",
+      "agent_type": "oh-my-claudecode:executor-low",
+      "started_at": "2026-02-02T19:03:37.154Z",
+      "parent_mode": "none",
+      "status": "failed",
+      "completed_at": "2026-02-02T19:03:43.763Z",
+      "duration_ms": 6609
+    }
+  ],
+  "total_spawned": 1,
   "total_completed": 0,
-  "total_failed": 0,
-  "last_updated": "2026-01-31T23:50:52.867Z"
+  "total_failed": 1,
+  "last_updated": "2026-02-02T19:03:56.796Z"
 }
