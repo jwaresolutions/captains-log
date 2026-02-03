@@ -33,13 +33,27 @@ jobs:
           npx tsc --noEmit
           npx vite build
 
-  build-and-push:
-    name: Build & Push Images
+  build-test-push:
+    name: Build, Test & Push Images
     needs: check
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: boat_user
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: boat_tracking
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U boat_user -d boat_tracking"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
 
@@ -51,7 +65,79 @@ jobs:
 
       - uses: docker/setup-buildx-action@v3
 
-      - name: Build & Push Backend
+      - name: Build Backend Image (no push)
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          platforms: linux/amd64
+          push: false
+          load: true
+          tags: captains-log-backend:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build Web Image (no push)
+        uses: docker/build-push-action@v5
+        with:
+          context: ./web
+          platforms: linux/amd64
+          push: false
+          load: true
+          tags: captains-log-web:test
+          build-args: VITE_API_BASE_URL=/api/v1
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Test Backend Container
+        run: |
+          # Start the backend container connected to the service postgres
+          docker run -d --name backend-test \
+            --network host \
+            -e DATABASE_URL="postgresql://boat_user:testpassword@localhost:5432/boat_tracking" \
+            -e JWT_SECRET="ci-test-secret-key" \
+            -e NODE_ENV="production" \
+            -e PORT="8585" \
+            captains-log-backend:test
+
+          # Wait for container to be healthy (migration + startup)
+          echo "Waiting for backend to start..."
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:8585/health > /dev/null 2>&1; then
+              echo "Backend is healthy!"
+              exit 0
+            fi
+            echo "Attempt $i/30 - waiting..."
+            sleep 2
+          done
+
+          echo "Backend failed to start. Container logs:"
+          docker logs backend-test
+          exit 1
+
+      - name: Test Web Container
+        run: |
+          docker run -d --name web-test -p 8080:80 captains-log-web:test
+
+          echo "Waiting for web to start..."
+          for i in $(seq 1 15); do
+            if curl -sf http://localhost:8080/ > /dev/null 2>&1; then
+              echo "Web is healthy!"
+              exit 0
+            fi
+            echo "Attempt $i/15 - waiting..."
+            sleep 2
+          done
+
+          echo "Web failed to start. Container logs:"
+          docker logs web-test
+          exit 1
+
+      - name: Cleanup Test Containers
+        if: always()
+        run: |
+          docker rm -f backend-test web-test 2>/dev/null || true
+
+      - name: Push Backend Image
         uses: docker/build-push-action@v5
         with:
           context: ./backend
@@ -63,7 +149,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Build & Push Web
+      - name: Push Web Image
         uses: docker/build-push-action@v5
         with:
           context: ./web
