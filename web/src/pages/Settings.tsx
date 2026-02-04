@@ -4,6 +4,7 @@ import { LCARSPanel } from '../components/lcars/LCARSPanel'
 import { LCARSButton } from '../components/lcars/LCARSButton'
 import { LCARSHeader } from '../components/lcars/LCARSHeader'
 import { LCARSDataDisplay } from '../components/lcars/LCARSDataDisplay'
+import { PasswordInput } from '../components/PasswordInput'
 import { useAuth } from '../hooks/useAuth'
 import { apiService } from '../services/api'
 import { useNavigate } from 'react-router-dom'
@@ -389,9 +390,8 @@ export const Settings: React.FC = () => {
             <form onSubmit={handlePasswordSubmit}>
               <FormGroup>
                 <Label htmlFor="currentPassword">Current Password</Label>
-                <Input
+                <PasswordInput
                   id="currentPassword"
-                  type="password"
                   value={passwordForm.currentPassword}
                   onChange={handlePasswordChange('currentPassword')}
                   disabled={isChangingPassword}
@@ -401,9 +401,8 @@ export const Settings: React.FC = () => {
 
               <FormGroup>
                 <Label htmlFor="newPassword">New Password</Label>
-                <Input
+                <PasswordInput
                   id="newPassword"
-                  type="password"
                   value={passwordForm.newPassword}
                   onChange={handlePasswordChange('newPassword')}
                   disabled={isChangingPassword}
@@ -414,9 +413,8 @@ export const Settings: React.FC = () => {
 
               <FormGroup>
                 <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                <Input
+                <PasswordInput
                   id="confirmPassword"
-                  type="password"
                   value={passwordForm.confirmPassword}
                   onChange={handlePasswordChange('confirmPassword')}
                   disabled={isChangingPassword}
@@ -473,9 +471,8 @@ export const Settings: React.FC = () => {
 
             <FormGroup>
               <Label htmlFor="viewerPassword">{viewerSettings.exists ? 'New Password (leave blank to keep)' : 'Password'}</Label>
-              <Input
+              <PasswordInput
                 id="viewerPassword"
-                type="password"
                 value={viewerForm.password}
                 onChange={(e) => { setViewerForm(prev => ({ ...prev, password: e.target.value })); setViewerMessage(null) }}
                 disabled={isLoadingViewer}

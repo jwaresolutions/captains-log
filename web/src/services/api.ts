@@ -78,9 +78,12 @@ class ApiService {
         // Handle specific status codes
         switch (error.response.status) {
           case 401:
-            this.clearAuthToken()
-            // Don't redirect immediately, let the component handle it
-            apiError.message = 'Your session has expired. Please log in again.'
+            // Don't overwrite message for login attempts - they have their own error messages
+            if (!error.config?.url?.includes('/auth/login')) {
+              this.clearAuthToken()
+              apiError.message = 'Your session has expired. Please log in again.'
+            }
+            // For login, keep the original error message from getErrorMessage()
             break
           case 403:
             apiError.message = 'You don\'t have permission to perform this action.'

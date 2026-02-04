@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import { useNavigate } from 'react-router-dom'
 import { LCARSPanel, LCARSButton, LCARSHeader, LCARSAlert } from '../components/lcars'
+import { PasswordInput } from '../components/PasswordInput'
 import { useAuth } from '../hooks/useAuth'
 import { apiService } from '../services/api'
 
@@ -180,8 +181,7 @@ export const SetupWizard: React.FC = () => {
 
             <FormGroup>
               <Label htmlFor="password">Password</Label>
-              <Input
-                type="password"
+              <PasswordInput
                 id="password"
                 name="password"
                 value={formData.password}
