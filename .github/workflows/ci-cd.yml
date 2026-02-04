@@ -116,14 +116,19 @@ jobs:
       - name: Load Images
         run: docker load < images.tar.gz
 
+      - name: Create Test Network
+        run: docker network create test-net
+
       - name: Test Backend
         run: |
-          docker run -d --name backend-test \
-            --network host \
-            -e DATABASE_URL="postgresql://boat_user:testpassword@localhost:5432/boat_tracking" \
+          docker run -d --name backend \
+            --network test-net \
+            -p 8585:8585 \
+            -e DATABASE_URL="postgresql://boat_user:testpassword@host.docker.internal:5432/boat_tracking" \
             -e JWT_SECRET="ci-test-secret-key" \
             -e NODE_ENV="production" \
             -e PORT="8585" \
+            --add-host=host.docker.internal:host-gateway \
             captains-log-backend:test
 
           echo "Waiting for backend to start..."
@@ -137,12 +142,13 @@ jobs:
           done
 
           echo "Backend failed to start. Container logs:"
-          docker logs backend-test
+          docker logs backend
           exit 1
 
       - name: Test Web
         run: |
-          docker run -d --name web-test -p 8080:80 captains-log-web:test
+          # Run web container on same network - nginx can resolve 'backend' hostname
+          docker run -d --name web-test --network test-net -p 8080:80 captains-log-web:test
 
           echo "Waiting for web to start..."
           for i in $(seq 1 15); do
@@ -160,7 +166,9 @@ jobs:
 
       - name: Cleanup
         if: always()
-        run: docker rm -f backend-test web-test 2>/dev/null || true
+        run: |
+          docker rm -f backend web-test 2>/dev/null || true
+          docker network rm test-net 2>/dev/null || true
 
   push-images:
     name: Push Images
