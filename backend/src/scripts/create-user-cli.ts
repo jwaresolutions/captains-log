@@ -42,13 +42,16 @@ async function createUser() {
       process.exit(1);
     }
 
+    // Normalize username to lowercase for case-insensitive login
+    const normalizedUsername = args.username.toLowerCase();
+
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
-      where: { username: args.username }
+      where: { username: normalizedUsername }
     });
 
     if (existingUser) {
-      console.error(`Error: User '${args.username}' already exists`);
+      console.error(`Error: User '${normalizedUsername}' already exists`);
       process.exit(1);
     }
 
@@ -58,7 +61,7 @@ async function createUser() {
     // Create user
     const user = await prisma.user.create({
       data: {
-        username: args.username,
+        username: normalizedUsername,
         passwordHash
       }
     });

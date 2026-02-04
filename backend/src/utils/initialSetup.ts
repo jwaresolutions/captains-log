@@ -29,23 +29,23 @@ async function bootstrapViewerAccount(): Promise<void> {
       await prisma.user.update({
         where: { id: existing.id },
         data: {
-          username: viewerUsername,
+          username: viewerUsername.toLowerCase(),
           passwordHash,
           isEnabled: viewerEnabled,
         }
       });
-      logger.info('Viewer account updated from environment variables', { username: viewerUsername, enabled: viewerEnabled });
+      logger.info('Viewer account updated from environment variables', { username: viewerUsername.toLowerCase(), enabled: viewerEnabled });
     } else {
       // Create new viewer account
       await prisma.user.create({
         data: {
-          username: viewerUsername,
+          username: viewerUsername.toLowerCase(),
           passwordHash,
           role: 'VIEWER',
           isEnabled: viewerEnabled,
         }
       });
-      logger.info('Viewer account created from environment variables', { username: viewerUsername, enabled: viewerEnabled });
+      logger.info('Viewer account created from environment variables', { username: viewerUsername.toLowerCase(), enabled: viewerEnabled });
     }
   } catch (error) {
     logger.error('Error bootstrapping viewer account', { error });
@@ -70,22 +70,22 @@ export async function checkAndCreateInitialUser(): Promise<void> {
       const initialPassword = process.env.INITIAL_PASSWORD;
 
       if (initialUsername && initialPassword) {
-        logger.info('Creating initial user from environment variables', { username: initialUsername });
-        
+        logger.info('Creating initial user from environment variables', { username: initialUsername.toLowerCase() });
+
         // Hash the password
         const passwordHash = await authService.hashPassword(initialPassword);
 
-        // Create the initial user
+        // Create the initial user (username stored lowercase for case-insensitive login)
         const user = await prisma.user.create({
           data: {
-            username: initialUsername,
+            username: initialUsername.toLowerCase(),
             passwordHash
           }
         });
 
-        logger.info('Initial user created successfully', { 
-          userId: user.id, 
-          username: user.username 
+        logger.info('Initial user created successfully', {
+          userId: user.id,
+          username: user.username
         });
         logger.info('IMPORTANT: Remove INITIAL_USER and INITIAL_PASSWORD from environment variables for security');
       } else {

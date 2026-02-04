@@ -44,9 +44,12 @@ async function changePassword() {
       process.exit(1);
     }
 
+    // Normalize username to lowercase for case-insensitive lookup
+    const normalizedUsername = args.username.toLowerCase();
+
     // Find user
     const user = await prisma.user.findUnique({
-      where: { username: args.username },
+      where: { username: normalizedUsername },
       include: {
         sessionTokens: {
           where: { isRevoked: false }
@@ -55,7 +58,7 @@ async function changePassword() {
     });
 
     if (!user) {
-      console.error(`Error: User '${args.username}' not found`);
+      console.error(`Error: User '${normalizedUsername}' not found`);
       process.exit(1);
     }
 

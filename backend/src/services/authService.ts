@@ -35,9 +35,9 @@ export class AuthService {
       throw new Error('Username and password are required');
     }
 
-    // Find user by username
+    // Find user by username (case-insensitive)
     const user = await prisma.user.findUnique({
-      where: { username }
+      where: { username: username.toLowerCase() }
     });
 
     if (!user) {

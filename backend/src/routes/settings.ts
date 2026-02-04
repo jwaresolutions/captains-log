@@ -56,7 +56,7 @@ router.put('/viewer', async (req: Request, res: Response): Promise<void> => {
     if (existing) {
       // Update existing viewer
       const updateData: any = {};
-      if (username !== undefined) updateData.username = username;
+      if (username !== undefined) updateData.username = username.toLowerCase();
       if (password !== undefined) updateData.passwordHash = await authService.hashPassword(password);
       if (enabled !== undefined) updateData.isEnabled = enabled;
 
@@ -80,10 +80,10 @@ router.put('/viewer', async (req: Request, res: Response): Promise<void> => {
 
       await prisma.user.create({
         data: {
-          username,
+          username: username.toLowerCase(),
           passwordHash: await authService.hashPassword(password),
           role: 'VIEWER',
-          isEnabled: enabled ?? false,
+          isEnabled: enabled ?? true,
         }
       });
     }
