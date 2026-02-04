@@ -316,6 +316,7 @@ export const MapView: React.FC = () => {
   }, [trips])
   
   const handleMapClick = useCallback((lat: number, lng: number) => {
+    console.log('Map clicked:', { lat, lng, isAddingLocation })
     if (isAddingLocation) {
       setNewLocationData(prev => ({
         ...prev,
@@ -326,23 +327,29 @@ export const MapView: React.FC = () => {
   }, [isAddingLocation])
   
   const handleCreateLocation = async () => {
+    console.log('handleCreateLocation called with:', newLocationData)
+
     if (!newLocationData.name) {
+      console.log('Validation failed: no name')
       alert('Please enter a location name')
       return
     }
     if (newLocationData.latitude === null || newLocationData.longitude === null) {
+      console.log('Validation failed: no coordinates')
       alert('Please click on the map to set coordinates')
       return
     }
 
+    console.log('Validation passed, calling mutation...')
     try {
-      await createLocationMutation.mutateAsync({
+      const result = await createLocationMutation.mutateAsync({
         name: newLocationData.name,
         latitude: newLocationData.latitude,
         longitude: newLocationData.longitude,
         category: newLocationData.category,
         notes: newLocationData.notes || undefined,
       })
+      console.log('Location created successfully:', result)
 
       // Reset form
       setNewLocationData({
@@ -851,6 +858,13 @@ export const MapView: React.FC = () => {
                 </div>
               )}
               
+              {/* Debug info - shows why button might be disabled */}
+              <div style={{ fontSize: '12px', color: '#999', marginBottom: '8px' }}>
+                Status: {!newLocationData.name ? '❌ Need name' : '✓ Name'} |
+                {newLocationData.latitude === null ? ' ❌ Need coords (click map)' : ' ✓ Coords'} |
+                {createLocationMutation.isPending ? ' ⏳ Saving...' : ' ✓ Ready'}
+              </div>
+
               <div style={{ display: 'flex', gap: '8px' }}>
                 <ReadOnlyGuard>
                   <LCARSButton
