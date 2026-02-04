@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import styled from 'styled-components'
 import { LCARSPanel } from '../components/lcars/LCARSPanel'
 import { LCARSButton } from '../components/lcars/LCARSButton'
 import { LCARSHeader } from '../components/lcars/LCARSHeader'
 import { LCARSDataDisplay } from '../components/lcars/LCARSDataDisplay'
+import { ReadOnlyGuard } from '../components/ReadOnlyGuard'
 import { useTrips } from '../hooks/useTrips'
+import { apiService } from '../services/api'
 import { Photo } from '../types/api'
 
 const GalleryContainer = styled.div`
@@ -136,6 +138,71 @@ const EmptyState = styled.div`
   font-style: italic;
 `
 
+const UploadModal = styled.div<{ $isOpen: boolean }>`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: ${props => props.$isOpen ? 'flex' : 'none'};
+  align-items: center;
+  justify-content: center;
+  z-index: ${props => props.theme.zIndex.modal};
+  padding: ${props => props.theme.spacing.lg};
+`
+
+const UploadForm = styled.div`
+  background: ${props => props.theme.colors.surface.dark};
+  border: 2px solid ${props => props.theme.colors.primary.neonCarrot};
+  border-radius: ${props => props.theme.borderRadius.md};
+  padding: ${props => props.theme.spacing.lg};
+  max-width: 500px;
+  width: 100%;
+`
+
+const FormGroup = styled.div`
+  margin-bottom: ${props => props.theme.spacing.md};
+
+  label {
+    display: block;
+    color: ${props => props.theme.colors.primary.anakiwa};
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: ${props => props.theme.typography.fontSize.sm};
+    margin-bottom: ${props => props.theme.spacing.xs};
+  }
+
+  select, input[type="file"] {
+    width: 100%;
+    padding: ${props => props.theme.spacing.sm};
+    background: ${props => props.theme.colors.surface.medium};
+    border: 1px solid ${props => props.theme.colors.primary.anakiwa};
+    border-radius: ${props => props.theme.borderRadius.sm};
+    color: ${props => props.theme.colors.text.primary};
+    font-family: ${props => props.theme.typography.fontFamily.primary};
+  }
+`
+
+const UploadPreview = styled.div`
+  margin-top: ${props => props.theme.spacing.md};
+  text-align: center;
+
+  img {
+    max-width: 100%;
+    max-height: 200px;
+    border: 2px solid ${props => props.theme.colors.primary.anakiwa};
+    border-radius: ${props => props.theme.borderRadius.sm};
+  }
+`
+
+const ButtonRow = styled.div`
+  display: flex;
+  gap: ${props => props.theme.spacing.md};
+  justify-content: flex-end;
+  margin-top: ${props => props.theme.spacing.lg};
+`
+
 const StatsPanel = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -158,7 +225,16 @@ export const PhotoGallery: React.FC = () => {
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoWithContext | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  const { data: trips, isLoading: tripsLoading } = useTrips()
+  // Upload state
+  const [isUploadOpen, setIsUploadOpen] = useState(false)
+  const [uploadFile, setUploadFile] = useState<File | null>(null)
+  const [uploadPreview, setUploadPreview] = useState<string | null>(null)
+  const [uploadEntityType, setUploadEntityType] = useState<string>('trip')
+  const [uploadEntityId, setUploadEntityId] = useState<string>('')
+  const [isUploading, setIsUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const { data: trips, isLoading: tripsLoading, refetch: refetchTrips } = useTrips()
 
   useEffect(() => {
     const allPhotos: PhotoWithContext[] = []
@@ -231,6 +307,51 @@ export const PhotoGallery: React.FC = () => {
 
   const tripPhotos = photos.filter(p => p.contextType === 'trip')
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setUploadFile(file)
+      // Create preview
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setUploadPreview(e.target?.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleUpload = async () => {
+    if (!uploadFile || !uploadEntityId) {
+      alert('Please select a file and choose what to attach it to')
+      return
+    }
+
+    setIsUploading(true)
+    try {
+      await apiService.uploadPhoto(uploadFile, uploadEntityType, uploadEntityId)
+      // Reset and close
+      setUploadFile(null)
+      setUploadPreview(null)
+      setUploadEntityId('')
+      setIsUploadOpen(false)
+      // Refresh photos
+      refetchTrips()
+      alert('Photo uploaded successfully!')
+    } catch (error) {
+      console.error('Failed to upload photo:', error)
+      alert('Failed to upload photo. Please try again.')
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  const closeUploadModal = () => {
+    setIsUploadOpen(false)
+    setUploadFile(null)
+    setUploadPreview(null)
+    setUploadEntityId('')
+  }
+
   return (
     <GalleryContainer>
       <LCARSHeader>Photo Gallery</LCARSHeader>
@@ -262,6 +383,15 @@ export const PhotoGallery: React.FC = () => {
       <LCARSPanel title="Photo Collection">
         {/* Filter Controls */}
         <FilterControls>
+          <ReadOnlyGuard>
+            <LCARSButton
+              onClick={() => setIsUploadOpen(true)}
+              variant="accent"
+              size="sm"
+            >
+              Upload Photo
+            </LCARSButton>
+          </ReadOnlyGuard>
           <LCARSButton
             onClick={() => setFilter('all')}
             variant={filter === 'all' ? 'primary' : 'secondary'}
@@ -367,6 +497,73 @@ export const PhotoGallery: React.FC = () => {
           </LightboxContent>
         )}
       </LightboxOverlay>
+
+      {/* Upload Modal */}
+      <UploadModal $isOpen={isUploadOpen} onClick={closeUploadModal}>
+        <UploadForm onClick={(e) => e.stopPropagation()}>
+          <LCARSHeader level={3}>Upload Photo</LCARSHeader>
+
+          <FormGroup>
+            <label>Select Photo</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileSelect}
+              ref={fileInputRef}
+            />
+          </FormGroup>
+
+          {uploadPreview && (
+            <UploadPreview>
+              <img src={uploadPreview} alt="Preview" />
+            </UploadPreview>
+          )}
+
+          <FormGroup>
+            <label>Attach To</label>
+            <select
+              value={uploadEntityType}
+              onChange={(e) => {
+                setUploadEntityType(e.target.value)
+                setUploadEntityId('')
+              }}
+            >
+              <option value="trip">Trip</option>
+            </select>
+          </FormGroup>
+
+          <FormGroup>
+            <label>Select {uploadEntityType === 'trip' ? 'Trip' : 'Item'}</label>
+            <select
+              value={uploadEntityId}
+              onChange={(e) => setUploadEntityId(e.target.value)}
+            >
+              <option value="">-- Select --</option>
+              {uploadEntityType === 'trip' && trips?.map(trip => (
+                <option key={trip.id} value={trip.id}>
+                  {trip.boat?.name || 'Unknown Boat'} - {new Date(trip.startTime).toLocaleDateString()}
+                </option>
+              ))}
+            </select>
+          </FormGroup>
+
+          <ButtonRow>
+            <LCARSButton
+              variant="secondary"
+              onClick={closeUploadModal}
+              disabled={isUploading}
+            >
+              Cancel
+            </LCARSButton>
+            <LCARSButton
+              onClick={handleUpload}
+              disabled={!uploadFile || !uploadEntityId || isUploading}
+            >
+              {isUploading ? 'Uploading...' : 'Upload'}
+            </LCARSButton>
+          </ButtonRow>
+        </UploadForm>
+      </UploadModal>
     </GalleryContainer>
   )
 }

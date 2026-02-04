@@ -246,12 +246,18 @@ export const MapView: React.FC = () => {
   const [showMarkedLocations, setShowMarkedLocations] = useState(true)
   const [selectedCategory, setSelectedCategory] = useState<string>('')
   const [isAddingLocation, setIsAddingLocation] = useState(false)
-  const [newLocationData, setNewLocationData] = useState({
+  const [newLocationData, setNewLocationData] = useState<{
+    name: string
+    category: 'fishing' | 'marina' | 'anchorage' | 'hazard' | 'other'
+    notes: string
+    latitude: number | null
+    longitude: number | null
+  }>({
     name: '',
-    category: 'other' as const,
+    category: 'other',
     notes: '',
-    latitude: 0,
-    longitude: 0,
+    latitude: null,
+    longitude: null,
   })
   const [selectedLocation, setSelectedLocation] = useState<MarkedLocation | null>(null)
 
@@ -320,10 +326,15 @@ export const MapView: React.FC = () => {
   }, [isAddingLocation])
   
   const handleCreateLocation = async () => {
-    if (!newLocationData.name || !newLocationData.latitude || !newLocationData.longitude) {
+    if (!newLocationData.name) {
+      alert('Please enter a location name')
       return
     }
-    
+    if (newLocationData.latitude === null || newLocationData.longitude === null) {
+      alert('Please click on the map to set coordinates')
+      return
+    }
+
     try {
       await createLocationMutation.mutateAsync({
         name: newLocationData.name,
@@ -332,18 +343,19 @@ export const MapView: React.FC = () => {
         category: newLocationData.category,
         notes: newLocationData.notes || undefined,
       })
-      
+
       // Reset form
       setNewLocationData({
         name: '',
         category: 'other',
         notes: '',
-        latitude: 0,
-        longitude: 0,
+        latitude: null,
+        longitude: null,
       })
       setIsAddingLocation(false)
     } catch (error) {
       console.error('Failed to create location:', error)
+      alert('Failed to save location. Please try again.')
     }
   }
   
@@ -671,7 +683,7 @@ export const MapView: React.FC = () => {
             ))}
             
             {/* New location marker */}
-            {isAddingLocation && newLocationData.latitude && newLocationData.longitude && (
+            {isAddingLocation && newLocationData.latitude !== null && newLocationData.longitude !== null && (
               <Marker position={[newLocationData.latitude, newLocationData.longitude]}>
                 <Popup>
                   <div>
@@ -823,12 +835,12 @@ export const MapView: React.FC = () => {
                 onChange={(e) => setNewLocationData(prev => ({ ...prev, notes: e.target.value }))}
               />
               
-              {newLocationData.latitude && newLocationData.longitude && (
+              {newLocationData.latitude !== null && newLocationData.longitude !== null && (
                 <div>
                   <h4 style={{ color: '#FF9966', marginBottom: '8px' }}>Coordinates</h4>
-                  <div style={{ 
-                    padding: '12px', 
-                    backgroundColor: '#222222', 
+                  <div style={{
+                    padding: '12px',
+                    backgroundColor: '#222222',
                     borderRadius: '4px',
                     border: '1px solid #333333',
                     fontFamily: 'monospace'
@@ -843,7 +855,7 @@ export const MapView: React.FC = () => {
                 <ReadOnlyGuard>
                   <LCARSButton
                     onClick={handleCreateLocation}
-                    disabled={!newLocationData.name || !newLocationData.latitude || !newLocationData.longitude || createLocationMutation.isPending}
+                    disabled={!newLocationData.name || newLocationData.latitude === null || newLocationData.longitude === null || createLocationMutation.isPending}
                   >
                     Save Location
                   </LCARSButton>
@@ -856,8 +868,8 @@ export const MapView: React.FC = () => {
                       name: '',
                       category: 'other',
                       notes: '',
-                      latitude: 0,
-                      longitude: 0,
+                      latitude: null,
+                      longitude: null,
                     })
                   }}
                 >

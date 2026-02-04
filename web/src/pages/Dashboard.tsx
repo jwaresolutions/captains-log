@@ -1,5 +1,6 @@
 import React from 'react'
 import styled from 'styled-components'
+import { useNavigate } from 'react-router-dom'
 import {
   LCARSPanel,
   LCARSHeader,
@@ -100,6 +101,7 @@ const ProgressText = styled.div`
 `
 
 export const Dashboard: React.FC = () => {
+  const navigate = useNavigate()
   const { data: boats, isLoading: boatsLoading, error: boatsError } = useBoats()
   const { data: trips, isLoading: tripsLoading, error: tripsError } = useTrips()
   const { data: licenseProgress, isLoading: licenseLoading, error: licenseError } = useLicenseProgress()
@@ -212,10 +214,10 @@ export const Dashboard: React.FC = () => {
       </StatusGrid>
 
       <QuickActions>
-        <LCARSButton size="sm" variant="primary">
-          New Trip
+        <LCARSButton size="sm" variant="primary" onClick={() => navigate('/trips')}>
+          View Trips
         </LCARSButton>
-        <LCARSButton size="sm" variant="secondary">
+        <LCARSButton size="sm" variant="secondary" onClick={() => navigate('/boats/new')}>
           Add Boat
         </LCARSButton>
       </QuickActions>
