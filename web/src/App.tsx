@@ -11,6 +11,7 @@ import { BoatForm } from './pages/BoatForm'
 import { TripList } from './pages/TripList'
 import { TripDetail } from './pages/TripDetail'
 import { TripEdit } from './pages/TripEdit'
+import { TripForm } from './pages/TripForm'
 import { NotesList } from './pages/NotesList'
 import { NoteDetail } from './pages/NoteDetail'
 import { NoteEditor } from './pages/NoteEditor'
@@ -95,6 +96,7 @@ function App() {
             <Route path="/boats/new" element={<BoatForm />} />
             <Route path="/boats/:id" element={<BoatDetail />} />
             <Route path="/trips" element={<TripList />} />
+            <Route path="/trips/new" element={<TripForm />} />
             <Route path="/trips/:id" element={<TripDetail />} />
             <Route path="/trips/:id/edit" element={<TripEdit />} />
             <Route path="/notes" element={<NotesList />} />

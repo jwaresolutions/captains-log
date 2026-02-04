@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 import { LCARSPanel } from '../components/lcars/LCARSPanel'
 import { LCARSButton } from '../components/lcars/LCARSButton'
@@ -13,6 +13,13 @@ const TripListContainer = styled.div`
   padding: ${props => props.theme.spacing.lg};
   max-width: 1200px;
   margin: 0 auto;
+`
+
+const HeaderRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: ${props => props.theme.spacing.lg};
 `
 
 const FiltersPanel = styled(LCARSPanel)`
@@ -175,6 +182,7 @@ interface TripFilters {
 }
 
 export const TripList: React.FC = () => {
+  const navigate = useNavigate()
   const [filters, setFilters] = useState<TripFilters>({})
   const { data: trips, isLoading, error } = useTrips(filters)
   const { data: boats } = useBoats()
@@ -242,8 +250,13 @@ export const TripList: React.FC = () => {
 
   return (
     <TripListContainer>
-      <LCARSHeader>Trip Log Database</LCARSHeader>
-      
+      <HeaderRow>
+        <LCARSHeader>Trip Log Database</LCARSHeader>
+        <LCARSButton variant="primary" onClick={() => navigate('/trips/new')}>
+          ADD MANUAL TRIP
+        </LCARSButton>
+      </HeaderRow>
+
       <FiltersPanel title="Search Parameters" variant="secondary">
         <FiltersGrid>
           <FilterGroup>
