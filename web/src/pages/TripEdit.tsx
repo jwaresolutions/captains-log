@@ -183,12 +183,13 @@ export const TripEdit: React.FC = () => {
       })
       
       if (trip.manualData) {
+        // Convert null values to undefined for proper form handling
         setManualData({
-          engineHours: trip.manualData.engineHours,
-          fuelConsumed: trip.manualData.fuelConsumed,
-          weatherConditions: trip.manualData.weatherConditions,
-          numberOfPassengers: trip.manualData.numberOfPassengers,
-          destination: trip.manualData.destination
+          engineHours: trip.manualData.engineHours ?? undefined,
+          fuelConsumed: trip.manualData.fuelConsumed ?? undefined,
+          weatherConditions: trip.manualData.weatherConditions ?? undefined,
+          numberOfPassengers: trip.manualData.numberOfPassengers ?? undefined,
+          destination: trip.manualData.destination ?? undefined
         })
       }
     }
@@ -226,10 +227,11 @@ export const TripEdit: React.FC = () => {
   const handleSaveManualData = async () => {
     if (!trip) return
 
-    // Filter out undefined values
+    // Filter out undefined, null, empty string, and NaN values
     const filteredManualData: ManualData = {}
     Object.entries(manualData).forEach(([key, value]) => {
-      if (value !== undefined && value !== '') {
+      if (value !== undefined && value !== null && value !== '' &&
+          !(typeof value === 'number' && isNaN(value))) {
         filteredManualData[key as keyof ManualData] = value as any
       }
     })
