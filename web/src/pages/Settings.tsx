@@ -244,6 +244,8 @@ export const Settings: React.FC = () => {
     try {
       const updateData: any = { username: viewerForm.username }
       if (viewerForm.password) updateData.password = viewerForm.password
+      // When creating a new viewer, enable by default
+      if (!viewerSettings.exists) updateData.enabled = true
       const result = await apiService.updateViewerSettings(updateData)
       setViewerSettings(result)
       setViewerForm(prev => ({ ...prev, password: '' }))

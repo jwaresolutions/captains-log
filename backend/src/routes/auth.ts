@@ -64,6 +64,19 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    // Handle disabled account
+    if (error instanceof Error && error.message === 'Account is disabled') {
+      res.status(403).json({
+        error: {
+          code: 'ACCOUNT_DISABLED',
+          message: 'This account is disabled. Please contact an administrator.'
+        },
+        timestamp: new Date().toISOString(),
+        path: req.path
+      });
+      return;
+    }
+
     // Handle unexpected errors
     logger.error('Login error', { error });
     res.status(500).json({
